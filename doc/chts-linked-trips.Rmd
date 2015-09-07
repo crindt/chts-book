@@ -248,10 +248,10 @@ The following sets up the R environment for generating the linked trip
 table as described above.  This section is somewhat dependent on the
 your local setup.  However, it should be fairly portable.
 
-```{r setup,cache=FALSE,echo=TRUE}
+```{r lt-setup,cache=FALSE,echo=TRUE}
 # Set the working directory so we can access libraries
 #rd <- gsub("(.*?chts2011).*","\\1",getwd())
-rd <- "/home/crindt/chts-book"
+if ( !exists(rd) ) { rd <- "/home/crindt/chts-book" }
 write(paste("Setting working directory to",rd,"\n"),stderr())
 setwd(rd)
 
@@ -742,7 +742,7 @@ Let's create a frame that has the 4-step trip end type for each
 activity and see how many places have multiple trip-end types per the
 activity definitions.
 
-```{r}
+```{r activity-type}
 # activity-type-map.csv contains mappings between activities and trip types per
 # the definitions above
 actmap <- read.csv(paste(rd,'linked-trips/data','activity-type-map-2.csv',sep="/"),header=TRUE) %>% 
@@ -761,7 +761,7 @@ With the activity->trip-end mapping, we can join a trip end type on
 every activity, and generate a frame with distinct trip-end types for
 each person/place.
 
-```{r}
+```{r trip-end}
 lte <- left_join(lt,actmap,by=c('APURP')) %>% 
   select(SAMPN,PERNO,PLANO,ACTNO,LTNO,APURP,TYPE)
 # now, create distinct_types_by_place by grouping on PLACE+TYPE, we get distinct PLACE+TYPE combos.
@@ -775,7 +775,7 @@ per person/place and we can check that by grouping this result on
 If `n` is greater than zero, we have to make a choice of the trip-end
 type to apply to that place.
 
-```{r}
+```{r trip-end-group}
 # do the grouping, summarize, and then filter for any places with n > 1
 distinct_ltno <- distinct_types_by_ltno %>% 
   group_by(SAMPN,PERNO,LTNO) %>% 
@@ -788,7 +788,7 @@ res <- dim(need_to_decide)
 
 Oops.  There are `r res[[1]]` places in the data set with more than one trip-end type.
 Here are the first 20:
-```{r}
+```{r trip-end-decide}
 head(need_to_decide,20)
 ```
 
@@ -799,7 +799,7 @@ hierarchy of trip types with the following order of importance: `H, W,
 S, O`.  As such, we can simply apply this ordering to define a
 trip-end type for each person/place:
 
-```{r}
+```{r trip-end-set-types}
 # this is a little lazy (and slow), but it works
 four_step_types <- distinct_ltno %>% 
   mutate(FSTYPE=
@@ -812,7 +812,7 @@ Now we can join these trip ends for each linked trip to give us the `TripType va
 To do this, we simply lag order the `four_step_types` by `SAMPN, PERNO, PLANO`, and
 create a new TripType column that joins the previous trip-end type to the target type.
 
-```{r}
+```{r four-step-types}
 four_step_types <- four_step_types %>% arrange(SAMPN,PERNO,LTNO) %>%
   group_by(SAMPN,PERNO) %>%
   mutate(TripType=paste(lag(FSTYPE),FSTYPE,sep="")) %>%
@@ -828,7 +828,7 @@ four_step_types <- four_step_types %>% arrange(SAMPN,PERNO,LTNO) %>%
 
 Let's look at the unique trip types we've created...
 
-```{r}
+```{r four-step-type-summarize}
 four_step_types %>% group_by(TripType) %>% summarize(n=n())
 ```
 
@@ -837,7 +837,7 @@ TripType, which is OK, because these are simply the first activity of
 the day; there are the same number of activities with `PLANO==1` and
 `ACTNO==1`:
 
-```{r}
+```{r unique-trips}
 filter(chts_act) %>% filter(PLANO==1,ACTNO==1) %>% dim()
 ```
 
@@ -846,7 +846,7 @@ any sense on the surface.  However, if we look at an example, we can see that th
 are the result of imperfect mapping between activity purpose and trip types.  
 Let's find an example:
 
-```{r}
+```{r unique-trips-questions}
 res <- four_step_types %>% filter(TripType=="HH") %>% head()
 print(res)
 ```
@@ -854,7 +854,7 @@ print(res)
 So sample `SAMPN`=`r res[1,'SAMPN']`, `PERNO`=`r res[1,'PERNO']` 
 has a HH trip.  Let's dig deeper:
 
-```{r}
+```{r unique-trips-dig}
 filter(lte,SAMPN==res$SAMPN[[1]],PERNO==res$PERNO[[1]]) %>% 
   left_join(four_step_types,by=c("SAMPN","PERNO","LTNO")) %>% 
   select(ACTNO,APURP,TripType,LTNO)
@@ -872,7 +872,7 @@ large number of HH trips is probably warranted.
 
 Now, let's have a peak at the WW trips.
 
-```{r}
+```{r ww-trips}
 res <- four_step_types %>% filter(TripType=="WW") %>% head()
 print(res)
 ```
@@ -880,7 +880,7 @@ print(res)
 So sample `SAMPN`=`r res[1,'SAMPN']`, `PERNO`=`r res[1,'PERNO']`
 has a WW trip.  Let's dig deeper:
 
-```{r}
+```{r ww-trips-deeper}
 filter(lte,SAMPN==res$SAMPN[[1]],PERNO==res$PERNO[[1]]) %>% 
   left_join(four_step_types,by=c("SAMPN","PERNO","LTNO")) %>% 
   select(ACTNO,APURP,TripType,LTNO)
@@ -890,7 +890,7 @@ Now this is interesting.  There are two adjacent linked trips, each
 with APURP=9 (WORK/JOB DUTIES).  Let's look at the raw data for this
 individual to see if we can figure out what's happening.
 
-```{r}
+```{r ww-trips-deeper-2}
 chts_act %>% 
   left_join(chts_pla %>% select(SAMPN,PERNO,PLANO,TRIPDUR,MODE), 
             by=c("SAMPN","PERNO","PLANO") ) %>% 
@@ -914,7 +914,7 @@ classification for various combinations of the primary activity
 occuring at each end of a trip.  First we set up a data structure for
 the tables.
 
-```{r}
+```{r trip-end-groups-2}
 # Now create groups of activity types as they relate to four-step trip end classes.
 # We're going to use these in the table
 tmap <- actmap %>% group_by(TYPE,GROUP) %>% 
@@ -925,7 +925,7 @@ ctmap <- merge(tmap,tmap,by=NULL)
 
 Now we can go ahead and generate the tables.
 
-```{r,results='asis'}
+```{r trip-end-troups-show-1,results='asis'}
 hbw <- ctmap %>% filter((TYPE.x=='H' & TYPE.y=='W')|(TYPE.x=='W' & TYPE.y=='H')) %>%
   mutate(dots='......') %>%
   select("Trip Purpose From"=list.x,"....."=dots,"Trip Purpose To"=list.y)
@@ -933,7 +933,7 @@ pandoc.table(hbw,caption="Home-based Work",
              split.table=Inf,split.cells=Inf,justify=c('left','left','left'),
              style='multiline')
 ```
-```{r,results='asis'}
+```{r trip-end-troups-show-2,results='asis'}
 hbs <- ctmap %>% filter((TYPE.x=='H' & TYPE.y=='S')|(TYPE.x=='S' & TYPE.y=='H')) %>%
   mutate(dots='......') %>%
   select("Trip Purpose From"=list.x,"....."=dots,"Trip Purpose To"=list.y)
@@ -941,7 +941,7 @@ pandoc.table(hbw,caption="Home-based Shopping",
              split.table=Inf,split.cells=Inf,justify=c('left','left','left'),
              style='multiline')
 ```
-```{r,results='asis'}
+```{r trip-end-troups-show-3,results='asis'}
 hbo <- ctmap %>% filter((TYPE.x=='H' & TYPE.y=='O')|(TYPE.x=='O' & TYPE.y=='H')) %>%
   mutate(dots='......') %>%
   select("Trip Purpose From"=list.x,"....."=dots,"Trip Purpose To"=list.y)
@@ -949,7 +949,7 @@ pandoc.table(hbo,caption="Home-based Other",
              split.table=Inf,split.cells=Inf,justify=c('left','left','left'),
              style='multiline')
 ```
-```{r,results='asis'}
+```{r trip-end-troups-show-4,results='asis'}
 wbo <- ctmap %>% filter((TYPE.x=='W' & TYPE.y=='O')|(TYPE.x=='O' & TYPE.y=='W')) %>%
   mutate(dots='......') %>%
   select("Trip Purpose From"=list.x,"....."=dots,"Trip Purpose To"=list.y)
@@ -957,7 +957,7 @@ pandoc.table(wbo,caption="Work-based Other",
              split.table=Inf,split.cells=Inf,justify=c('left','left','left'),
              style='multiline')
 ```
-```{r,results='asis'}
+```{r trip-end-troups-show-5,results='asis'}
 oo  <- ctmap %>% filter(TYPE.x=='O' & TYPE.y=='O') %>%
   mutate(dots='......') %>%
   select("Trip Purpose From"=list.x,"....."=dots,"Trip Purpose To"=list.y)
@@ -1241,7 +1241,7 @@ trip.  For instance, if you wanted a table showing all places
 associated with each linked trip, you might do something like the
 following in `R`:
 
-```{r}
+```{r joined-table}
 joined.table <- 
   chts_lt %>% 
   left_join(chts_lu_lt,by=c('SAMPN','PERNO','LTNO')) %>%
@@ -1251,7 +1251,7 @@ joined.table <-
 With that, we can ask questions related to the specific trips that
 make up linked trips.
 
-```{r}
+```{r talking-legs}
 # how many linked trips include at least one leg that involves walking?
 joined.table <- joined.table %>%
   filter(MODE==1)  %>% # grab only walk mode legs

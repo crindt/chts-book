@@ -32,9 +32,13 @@ The following commands are used for diagnostics checks of the CHTS.
 
 ### Household Data
 
-We first import the household data and corresponding look up data (contain x-y coordinates). Before doing this, we need to save the household and look up file manually as 'csv' format and keep them in our desired location. We import those files from that location and merge them. 
+We first import the household data and corresponding look up data (contain x-y coordinates). Before doing this, we need to save the household and look up file manually as 'csv' format and keep them in our desired location. We import those files from that location and merge them.
 
-```{r,cache=TRUE}
+```{r,echo=FALSE}
+if ( !exists(rd) ) { rd <- "/home/crindt/chts-book" }
+```
+
+```{r diag-setup,cache=TRUE}
 library(chts2011)
 library(chts2011pvt)
 #Import the household level variables csv file and give a new name
@@ -59,7 +63,7 @@ dim(hhdata1)
 
 We have a merged file now, but we need to clean it by deleting the duplicate variables. 
 
-```{r, cache=TRUE}
+```{r diag-1, cache=TRUE}
 # Subset the dataset (excluding the duplicate variables)
 nhhdata<-subset(hhdata1,select=-c(HCITY.x,HZIP.x,HXCORD.x,HYCORD.x,HPrimaryCity.x))
 
@@ -79,12 +83,12 @@ names(nhhdata)
 
 Now we have a new merged file and we use this file for diagnostics checks of household level data. We check variables of household data one by one starting with the sample number.
 
-```{r, cache=FALSE}
+```{r diag-2, cache=FALSE}
 # Attach the file
 attach(nhhdata)
 ```
 
-```{r, cache=TRUE}
+```{r diag-3, cache=TRUE}
 # Sorting data by sample number
 ## SAMPN:Sample Number
 nhhdata<-nhhdata[order(SAMPN),]
@@ -103,7 +107,7 @@ boxplot(SAMPN)
 #### RECMODE: Recruit mode; variable values (1=CATI;2=CAWI)
 
 
-```{r, cache=TRUE}
+```{r diag-4, cache=TRUE}
 ### Show the first 10 observations (if you want to see more put that number in place of 10)
 head (RECMODE,10)
 ###Summarize of the variable
@@ -126,7 +130,7 @@ We repeat the same procedure for rest of the variables of household data.
 
 #### RETMODE: Retrieval mode (1=CATI;2=CAWI;3=Mail back)
 
-```{r, cache=TRUE}
+```{r diag-5, cache=TRUE}
 ## RETMODE
 head (RETMODE,10)
 summary(RETMODE)
@@ -144,7 +148,7 @@ sum(is.na(RETMODE))
 #### INCEN: Incentive flag (1:Yes;2=NO)
 
 
-```{r, cache=TRUE}
+```{r diag-6, cache=TRUE}
 ## INCEN
 head (INCEN,10)
 summary(INCEN)
@@ -162,7 +166,7 @@ sum(is.na(INCEN))
 #### ILANG: Interview language (1:English;2= Spanish)
 
 
-```{r, cache=TRUE}
+```{r diag-7, cache=TRUE}
 ## ILANG 
 head(ILANG,10)
 summary(ILANG)
@@ -179,7 +183,7 @@ sum(is.na(ILANG))
 #### CTFIP: Residential county (06001 to 06115 )
 
 
-```{r, cache=TRUE}
+```{r diag-8, cache=TRUE}
 ## CTFIP
 head (CTFIP,10)
 summary(CTFIP)
@@ -195,7 +199,7 @@ sum(is.na(CTFIP))
 #### AREA: MPO (1 to 39)
 
 
-```{r, cache=TRUE}
+```{r diag-9, cache=TRUE}
 ## AREA
 head(AREA,10)
 summary(AREA)
@@ -211,7 +215,7 @@ sum(is.na(AREA))
 #### STRATA: Strata
 
 
-```{r, cache=TRUE}
+```{r diag-10, cache=TRUE}
 ## STRATA
 head (STRATA,10)
 summary(STRATA)
@@ -226,7 +230,7 @@ sum(is.na(STRATA))
 #### STYPE: Sample type (1=Matched;2=Unmatched)
 
 
-```{r, cache=TRUE}
+```{r diag-11, cache=TRUE}
 ## STYPE
 head(STYPE,10)
 summary(STYPE)
@@ -243,7 +247,7 @@ sum(is.na(STYPE))
 #### CEC: CEC sample flag (1=CEC-DMV;2=cEC-UC Davis)
 
 
-```{r, cache=TRUE}
+```{r diag-12, cache=TRUE}
 ## CEC
 head (CEC,10)
 summary(CEC)
@@ -257,7 +261,7 @@ sum(is.na(CEC))
 #### GTYPE: GPS sample type (1=GPS sample;2=Non-GPS sample;3=Refused or DQ from GPS)
 
 
-```{r, cache=TRUE}
+```{r diag-13, cache=TRUE}
 ## GTYPE
 head (GTYPE,10)
 summary(GTYPE)
@@ -272,7 +276,7 @@ sum(is.na(GTYPE))
 #### GFLAG: GPS type (1=wearable;2=in-vehicle;3=in-vehicle OBD)
 
 
-```{r, cache=TRUE}
+```{r diag-14, cache=TRUE}
 ## GFLAG
 head(GFLAG,10)
 summary(GFLAG)
@@ -285,11 +289,11 @@ sum(is.na(GFLAG)&GTYPE==1)
 
 #### RIBUS: Transit use at least once per week (1=yes;2=No;8=DK;9=RF)
 
-```{r, cache=FALSE}
+```{r diag-15, cache=FALSE}
 attach(nhhdata)
 ```
 
-```{r, cache=TRUE}
+```{r diag-16, cache=TRUE}
 ## RIBUS
 head (RIBUS,10)
 summary (RIBUS[RIBUS<8])
@@ -309,7 +313,7 @@ sum(is.na(RIBUS))
 #### HHVEH: Number of household vehicles (Range:0-15,98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-17, cache=TRUE}
 ## HHVEH
 head(HHVEH,10)
 summary(HHVEH[HHVEH<98])
@@ -328,7 +332,7 @@ sum(HHVEH=="")
 #### HHBIC: Number of household bicycles (Range:0-15,98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-18, cache=TRUE}
 ## HHBIC
 head(HHBIC,10)
 summary(HHBIC[HHBIC<98])
@@ -345,7 +349,7 @@ sum(HHBIC=="")
 
 Here, we are checking number of observations with higher number of household vehicles
 
-```{r, cache=TRUE}
+```{r diag-19, cache=TRUE}
 ### Check the number of observations with HHBIC>=10
 sum(HHBIC>=10)
 SAMPN[HHBIC>=10]
@@ -356,7 +360,7 @@ SAMPN[HHBIC>=10]
 #### VEHNEW: New vehicle (1=yes;2=No;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-20, cache=TRUE}
 ## VEHNEW
 head(VEHNEW,10)
 summary(VEHNEW[VEHNEW<8])
@@ -372,7 +376,7 @@ sum(VEHNEW=="")
 
 There are 8 BUYER variables. The following codes are used to check all the BUYER varaibles. 
 
-```{r, cache=TRUE}
+```{r diag-21, cache=TRUE}
 ## BUYER1
 head(BUYER1,10)
 summary(BUYER1[BUYER1<98])
@@ -382,7 +386,7 @@ boxplot(BUYER1, xlab=c("BUYER1"))
 
 We know that there should be no observations for BUYER variables if VEHNEW==2 and we cross check this by using following codes. 
  
-```{r, cache=TRUE}
+```{r diag-22, cache=TRUE}
 ### Cross check the data 
 ind<-(VEHNEW==2 & !is.na(BUYER1))
 ind[is.na(ind)]<-F
@@ -391,7 +395,7 @@ SAMPN[ind]
 
 We repeat the same procedure for other BUYER variables
 
-```{r, cache=TRUE}
+```{r diag-23, cache=TRUE}
 ## BUYER2: Buyer 2 (1 to 9 and 98=DK;99=RF)
 head(BUYER2,10)
 summary(BUYER2[BUYER2<98])
@@ -452,7 +456,7 @@ SAMPN[ind]
 #### RESTY: Residence Type (1 to 7;97=other;98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-24, cache=TRUE}
 ## RESTY
 head(RESTY,10)
 summary(RESTY[RESTY<97])
@@ -467,7 +471,7 @@ summary(O_RESTY)
 
 We know from the CHTS report (see appendix) that there should be no observaiton in O_RESTY variable when RESTY is not 97 (others). We check this by using following codes.
 
-```{r, cache=TRUE}
+```{r diag-25, cache=TRUE}
 ### Check 
 sum(!is.na(O_RESTY) & RESTY==!97)
 ```
@@ -477,7 +481,7 @@ sum(!is.na(O_RESTY) & RESTY==!97)
 #### OWN: Home ownership (1=Own;2=rent;7=other;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-26, cache=TRUE}
 ## OWN
 head(OWN,10)
 summary(OWN[OWN<8])
@@ -489,7 +493,7 @@ head(O_OWN,10)
 
 We also know that there should be no observation in O_own variable when OWN is not 7. The following codes are used to check this.
 
-```{r, cache=TRUE}
+```{r diag-27, cache=TRUE}
 ### Check 
 sum(!is.na(O_OWN) & RESTY==!7)
 ```
@@ -499,7 +503,7 @@ sum(!is.na(O_OWN) & RESTY==!7)
 #### TEN: Tenure (Range:1-97;98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-28, cache=TRUE}
 ## TEN 
 head(TEN,10)
 summary(TEN[TEN<98])
@@ -513,7 +517,7 @@ sum(TEN=="")
 
 We know from CHTS data that there should be prvious address information if TEN variable is greater than 6. The following codes are used to check this.
 
-```{r, cache=TRUE}
+```{r diag-29, cache=TRUE}
 ## PREVCITY
 head(PREVCITY,10)
 ### Check whether there is any PREVCITY observation when TEN>6 (suppose ot be zero))
@@ -538,7 +542,7 @@ sum(TEN>6 & !PREVZIP=="")
 #### PHLNS: Number of land line phones (Range:0-15;98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-30, cache=TRUE}
 ## PHLNS
 head(PHLNS,10)
 summary(PHLNS[PHLNS<98])
@@ -551,11 +555,11 @@ hist(PHLNS[PHLNS<98],xlab=c("Number of land line phones"),col=c("gold"))
 
 #### INCOM:Household income (1 to 10;98=DK;99=RF)
 
-```{r, cache=FALSE}
+```{r diag-31, cache=FALSE}
 attach(nhhdata)
 ```
 
-```{r, cache=TRUE}
+```{r diag-32, cache=TRUE}
 ## INCOM:Household income (1 to 10;98=DK;99=RF)
 head(INCOM,10)
 summary(INCOM[INCOM<98])
@@ -572,7 +576,7 @@ sum(INCOM=="")
 #### HHSIZ: Household size (Range:1-15;98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-33, cache=TRUE}
 ## HHSIZ
 head(HHSIZ,10)
 summary(HHSIZ[HHSIZ<98])
@@ -587,7 +591,7 @@ sum(HHSIZ=="")
 
 We want to check the number of households with household size greater than 5 and mean household size where household trips are more than 30. 
 
-```{r, cache=TRUE}
+```{r diag-34, cache=TRUE}
 ### Check HHSIZ>5
 sum(HHSIZ>5)
 ### Mean
@@ -599,7 +603,7 @@ mean(HHSIZ[HTRIPS>30])
 #### NONRELAT: Non-related household flag (1=yes)
 
 
-```{r, cache=TRUE}
+```{r diag-35, cache=TRUE}
 ## NONRELAT
 head(NONRELAT,10)
 summary(NONRELAT)
@@ -612,7 +616,7 @@ boxplot (NONRELAT,xlab=c("NONRELAT"))
 #### HHEMP: Number of household workers
 
 
-```{r, cache=TRUE}
+```{r diag-36, cache=TRUE}
 ## HHEMP
 head(HHEMP,10)
 summary(HHEMP)
@@ -630,7 +634,7 @@ sum(HHEMP>3)
 #### HHSTU: Number of household students
 
 
-```{r, cache=TRUE}
+```{r diag-37, cache=TRUE}
 ## HHSTU
 head(HHSTU,10)
 summary(HHSTU)
@@ -643,7 +647,7 @@ sum(HHSTU=="")
 
 The household student numbers can't be greater than household size. The following codes are used to check this.
 
-```{r, cache=TRUE}
+```{r diag-38, cache=TRUE}
 ### Check the observations with Number of students>=6 and household size >=6)
 sum(HHSTU>=6&HHSIZ>=6)
 ###Checke HHSTU>HHSIZ
@@ -655,7 +659,7 @@ sum(HHSTU>HHSIZ)
 #### HHLIC: Number of household driver license holders
 
 
-```{r, cache=TRUE}
+```{r diag-39, cache=TRUE}
 ## HHLIC
 head (HHLIC,10)
 summary(HHLIC)
@@ -668,7 +672,7 @@ sum(HHLIC=="")
 
 Same as household nubmer of students, HHLIC can't be greater than  household size. We check this in the following codes. 
 
-```{r, cache=TRUE}
+```{r diag-40, cache=TRUE}
 ###To check whether HHLIC>HHSIZ
 sum(HHLIC>HHSIZ)
 ```
@@ -678,7 +682,7 @@ sum(HHLIC>HHSIZ)
 #### RECDate: Recruitment date
 
 
-```{r, cache=TRUE}
+```{r diag-41, cache=TRUE}
 ## RECDate
 head(RECDate,10)
 summary(RECDate)
@@ -691,7 +695,7 @@ sum(is.na(RECDate))
 #### ASSN: Assigned travel date
 
 
-```{r, cache=TRUE}
+```{r diag-42, cache=TRUE}
 ## ASSN
 head(ASSN,10)
 sum(is.na(ASSN))
@@ -703,7 +707,7 @@ sum(ASSN=="")
 #### DOW: Assigned travel day
 
 
-```{r, cache=TRUE}
+```{r diag-43, cache=TRUE}
 ## DOW
 head(DOW,10)
 summary(DOW)
@@ -719,7 +723,7 @@ sum(DOW=="")
 #### HTRIPS: Number of household trips on travel day
 
 
-```{r, cache=TRUE}
+```{r diag-44, cache=TRUE}
 ## HTRIPS: Number of household trips on travel day
 head (HTRIPS,10)
 summary(HTRIPS)
@@ -734,7 +738,7 @@ sum(HTRIPS=="")
 
 Here, we check the observations with higher number of household trips.
 
-```{r, cache=TRUE}
+```{r diag-45, cache=TRUE}
 ###NUmber of household trips>20, >30, >90
 sum(HTRIPS>20)
 sum(HTRIPS>30)
@@ -745,7 +749,7 @@ SAMPN[HTRIPS>90]
 
 The following codes are used to check all the home location variables
 
-```{r, cache=TRUE}
+```{r diag-46, cache=TRUE}
 ## HCITY: Home city
 head(HCITY,10)
 sum(is.na(HCITY))
@@ -776,7 +780,7 @@ sum(HXCORD=="")
 There are eight variables for HHNOVs variables (reason of no possession of vehicle). The followig codes are used to check all the HHNOVs variables.
 
 
-```{r, cache=TRUE}
+```{r diag-47, cache=TRUE}
 #### HHNOV1: Reason of no possession of vehicle1 (1 to 12;98=DK;99=RF)
 head(HHNOV1,10)
 summary(HHNOV1[HHNOV1<98],na.rm=T)
@@ -823,7 +827,7 @@ boxplot(HHNOV8,xlab=c("HHNOV8"))
 We also check whether there is any missing values for HHNOV variables. The number of observations for HHNOV variables should be equal to the number of households without vehicle. We use following codes to check this. 
 
 
-```{r, cache=TRUE}
+```{r diag-48, cache=TRUE}
 ### Check the number of husehold without vehicle
 sum(HHVEH==0)
 ### Number of observations for HHNOV should be equal to the number of households without vehicle
@@ -836,7 +840,7 @@ SAMPN[HHVEH==0&is.na(HHNOV1)&is.na(HHNOV2)&is.na(HHNOV3)&is.na(HHNOV4)&is.na(HHN
 
 #### VEHOP: Number of operational household vehicle (Range:0-15;98=DK;99=RF)
 
-```{r, cache=TRUE}
+```{r diag-49, cache=TRUE}
 ## VEHOP
 head(VEHOP,10)
 summary(VEHOP[VEHOP<98])
@@ -851,7 +855,7 @@ boxplot(VEHOP,xlab=c("VEHOP"))
 #### VEHPR: Number of vehicles with power outlet (Range:0-15;98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-50, cache=TRUE}
 ## VEHPR
 head(VEHPR,10)
 summary(VEHPR[VEHPR<98])
@@ -865,7 +869,7 @@ hist(VEHPR,xlab=c("Number of vehicles with power outlet"),col=c("lawngreen"))
 #### VEDTE:Number of newer vehicles with power outlet (Rangle:0-15)
 
 
-```{r, cache=TRUE}
+```{r diag-51, cache=TRUE}
 ## VEDTE
 head(VEDTE,10)
 summary(VEDTE)
@@ -878,7 +882,7 @@ sum(!is.na(VEDTE)&!VEHPR>0&!GFLAG==3)
 
 There are 9 variables related to long distance log completion. We check all these variables using following codes. 
 
-```{r, cache=TRUE}
+```{r diag-52, cache=TRUE}
 ## CMPLD: Complete long distance log (1=yes;2=no;3=did not recieve;8=DK;9=RF)
 head(CMPLD,10)
 summary(CMPLD[CMPLD<8])
@@ -933,7 +937,7 @@ sum(!is.na(LDPER8)&!CMPLD==1)
 #### LDTRP: Last eight weeks (1=Trips to report;2=No LD trip;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-53, cache=TRUE}
 ## LDTRP
 head(LDTRP,10)
 summary(LDTRP[LDTRP<8])
@@ -947,7 +951,7 @@ sum(is.na(LDTRP))
 #### LDFlag: Flag for hh who reported LD trip (1=yes)
 
 
-```{r, cache=TRUE}
+```{r diag-54, cache=TRUE}
 ## LDFlag
 head(LDFlag,10)
 summary(LDFlag)
@@ -956,7 +960,7 @@ sd(LDFlag,na.rm=T)
 
 The long ditance flag should be zero when no trip is reported for long distance. We check this in the following codes. 
 
-```{r, cache=TRUE}
+```{r diag-55, cache=TRUE}
 ### Check whether all LD Flag=1 when LDTRP>0
 sum(LDFlag==1,na.rm=T)
 sum(LDFlag==1& LDTRP>0,na.rm=T)
@@ -967,7 +971,7 @@ sum(LDFlag==1& LDTRP>0,na.rm=T)
 #### HH_Complete: Household complete flag (1=complete;2=valid partial complete)
 
 
-```{r, cache=TRUE}
+```{r diag-56, cache=TRUE}
 ## HH_Complete
 head(HH_Complete,10)
 summary(HH_Complete)
@@ -980,7 +984,7 @@ sum(is.na(HH_Complete))
 #### GPS_Complete: Household complete flag for GPS (1=complete;2=valid partial complete)
 
 
-```{r, cache=TRUE}
+```{r diag-57, cache=TRUE}
 head(GPS_Complete,10)
 summary(GPS_Complete)
 sd(GPS_Complete,na.rm=T)
@@ -991,7 +995,7 @@ sd(GPS_Complete,na.rm=T)
 #### HCTRACT: Home location census tract ID 2010
 
 
-```{r, cache=TRUE}
+```{r diag-58, cache=TRUE}
 ## HCTRACT
 head(HCTRACT,10)
 summary(HCTRACT)
@@ -1004,7 +1008,7 @@ sum(is.na(HCTRACT))
 #### HPrimaryCity: Home location primary city
 
 
-```{r, cache=TRUE}
+```{r diag-59, cache=TRUE}
 ## HPrimaryCity
 head(HPrimaryCity,10)
 sum(is.na(HPrimaryCity))
@@ -1015,7 +1019,7 @@ sum(is.na(HPrimaryCity))
 #### HHWGT: Final household weight
 
 
-```{r, cache=TRUE}
+```{r diag-60, cache=TRUE}
 ##HHWGT
 head(HHWGT,10)
 summary(HHWGT)
@@ -1029,7 +1033,7 @@ sum(is.na(HHWGT))
 #### EXPHHWGT: Final expanded household weight
 
 
-```{r, cache=TRUE}
+```{r diag-61, cache=TRUE}
 ## EXPHHWGT
 head(EXPHHWGT,10)
 summary(EXPHHWGT)
@@ -1042,7 +1046,7 @@ sum(is.na(EXPHHWGT))
 We finish diagnostic checks of the household data. Now we need to detach the household file.
 
 
-```{r, cache=TRUE}
+```{r diag-62, cache=TRUE}
 # Detach the file
 detach(nhhdata)
 ```
@@ -1055,7 +1059,7 @@ detach(nhhdata)
 
 We first save the person data and corresponding look up data (contain x-y coordinates) as 'csv' file. We then import those two files and merge them using following codes. 
 
-```{r, cache=TRUE}
+```{r diag-63, cache=TRUE}
 #Import the person level variables csv file and give a new name
 #persondata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_per.csv", header=TRUE)
 persondata <- chts_per
@@ -1077,7 +1081,7 @@ names(perdata1)
 
 There are few duplicate variables and we need to delete those variables from the new data file.
 
-```{r, cache=TRUE}
+```{r diag-64, cache=TRUE}
 # Subset the dataset (excluding the duplicate variables)
 npersondata<-subset(perdata1,select=-c(38,39,41,42,43,44,45,61,63,64,66,67,68,95,96,98, 99,100,101,102,137:146))
 
@@ -1096,7 +1100,7 @@ names(npersondata)
 
 Now we have a new merged file and we use this file for diagnostics checks of person level data. First, we need to attach the file.
 
-```{r, cache=FALSE}
+```{r diag-65, cache=FALSE}
 # Attach the file
 attach(npersondata)
 ```
@@ -1108,7 +1112,7 @@ We check the variables of person data one by one starting with the sample number
 #### SAMPN:Sample Number;variable values(number)
 
 
-```{r, cache=TRUE}
+```{r diag-66, cache=TRUE}
 ## SAMPN
 summary(SAMPN)
 sd(SAMPN)
@@ -1130,7 +1134,7 @@ We follow the same steps for rest of the variables of person data.
 #### RELAT: Relationship to head of house; variable values (1 to 9;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-67, cache=TRUE}
 ## RELAT
 head(RELAT,10)
 summary(RELAT[RELAT<99])
@@ -1145,7 +1149,7 @@ sum(is.na(RELAT))
 #### GEND: Gender;(1=male;2=female;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-68, cache=TRUE}
 ## GEND
 head(GEND,10)
 summary(GEND[GEND<9])
@@ -1166,7 +1170,7 @@ pie(gendtable,labels = lbls, col=rainbow(length(lbls)),main="Pie Chart of Gender
 #### AGE: Age;(Range:0-98;99=99 years old or older;998=DK;999=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-69, cache=TRUE}
 ## AGE
 head(AGE,10)
 summary(AGE[AGE<998])
@@ -1184,7 +1188,7 @@ boxplot(AGEB,xlab=c("AGEB"))
 
 Based on final report and appendix of cHTS there should be no observations where AGE is not equal to 999 or 998. We check this here.
 
-```{r, cache=TRUE}
+```{r diag-70, cache=TRUE}
 ### Check for wrong input ( number observations in AGEB = number of observations in AGE=999 and AGE=998)
 sum(AGE==999|AGE==998)
 sum(!is.na(AGEB)& (AGE==999|AGE==998))
@@ -1199,7 +1203,7 @@ PERNO[!is.na(AGEB)&(!AGE==999&!AGE==998)]
 #### HISP: Hispanic or latino; (1=yes,2=no,8=DK,9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-71, cache=TRUE}
 ## HISP
 head(HISP,10)
 summary(HISP[HISP<8])
@@ -1216,7 +1220,7 @@ sum(is.na(HISP))
 
 There are 5 variables for race. The following codes are used to check all of them.
 
-```{r, cache=TRUE}
+```{r diag-72, cache=TRUE}
 ##RACE1: Ethnicity or race; (1 to 97;98=DK;99=RF)
 head(RACE1,10)
 summary(RACE1[RACE1<97])
@@ -1252,7 +1256,7 @@ sum(!is.na(O_RACE)&RACE1==97,na.rm=T)
 #### NTVTY: Nativity; (1=yes;2=no;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-73, cache=TRUE}
 ## NTVTY
 head(NTVTY,10)
 summary(NTVTY[NTVTY<8])
@@ -1267,7 +1271,7 @@ sum(is.na(NTVTY))
 #### CNTRY: Country of birth; (Range:1900-2012;9998=DK;9999=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-74, cache=TRUE}
 ## CNTRY
 head(CNTRY,10)
 summary(CNTRY[CNTRY<9998])
@@ -1282,7 +1286,7 @@ sum(is.na(CNTRY)&NTVTY>1)
 #### LIC: Valid license (1=yes;2=no;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-75, cache=TRUE}
 #### LIC
 head(LIC,10)
 summary(LIC[LIC<8])
@@ -1297,7 +1301,7 @@ sum(is.na(LIC)&AGE>15&AGE<998)
 #### USER: Vehicle driven by respondent (Range: 1-15;98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-76, cache=TRUE}
 ## USER
 head(USER,10)
 summary(USER[USER<98])
@@ -1311,7 +1315,7 @@ hist(USER[USER<98],xlab=c("Vehicle driven by respondent"),ylim=c(0,10000),col=c(
 #### TRANS: Transit pass;(1=yes;2=no;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-77, cache=TRUE}
 ## TRANS
 head(TRANS,10)
 summary(TRANS[TRANS<8])
@@ -1323,11 +1327,11 @@ sum(is.na(TRANS)&AGE>15&AGE<998,na.rm=T)
 
 Here wer are checking variables for different types of transit pass.
 
-```{r, cache=FALSE}
+```{r diag-78, cache=FALSE}
 attach(npersondata)
 ```
 
-```{r, cache=TRUE}
+```{r diag-79, cache=TRUE}
 ##TPTYP1: Type of transit pass (1 to 97;98=DK;99=RF)
 head(TPTYP1)
 summary(TPTYP1[TPTYP1<97])
@@ -1363,7 +1367,7 @@ sum(is.na(O_TPTYP)&TPTYP1==97)
 
 Here, we check more transit pass variables.
 
-```{r, cache=TRUE}
+```{r diag-80, cache=TRUE}
 ##CLIP1: Type of Clipper Card (1 to 27;98=DK;99=RF)
 head(CLIP1)
 summary(CLIP1[CLIP1<98])
@@ -1403,7 +1407,7 @@ boxplot(MET,xlab=c("MET"))
 #### PASSTL: Toll Pass; (1=yes;2=no;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-81, cache=TRUE}
 ## PASSTL
 head(PASSTL,10)
 summary(PASSTL[PASSTL<8])
@@ -1420,7 +1424,7 @@ PERNO[is.na(PASSTL)&AGE>15&AGE<998]
 #### FLEX: Car Sharing; (1=yes;2=no;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-82, cache=TRUE}
 ## FLEX
 head(FLEX,10)
 summary(FLEX[FLEX<8])
@@ -1437,7 +1441,7 @@ PERNO[is.na(FLEX)&AGE>15&AGE<998]
 #### EMPLY: Employed?(1=yes,2=no,8=DK,9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-83, cache=TRUE}
 ## EMPLY
 head(EMPLY,10)
 summary(EMPLY[EMPLY<8])
@@ -1453,7 +1457,7 @@ PERNO[is.na(EMPLY)&AGE>15&AGE<998]
 #### WKSTAT: Employment status; (1 to 7;97=Other;98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-84, cache=TRUE}
 ## WKSTAT
 head(WKSTAT,10)
 summary(WKSTAT[WKSTAT<97])
@@ -1470,7 +1474,7 @@ sum(is.na(O_WKSTAT)&WKSTAT==97,na.rm=T)
 #### WLOC: Work location (1=Fixed; 2=Home;3=No fixed;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-85, cache=TRUE}
 ## WLOC
 head(WLOC,10)
 summary(WLOC[WLOC<8])
@@ -1484,7 +1488,7 @@ sum(!is.na(WLOC)& EMPLY==1,na.rm=T)
 #### JOBS: How many jobs (Range:1-15,98=DK,99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-86, cache=TRUE}
 ## JOBS
 head(JOBS,10)
 summary(JOBS[JOBS<98])
@@ -1498,10 +1502,10 @@ hist(JOBS[HOURS>99&JOBS<98],xlab=c("How many jobs"),col=c("yellow"))
 The following codes are used to check the location variables of pirmary work place
 
 
-```{r, cache=FALSE}
+```{r diag-87, cache=FALSE}
 attach(npersondata)
 ```
-```{r, cache=TRUE}
+```{r diag-88, cache=TRUE}
 ## WNAME: Primary work name
 head(WNAME,10)
 summary(WNAME)
@@ -1538,7 +1542,7 @@ hist(WYCORD,freq=FALSE,xlab=c("Primary work Y-coordinates"),col=c("blue"))
 #### WDAYS: Days at primary work (RANGE:1-7;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-89, cache=TRUE}
 ## WDAYS
 head(WDAYS,10)
 summary(WDAYS[WDAYS<8])
@@ -1553,7 +1557,7 @@ sum(is.na(WDAYS)&EMPLY==1,na.rm=T)
 #### WDAY1: Work days (1 to 8; 98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-90, cache=TRUE}
 ## WDAY1
 head(WDAY1,10)
 summary(WDAY1[WDAY1<98])
@@ -1566,7 +1570,7 @@ hist(WDAY1[WDAY1<98],xlab=c("Work days"),col=c("maroon"))
 Now, we generate a pie chart for WDAY1.
 
 
-```{r, cache=TRUE}
+```{r diag-91, cache=TRUE}
 ###Pie chart
 wday1table<-table(WDAY1)
 lbls <- paste(names(wday1table))
@@ -1582,7 +1586,7 @@ legend("topright", c("Mon","Tue","Wed","Thu","Fri","Sat","Sun","Mon-Fri","Don't 
 
 The following codes are used to check the rest of the WDAY variables.
 
-```{r, cache=TRUE}
+```{r diag-92, cache=TRUE}
 ## WDAY2
 head(WDAY2,10)
 summary(WDAY2[WDAY2<98])
@@ -1626,7 +1630,7 @@ hist(WDAY7,xlab=c("WDAY7:Work days"),col=c("gold"))
 #### HOURS: Hours work per week (Range:1-150;998=DK;999=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-93, cache=TRUE}
 ## HOURS
 head(HOURS,10)
 summary(HOURS[HOURS<998])
@@ -1643,7 +1647,7 @@ sum(HOURS>99 & HOURS<998,na.rm=T)
 
 We generate different cross tables with hours to cross check the data input.
 
-```{r, cache=TRUE}
+```{r diag-94, cache=TRUE}
 table(HOURS,JOBS)
 psf<-npersondata[(HOURS>60&HOURS<998),c('HOURS','JOBS','OCCUP')]
 ## Cross tabulation Hours (>60) and occupation
@@ -1661,7 +1665,7 @@ write.csv(table(psf$HOURS,psf$JOBS),file="job.csv")
 #### WSCHED: Flexible work schedule (1 to 3;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-95, cache=TRUE}
 ## WSCHED
 head(WSCHED,10)
 summary(WSCHED[WSCHED<8])
@@ -1676,7 +1680,7 @@ sum(is.na(WSCHED)& EMPLY==1,na.rm=T)
 #### COMPR: Flexible programs offered (1=yes;2=no;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-96, cache=TRUE}
 ## COMPR
 head(COMPR,10)
 summary(COMPR[COMPR<8])
@@ -1690,7 +1694,7 @@ sum(is.na(COMPR)& EMPLY==1&WSCHED<4,na.rm=T)
 #### WMODE: Work mode (1 to 20;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-97, cache=TRUE}
 ## WMODE
 head(WMODE,10)
 summary(WMODE[WMODE<99])
@@ -1705,7 +1709,7 @@ sum(is.na(WMODE)& EMPLY==1&WLOC>2,na.rm=T)
 #### INDUS: Industry (11 to 92;97=other;98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-98, cache=TRUE}
 ## INDUS
 head(INDUS,10)
 summary(INDUS[INDUS<97])
@@ -1725,10 +1729,10 @@ sum(is.na(O_INDUS)& INDUS==97)
 #### OCCUP: Occupation (11 to 92;97=other;98=DK;99=RF)
 
 
-```{r, cache=FALSE}
+```{r diag-99, cache=FALSE}
 attach(npersondata)
 ```
-```{r, cache=TRUE}
+```{r diag-100, cache=TRUE}
 ##OCCUP
 head(OCCUP,10)
 summary(OCCUP[OCCUP<97])
@@ -1740,7 +1744,7 @@ hist(OCCUP,xlab=c("Occupation"),col=c("orange"))
 
 Here, we are checking the location variables for second work. 
 
-```{r, cache=TRUE}
+```{r diag-101, cache=TRUE}
 ## WLOC2: Work location 2 (1=Fixed; 2=Home;3=No fixed;8=DK;9=RF)
 head(WLOC2,10)
 summary(WLOC2[WLOC2<8])
@@ -1770,7 +1774,7 @@ sum(is.na(WSTAT2)&WLOC>2)
 #### WDAYS2: Days a secondary work (RANGE:1-7;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-102, cache=TRUE}
 ## WDAYS2
 head(WDAYS2,10)
 summary(WDAYS2[WDAYS2<8])
@@ -1785,11 +1789,11 @@ sum(is.na(WDAYS2)&EMPLY==1& JOBS>1&JOBS<6,na.rm=T)
 
 #### DISAB: Disability status (1=yes;2=no;8=DK;9=RF)
 
-```{r, cache=FALSE}
+```{r diag-103, cache=FALSE}
 attach(npersondata)
 ```
 
-```{r, cache=TRUE}
+```{r diag-104, cache=TRUE}
 ## DISAB
 head(DISAB,10)
 summary(DISAB[DISAB<8])
@@ -1841,7 +1845,7 @@ sum(is.na(O_DTYPE)&DTYPE1==97)
 #### DSLIC:Disabled license plate (1=yes;2=no;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-105, cache=TRUE}
 ## DSLIC:Disabled license plate (1=yes;2=no;8=DK;9=RF)
 head(DSLIC,10)
 summary(DSLIC[DSLIC<8])
@@ -1855,7 +1859,7 @@ sum(is.na(DSLIC)&DISAB==1&(AGE>15&AGE<998))
 #### EDIS:Disabled transit registration (1=yes;2=no;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-106, cache=TRUE}
 ## EDIS
 head(EDIS,10)
 summary(EDIS[EDIS<8])
@@ -1869,7 +1873,7 @@ sum(is.na(EDIS)&DISAB==1)
 #### TTRIP: Transit trips used in past week (Range:0-50; 98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-107, cache=TRUE}
 ##TTRIP
 head(TTRIP,10)
 summary(TTRIP[TTRIP<98])
@@ -1885,7 +1889,7 @@ sum(is.na(TTRIP))
 #### TRNSUB: Transit subsidy (1=yes;2=no;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-108, cache=TRUE}
 ## TRNSUB
 head(TRNSUB,10)
 summary(TRNSUB[TRNSUB<8])
@@ -1899,7 +1903,7 @@ sum(is.na(TRNSUB)&TTRIP>0)
 #### SUBAMT: Subsidized amount
 
 
-```{r, cache=TRUE}
+```{r diag-109, cache=TRUE}
 ##SUBAMT
 SUBAMT <- as.integer(SUBAMT)
 head(SUBAMT,10)
@@ -1915,7 +1919,7 @@ sum(is.na(SUBAMT)&TRNSUB==1,na.rm=T)
 #### SUBUNT: Fare unit (1 to 7; 8=DK; 9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-110, cache=TRUE}
 ## SUBUNT
 head(SUBUNT,10)
 summary(SUBUNT[SUBUNT<8])
@@ -1926,7 +1930,7 @@ hist(SUBUNT,xlab=c("Fare unit"),col=c("maroon"))
 
 Here, we are generating a pie chart for fare unit (SUBUNT).
 
-```{r, cache=TRUE}
+```{r diag-111, cache=TRUE}
 ###Pie chart
 faretable<-table(SUBUNT)
 pct <- round(faretable/sum(faretable)*100)
@@ -1940,7 +1944,7 @@ legend("topright", c("Per Hour","Per day","Per week","Per month","Per Semester",
 #### O_SUBUNT: Other, fair unit 
 
 
-```{r, cache=TRUE}
+```{r diag-112, cache=TRUE}
 ## O_SUBUNT
 head(O_SUBUNT,10)
 sum(is.na(O_SUBUNT)&SUBUNT==7)
@@ -1951,7 +1955,7 @@ sum(is.na(O_SUBUNT)&SUBUNT==7)
 #### WTRIP: Walk in the last week (Range:0-50; 98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-113, cache=TRUE}
 ## WTRIP
 head(WTRIP,10)
 summary(WTRIP[WTRIP<98])
@@ -1966,7 +1970,7 @@ sum(is.na(WTRIP))
 #### BTRIP: Bicycle in the last week (Range:0-50; 98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-114, cache=TRUE}
 ## BTRIP
 head(BTRIP,10)
 summary(BTRIP[BTRIP<98])
@@ -1980,7 +1984,7 @@ hist(BTRIP[BTRIP<98],xlab=c("Bicycle trips in the last week "),col=c("green"))
 #### STUDE: Student (1=yes-Full time;2=Yes-Part time;3=No;8=DK; 9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-115, cache=TRUE}
 ## STUDE
 head(STUDE,10)
 summary(STUDE[STUDE<8])
@@ -1994,7 +1998,7 @@ sum(is.na(STUDE))
 #### SCHOL: School grade level attends (1 to 8; 97=others;98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-116, cache=TRUE}
 ## SCHOL
 head(SCHOL,10)
 summary(SCHOL[SCHOL<97])
@@ -2007,7 +2011,7 @@ sum(is.na(SCHOL)&STUDE<3)
 
 The following codes are used to generate a pie chart for SCHOL variable
 
-```{r, cache=TRUE}
+```{r diag-117, cache=TRUE}
 ###Pie chart
 sgtable<-table(SCHOL)
 pct <- round(sgtable/sum(sgtable)*100)
@@ -2021,7 +2025,7 @@ legend("topright",c("Daycare","Pre-school","Kindergarten-Grade 8","Grade 9-12","
 #### O_SCHOL: School grade level attends, other
 
 
-```{r, cache=TRUE}
+```{r diag-118, cache=TRUE}
 ## O_SCHOL
 head(O_SCHOL,10)
 sum(is.na(O_SCHOL)&SCHOL==97)
@@ -2032,7 +2036,7 @@ sum(is.na(O_SCHOL)&SCHOL==97)
 #### SLOC: Home School; (1=yes;2=no;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-119, cache=TRUE}
 ## SLOC
 head(SLOC,10)
 summary(SLOC[SLOC<8])
@@ -2046,7 +2050,7 @@ sum(is.na(SLOC)&SCHOL>1&SCHOL<5,na.rm=T)
 #### SONLN: Online school (1 to 3; 8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-120, cache=TRUE}
 ## SONLN
 head(SONLN,10)
 summary(SONLN[SONLN<8])
@@ -2060,7 +2064,7 @@ sum(is.na(SONLN)&SCHOL>4&SCHOL<9,na.rm=T)
 #### PRESCH: Pre-school location (1 to 4; 8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-121, cache=TRUE}
 ##PRESCH
 head(PRESCH,10)
 summary(PRESCH[PRESCH<8])
@@ -2076,7 +2080,7 @@ sum(is.na(O_PRESCH)& PRESCH==7)
 We use following codes to check all the school location variables.
 
 
-```{r, cache=TRUE}
+```{r diag-122, cache=TRUE}
 ##SNAME: School name
 head(SNAME,10)
 ##SCITY: School city
@@ -2108,7 +2112,7 @@ sd(SYCORD,na.rm=T)
 #### SMODE: School mode (1 to 29;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-123, cache=TRUE}
 ## SMODE
 head(SMODE,10)
 summary(SMODE[SMODE<99])
@@ -2122,7 +2126,7 @@ hist(SMODE[SMODE<99],xlab=c("School mode"),col=c("green"))
 #### EDUCA: Level of education completed; (1 to 7;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-124, cache=TRUE}
 ##EDUCA
 head(EDUCA,10)
 summary(EDUCA[EDUCA<8])
@@ -2139,7 +2143,7 @@ sum(is.na(EDUCA)&EDUCA==7)
 #### INTRV: Are you interviewing this person; (1=yes,2=no)
 
 
-```{r, cache=TRUE}
+```{r diag-125, cache=TRUE}
 ##INTRV
 head(INTRV,10)
 summary(INTRV)
@@ -2151,7 +2155,7 @@ sd(INTRV,na.rm=T)
 #### PROXY: Which person served as proxy
 
 
-```{r, cache=TRUE}
+```{r diag-126, cache=TRUE}
 ## PROXY
 head(PROXY,10)
 summary(PROXY)
@@ -2163,7 +2167,7 @@ sd(PROXY,na.rm=T)
 #### CMPLG: Did you complete the log (1 to 3,8=DK,9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-127, cache=TRUE}
 ##CMPLG
 head(CMPLG,10)
 summary(CMPLG[CMPLG<8])
@@ -2176,7 +2180,7 @@ boxplot(CMPLG,xlab=c("CMPLG"))
 #### HVLOG: Have diary to refer to (1=yes,2=no,9=prefer not to answer)
 
 
-```{r, cache=TRUE}
+```{r diag-128, cache=TRUE}
 ##HVLOG
 head(HVLOG,10)
 summary(HVLOG[HVLOG<9])
@@ -2189,7 +2193,7 @@ boxplot(HVLOG,xlab=c("HVLOG"))
 #### PTRIPS: Person trips
 
 
-```{r, cache=TRUE}
+```{r diag-129, cache=TRUE}
 ## PTRIPS
 head(PTRIPS,10)
 summary(PTRIPS)
@@ -2203,7 +2207,7 @@ hist(PTRIPS,xlab=c("Person trips"),col=c("green"))
 #### TOLLF: Did you use a toll (1 to 3, 8=DK, 9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-130, cache=TRUE}
 ## TOLLF
 head(TOLLF,10)
 summary(TOLLF[TOLLF<8])
@@ -2215,7 +2219,7 @@ boxplot(TOLLF,xlab=c("TOLLF"))
 There are 10 variables related to toll road. We use following codes to check those variables.
 
 
-```{r, cache=TRUE}
+```{r diag-131, cache=TRUE}
 ##TOLLR1: Toll Road (1 to 9, 98=DK, 99=RF)
 head(TOLLR1,10)
 summary(TOLLR1[TOLLR1<98])
@@ -2267,7 +2271,7 @@ summary(TOLLR10)
 
 The following codes are used to check the 10 toll bridge related variables.
 
-```{r, cache=TRUE}
+```{r diag-132, cache=TRUE}
 ###TOLLB1: Toll Bridge (1 to 7, 98=DK, 99=RF)
 head(TOLLB1,10)
 summary(TOLLB1[TOLLB1<98])
@@ -2321,7 +2325,7 @@ summary(TOLLB10)
 #### HOVL: HOV lane used; (1=yes;2=no;98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-133, cache=TRUE}
 ## HOVL
 head(HOVL,10)
 summary(HOVL[HOVL<98])
@@ -2334,7 +2338,7 @@ boxplot(HOVL,xlab=c("HOVL"))
 #### NOGOWHY: Why no trips on travel day; (1 to 12, 97=other;98=DK, 99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-134, cache=TRUE}
 ## NOGOWHY
 head (NOGOWHY,10)
 summary(NOGOWHY[NOGOWHY<97])
@@ -2352,7 +2356,7 @@ sum(is.na(NOGOWHY_O)&NOGOWHY==97)
 #### InComplete: Person Retrieval Incomplete Flag (1=Did not report travel)
 
 
-```{r, cache=TRUE}
+```{r diag-135, cache=TRUE}
 ##InComplete
 head(InComplete,10)
 summary(InComplete)
@@ -2363,7 +2367,7 @@ summary(InComplete)
 #### Moto_trip; (1=yes, 2=no)
 
 
-```{r, cache=TRUE}
+```{r diag-136, cache=TRUE}
 ## Moto_trip
 head(Moto_trip,10)
 summary(Moto_trip)
@@ -2376,7 +2380,7 @@ boxplot(Moto_trip,xlab=c("Moto_trip"))
 ## WCTFIP: Work location county FIP  Code 2010
 
 
-```{r, cache=TRUE}
+```{r diag-137, cache=TRUE}
 ## WCTFIP
 head(WCTFIP,10)
 summary(WCTFIP[WCTFIP<999])
@@ -2388,7 +2392,7 @@ sd(WCTFIP,na.rm=T)
 #### WTRACT: Work location census tract ID 2010
 
 
-```{r, cache=TRUE}
+```{r diag-138, cache=TRUE}
 ## WTRACT
 head(WTRACT,10)
 summary(WTRACT)
@@ -2397,7 +2401,7 @@ sd(WTRACT,na.rm=T)
 
 Here, we check variables related to school location.
 
-```{r, cache=TRUE}
+```{r diag-139, cache=TRUE}
 ## CTFIP: School location county FIP  Code 2010
 head(SCTFIP,10)
 summary(SCTFIP[SCTFIP<999])
@@ -2419,7 +2423,7 @@ sd(SSTFIP,na.rm=T)
 
 And here, we check variables related to work location.
 
-```{r, cache=TRUE}
+```{r diag-140, cache=TRUE}
 ##WPrimaryCity: Work location primary city
 head(WPrimaryCity,10)
 
@@ -2442,7 +2446,7 @@ sd(W2STFIP,na.rm=T)
 #### PERWGT: Final Person weight
 
 
-```{r, cache=TRUE}
+```{r diag-141, cache=TRUE}
 ## PERWGT
 head(PERWGT,10)
 summary(PERWGT)
@@ -2455,7 +2459,7 @@ boxplot(PERWGT,xlab=c("PERWGT"))
 #### EXPPERWGT: Final expanded person weight
 
 
-```{r, cache=TRUE}
+```{r diag-142, cache=TRUE}
 ## EXPPERWGT
 head(EXPPERWGT,10)
 summary(EXPPERWGT)
@@ -2465,7 +2469,7 @@ boxplot(EXPPERWGT,xlab=c("EXPPERWGT"))
 
 We have checked all the variables of person data. Now we need to detach the person data file.
 
-```{r, cache=TRUE}
+```{r diag-143, cache=TRUE}
 detach(npersondata)
 ```
 
@@ -2478,7 +2482,7 @@ detach(npersondata)
 We check the variables of vehicle data. First we import the vehicle csv file and check it's dimension and see the variable names. 
 
 
-```{r, cache=TRUE}
+```{r diag-144, cache=TRUE}
 # Import the vehicle variables csv file and give a new name
 #veh_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/Deliv_VEH.csv", header=TRUE)
 veh_data <- chts_veh
@@ -2492,7 +2496,7 @@ names(veh_data)
 
 Now, we attach the vehicle data to check all the variables one by one. 
 
-```{r, cache=FALSE}
+```{r diag-145, cache=FALSE}
 # Attach the file
 attach(veh_data)
 ```
@@ -2501,7 +2505,7 @@ attach(veh_data)
 First we sort the data by sample number.
 
 
-```{r, cache=TRUE}
+```{r diag-146, cache=TRUE}
 # SAMPN: Sample number
 # Sorting data by sample number
 veh_data<-veh_data[order(SAMPN),]
@@ -2514,7 +2518,7 @@ Here, we start checking variables.
 #### VEHNO:Vehicle Number
 
 
-```{r, cache=TRUE}
+```{r diag-147, cache=TRUE}
 ## VEHNO
 ### Show the first 10 observations (if you want to see more put that number in place of 10)
 head(VEHNO,10)
@@ -2533,7 +2537,7 @@ boxplot(VEHNO,xlab=c("VEHNO"))
 #### YEAR: Year of vehicle (Range:1930-2013; 9998=DK;9999=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-148, cache=TRUE}
 ## YEAR
 head(YEAR,10)
 summary(YEAR[YEAR<9998])
@@ -2543,7 +2547,7 @@ sd(YEAR,na.rm=T)
 
 Here, we generate boxplot and histogram for YEAR variable where we exclude observations for error codes (9998)
 
-```{r, cache=TRUE}
+```{r diag-149, cache=TRUE}
 boxplot(YEAR[YEAR<9998],xlab=c("Year of vehicle"),col=c("gold"))
 hist(YEAR[YEAR<9998],xlab=c("Year of vehicle"),col=c("green"))
 ```
@@ -2552,7 +2556,7 @@ hist(YEAR[YEAR<9998],xlab=c("Year of vehicle"),col=c("green"))
 We want to count the missing observations and check the number of observations with year less than 1960
 
 
-```{r, cache=TRUE}
+```{r diag-150, cache=TRUE}
 sum(YEAR=="")
 sum(is.na(YEAR))
 sum(YEAR<=1960,na.rm=T)
@@ -2562,7 +2566,7 @@ sum(YEAR<=1960,na.rm=T)
 We want to generate cross tabulation for YEAR and MAKE variables.
 
 
-```{r, cache=TRUE}
+```{r diag-151, cache=TRUE}
 ## Cross tabulation YEAR<=1960 and Make
 veht<-veh_data[(YEAR<=1960),c('YEAR','MAKE','BODY')]
 table(veht$YEAR,veht$MAKE)
@@ -2572,7 +2576,7 @@ table(veht$YEAR,veht$MAKE)
 Then, we want to generate cross tabultation for YEAR and BODY variables.
 
 
-```{r, cache=TRUE}
+```{r diag-152, cache=TRUE}
 ## Cross tabulation YEAR<=1960 and BODY
 table(veht$YEAR,veht$BODY)
 ```
@@ -2582,7 +2586,7 @@ table(veht$YEAR,veht$BODY)
 #### MAKE: Vehicle make (11 to 97; 98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-153, cache=TRUE}
 ## MAKE
 head(MAKE,10)
 summary(MAKE[MAKE<97])
@@ -2601,7 +2605,7 @@ sum(is.na(O_MAKE)&MAKE==97)
 #### MODEL: Vehicle model
 
 
-```{r, cache=TRUE}
+```{r diag-154, cache=TRUE}
 ## MODEL
 head(MODEL,10)
 sum(is.na(MODEL))
@@ -2614,7 +2618,7 @@ VEHNO[is.na(MODEL)]
 #### SERIES: Series (000000=No series; 999997=other specify;999998=DK;999999=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-155, cache=TRUE}
 ## SERIES
 SERIES <- as.integer(SERIES)
 head(SERIES,10)
@@ -2635,7 +2639,7 @@ sum(is.na(SERIES)&SERIES==999997,na.rm=T)
 #### BODY: Body type  (1 to 97,98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-156, cache=TRUE}
 ## BODY
 head(BODY,10)
 summary(BODY[BODY<97])
@@ -2649,7 +2653,7 @@ sum(is.na(BODY))
 We want to generate a pie chart for BODY variable.
 
 
-```{r, cache=TRUE}
+```{r diag-157, cache=TRUE}
 ### Pie chart
 bdtable<-table(BODY)
 pct <- round(bdtable/sum(bdtable)*100)
@@ -2663,7 +2667,7 @@ legend("topright",c("1","2","3","4","5","6","7","8","9","10","11","12","13","97"
 #### O_BODY: Other, Body type 
 
 
-```{r, cache=TRUE}
+```{r diag-158, cache=TRUE}
 ## O_BODY
 head(O_BODY,10)
 sum(is.na(BODY)&BODY==97)
@@ -2674,7 +2678,7 @@ sum(is.na(BODY)&BODY==97)
 #### FUELT1: FUEL type  (1 to 7,8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-159, cache=TRUE}
 ## FUELT1
 head(FUELT1,10)
 summary(FUELT1[FUELT1<8])
@@ -2687,7 +2691,7 @@ sum(is.na(FUELT1))
 We want to generate a pie chart for FUELT1 variable.
 
 
-```{r, cache=TRUE}
+```{r diag-160, cache=TRUE}
 ###Pie chart
 ftyptable<-table(FUELT1)
 pct <- round(ftyptable/sum(ftyptable)*100)
@@ -2700,7 +2704,7 @@ legend("topright",c("1","2","3","4","5","6","7","8","9"), cex=0.8, fill=rainbow(
 The following codes are used to check other FUEL variables.
 
 
-```{r, cache=TRUE}
+```{r diag-161, cache=TRUE}
 ## FUELT2: FUEL type  (1 to 7,8=DK;9=RF)
 head(FUELT2,10)
 summary(FUELT2[FUELT2<8])
@@ -2734,7 +2738,7 @@ sum(is.na(O_FUELT)&FUELT1==7)
 #### CIGLT: Working power outlet  (1=yes,2=no;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-162, cache=TRUE}
 ## CIGLT
 head(CIGLT,10)
 summary(CIGLT[CIGLT<8])
@@ -2747,7 +2751,7 @@ hist(CIGLT)
 #### VEHAQ: Vehicle acquired  (1=new,2=used;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-163, cache=TRUE}
 ## VEHAQ
 head(VEHAQ,10)
 summary(VEHAQ[VEHAQ<8])
@@ -2760,7 +2764,7 @@ boxplot(VEHAQ,xlab=c("Vehicle acquired"),col=c("gold"))
 #### VEHOWN: Vehicle ownership  (1 to 4;7=other;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-164, cache=TRUE}
 ## VEHOWN
 head(VEHOWN,10)
 summary(VEHOWN[VEHOWN<7])
@@ -2778,7 +2782,7 @@ sum(is.na(O_VEHOWN)&VEHOWN==7)
 #### VEHINS: Vehicle insurance  (1=yes,2=no;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-165, cache=TRUE}
 ## VEHINS
 head(VEHINS,10)
 summary(VEHINS[VEHINS<8])
@@ -2790,7 +2794,7 @@ boxplot(VEHINS,xlab=c("VEHINS"))
 #### VEHINS: Vehicle insurance  (1=yes,2=no;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-166, cache=TRUE}
 ## VEHINS
 head(VEHOBD,10)
 summary(VEHOBD[VEHOBD<8])
@@ -2803,7 +2807,7 @@ sum(is.na(VEHOBD)&!VEHINS==2,na.rm=T)
 #### VEHTRN: Vehicle transmission  (1 to 3;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-167, cache=TRUE}
 ## VEHTRN
 head(VEHTRN,10)
 summary(VEHTRN[VEHTRN<8])
@@ -2817,7 +2821,7 @@ SAMPN[is.na(VEHTRN)&BODY<12]
 #### VEHDRT: Power train  (1 to 7;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-168, cache=TRUE}
 ## VEHDRT
 head(VEHDRT,10)
 summary(VEHDRT[VEHDRT<8])
@@ -2831,7 +2835,7 @@ SAMPN[is.na(VEHDRT)&BODY<12]
 Now, we generate a pie chart for VEHDRT variable.
 
 
-```{r, cache=TRUE}
+```{r diag-169, cache=TRUE}
 ### Pie chart
 vptable<-table(VEHDRT)
 pct <- round(vptable/sum(vptable)*100)
@@ -2845,7 +2849,7 @@ legend("right",c("1","2","3","7","8","9"), cex=0.8, fill=rainbow(length(lbls)))
 #### O_VEHDRT: Power train, other
 
 
-```{r, cache=TRUE}
+```{r diag-170, cache=TRUE}
 ## O_VEHDRT
 head(O_VEHDRT,10)
 sum(is.na(O_VEHDRT)&VEHDRT==7)
@@ -2856,7 +2860,7 @@ sum(is.na(O_VEHDRT)&VEHDRT==7)
 #### VEHCYL: Cylinders  (1 to 7;97=other; 98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-171, cache=TRUE}
 ## VEHCYL: Cylinders  (1 to 7;97=other; 98=DK;99=RF)
 head(VEHCYL,10)
 summary(VEHCYL[VEHCYL<97])
@@ -2870,7 +2874,7 @@ SAMPN[is.na(VEHCYL)&BODY<12]
 Here, we generate a pie chart for VEHCYL variable.
 
 
-```{r, cache=TRUE}
+```{r diag-172, cache=TRUE}
 ###Pie chart
 rm(lbls,pct)
 vctable<-table(VEHCYL)
@@ -2885,7 +2889,7 @@ legend("topright",c("1","2","3","7","97","98","99"), cex=0.8, fill=rainbow(lengt
 #### O_VEHCYL: Cylinders, other  
 
 
-```{r, cache=TRUE}
+```{r diag-173, cache=TRUE}
 ## O_VEHCYL: Cylinders, other  
 head(O_VEHCYL,10)
 sum(is.na(O_VEHCYL)&VEHCYL==97)
@@ -2896,7 +2900,7 @@ sum(is.na(O_VEHCYL)&VEHCYL==97)
 #### VEHOUT: Electric outlet (Range: 1-8999; 9000=No; 9998=DK;9999=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-174, cache=TRUE}
 ## VEHOUT
 head(VEHOUT,10)
 summary(VEHOUT[VEHOUT<9000])
@@ -2909,7 +2913,7 @@ hist(VEHOUT,xlab=c("Electric outlets "),col=c("blue"))
 #### VEHVLT: Outlet volts (1=110 volt;2=220 volt; 8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-175, cache=TRUE}
 ## VEHVLT
 head(VEHVLT,10)
 summary(VEHVLT[VEHVLT<8])
@@ -2922,7 +2926,7 @@ sum(is.na(VEHVLT)&VEHOUT<9000&VEHOUT>0,na.rm=T)
 #### VEHT: Vehicle type (1 to 7;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-176, cache=TRUE}
 ## VEHT
 head(VEHT,10)
 summary(VEHT[VEHT<9])
@@ -2935,7 +2939,7 @@ hist(VEHT,xlab=c("Vehicle type "),col=c("blue"))
 #### CNTV: Vehicle used on travel day (1=used; 2=Not used)
 
 
-```{r, cache=TRUE}
+```{r diag-177, cache=TRUE}
 ## CNTV
 head(CNTV,10)
 summary(CNTV)
@@ -2949,7 +2953,7 @@ sum(is.na(CNTV))
 #### WYCNTV: Reason why not (1 to 12; 97=other;98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-178, cache=TRUE}
 ## WYCNTV
 head(WYCNTV,10)
 summary(WYCNTV[WYCNTV<97])
@@ -2963,7 +2967,7 @@ sum(is.na(WYCNTV)& !CNTV==1)
 #### HHWGT: Final household weight
 
 
-```{r, cache=TRUE}
+```{r diag-179, cache=TRUE}
 ## HHWGT
 head(HHWGT,10)
 summary(HHWGT)
@@ -2978,7 +2982,7 @@ VEHNO[is.na(HHWGT)]
 #### EXPHHWGT: Final expanded household weight
 
 
-```{r, cache=TRUE}
+```{r diag-180, cache=TRUE}
 ## EXPHHWGT
 head(EXPHHWGT,10)
 summary(EXPHHWGT)
@@ -2992,7 +2996,7 @@ VEHNO[is.na(EXPHHWGT)]
 We have finished checking all the variables of vehicle data. Now we need to detach the vehicle data file.
 
 
-```{r, cache=TRUE}
+```{r diag-181, cache=TRUE}
 ## Detach the file
 detach(veh_data)
 ```
@@ -3006,7 +3010,7 @@ detach(veh_data)
 We follow the same steps we followed for other two data set: first we need to save the place and look up file manually as 'csv' format and keep them in our desired location. We import those files from that location and merge them.
 
 
-```{r, cache=TRUE}
+```{r diag-182, cache=TRUE}
 #Import the place level variables csv file and give a new name
 #place_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_place.csv", header=TRUE)
 place_data <- chts_pla
@@ -3036,7 +3040,7 @@ names(place_data1)
 We have the merged data now. But there are somd duplicate variables and we need to delete them.
 
 
-```{r, cache=TRUE}
+```{r diag-183, cache=TRUE}
 # Subset the dataset (excluding the duplicate variables)
 nplace_data<-subset(place_data1,select=-c(35,36,38:40,44:46))
 
@@ -3057,14 +3061,14 @@ names(nplace_data)
 Now we have new place level file which contains location variables from lookup file (contain x-y coordinates). We use this file for checking all the place level variables. To do this first we need to attach the file. 
 
 
-```{r, cache=FALSE}
+```{r diag-184, cache=FALSE}
 # Attach the file
 attach(nplace_data)
 ```
 
 Here, we sort the data by sample number.
 
-```{r, cache=TRUE}
+```{r diag-185, cache=TRUE}
 # SAMPN: Sample number
 # Sorting data by sample number
 nplace_data<-nplace_data[order(SAMPN),] 
@@ -3076,7 +3080,7 @@ We check all the place level variables one by one by using following codes.
 #### PERNO:Person Number
 
 
-```{r, cache=TRUE}
+```{r diag-186, cache=TRUE}
 ## PERNO
 ### Show the first 10 observations (if you want to see more put that number in place of 10)
 head(PERNO,10)
@@ -3089,7 +3093,7 @@ sum(is.na(PERNO))
 
 We create a boxplot for person no variable.
 
-```{r, cache=TRUE}
+```{r diag-187, cache=TRUE}
 ### Create boxplot  
 boxplot(PERNO,xlab=c("PERNO"))
 ```
@@ -3100,7 +3104,7 @@ We follow the same procedure to check rest of the variables.
 #### PLANO: Place number
 
 
-```{r, cache=TRUE}
+```{r diag-188, cache=TRUE}
 ## PLANO: Place number
 head(PLANO,10)
 summary(PLANO)
@@ -3114,7 +3118,7 @@ sum(is.na(PLANO))
 #### TOTTR: Total people traveling on trip
 
 
-```{r, cache=TRUE}
+```{r diag-189, cache=TRUE}
 ## TOTTR
 head(TOTTR,10)
 summary(TOTTR)
@@ -3122,7 +3126,7 @@ summary(TOTTR)
 
 We generate a boxplot and histogram for TOTTR variable.
 
-```{r, cache=TRUE}
+```{r diag-190,cache=TRUE}
 boxplot(TOTTR,xlab=c("Total people traveling on trip"),col=c("green"))
 hist(TOTTR,xlab=c("Total people traveling on trip"),col=c("purple"))
 ```
@@ -3132,7 +3136,7 @@ hist(TOTTR,xlab=c("Total people traveling on trip"),col=c("purple"))
 #### HHMEM: Number of household members on trip
 
 
-```{r, cache=TRUE}
+```{r diag-191,cache=TRUE}
 ## HHMEM
 head(HHMEM,10)
 summary(HHMEM)
@@ -3147,7 +3151,7 @@ hist(HHMEM,xlab=c("Number of household members on trip"),col=c("maroon"))
 
 There are five variables for person number on trip variable. We use following codes to check these variables.
 
-```{r, cache=TRUE}
+```{r diag-192,cache=TRUE}
 ## PER1
 head(PER1,10)
 summary(PER1)
@@ -3184,7 +3188,7 @@ hist(PER5,xlab=c("Person number on trip"),col=c("gold"))
 #### NONHH: Number of non-household members on trip
 
 
-```{r, cache=TRUE}
+```{r diag-193,cache=TRUE}
 ## NONHH
 head(NONHH,10)
 summary(NONHH)
@@ -3197,7 +3201,7 @@ hist(NONHH,xlab=c("Number of non-household members on trip"),col=c("red"))
 #### MODE: Mode of trip; (1 to 29)
 
 
-```{r, cache=TRUE}
+```{r diag-194,cache=TRUE}
 ## MODE
 head(MODE,10)
 summary(MODE)
@@ -3210,7 +3214,7 @@ hist(MODE,xlab=c("Mode of trip"),col=c("orange"))
 #### VEHNO: Household vehicle number used on trip; (Range:1-8; 97=other)
 
 
-```{r, cache=TRUE}
+```{r diag-195,cache=TRUE}
 ## VEHNO
 head(VEHNO,10)
 summary(VEHNO[VEHNO<97])
@@ -3223,7 +3227,7 @@ hist(VEHNO[VEHNO<97],xlab=c("Household vehicle number used on trip"),col=c("blue
 #### DYGOV: Get out of vehicle; (1=yes;2=no;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-197, diag-196,cache=TRUE}
 ## DYGOV
 head(DYGOV,10)
 summary(DYGOV[DYGOV<8])
@@ -3235,7 +3239,7 @@ boxplot(DYGOV,xlab=c("DYGOV"))
 #### PRKTY: Parking location type; (1 to 7;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-198, cache=TRUE}
 ## PRKTY
 head(PRKTY,10)
 summary(PRKTY[PRKTY<8])
@@ -3254,7 +3258,7 @@ head(PXSTR,10)
 #### PRKMIN: Time walking from parking to dest; (Range:0-60; 98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-199, cache=TRUE}
 ## PRKMIN
 head(PRKMIN,10)
 summary(PRKMIN[PRKMIN<98])
@@ -3268,7 +3272,7 @@ hist(PRKMIN[PRKMIN<98],xlab=c("Time walking from parking to destination"),col=c(
 #### PAYPK: Pay to park; (1=yes;2=no;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-200, cache=TRUE}
 ## PAYPK
 head(PAYPK,10)
 summary(PAYPK[PAYPK<8])
@@ -3281,7 +3285,7 @@ boxplot(PAYPK,xlab=c("PAYPK"))
 #### PKAMT: Parking amount
 
 
-```{r, cache=TRUE}
+```{r diag-201, cache=TRUE}
 ## PKAMT
 PKAMT <- as.integer(PKAMT)
 head(PKAMT,10)
@@ -3297,7 +3301,7 @@ hist(PKAMT,xlab=c("Parking amount"),col=c("orange"))
 #### PKUNT: Parking Unit; (1 to 7;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-202, cache=TRUE}
 ## PKUNT
 head(PKUNT,10)
 summary(PKUNT[PKUNT<8])
@@ -3312,7 +3316,7 @@ sum(is.na(PKUNT)&PAYPK==1,na.rm=T)
 
 
 
-```{r, cache=TRUE}
+```{r diag-203, cache=TRUE}
 ## PRKHW
 head(PRKHW,10)
 summary(PRKHW[PRKHW<7])
@@ -3329,7 +3333,7 @@ sum(is.na(O_PRKHW)&PRKHW==7)
 #### EMPARK: Parking cost not reimbursed by employer
 
 
-```{r, cache=TRUE}
+```{r diag-204, cache=TRUE}
 ## EMPARK
 EMPARK <- as.integer(EMPARK)
 head(EMPARK,10)
@@ -3343,7 +3347,7 @@ boxplot(EMPARK,xlab=c("EMPARK"))
 #### TRANSYS: Transit system; (1 to 136;997=other;998=DK;999=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-205, cache=TRUE}
 ## TRANSYS
 head(TRANSYS,10)
 summary(TRANSYS[TRANSYS<997])
@@ -3361,7 +3365,7 @@ sum(is.na(O_TRANSYS)&TRANSYS==997)
 #### ROUTE: Transit route
 
 
-```{r, cache=TRUE}
+```{r diag-206, cache=TRUE}
 ## ROUTE
 head(ROUTE,10)
 sum(is.na(ROUTE)&MODE>15&MODE<28&!MODE==18,na.rm=T)
@@ -3373,7 +3377,7 @@ SAMPN[is.na(ROUTE)&MODE>15&MODE<28&!MODE==18]
 #### ACTCNT: Number of activities
 
 
-```{r, cache=TRUE}
+```{r diag-207, cache=TRUE}
 ## ACTCNT
 head(ACTCNT,10)
 summary(ACTCNT)
@@ -3385,7 +3389,7 @@ boxplot(ACTCNT,xlab=c("Number of activities"))
 #### ARR_HR: Arrival time-hour
 
 
-```{r, cache=TRUE}
+```{r diag-208, cache=TRUE}
 ## ARR_HR
 head(ARR_HR,10)
 summary(ARR_HR)
@@ -3398,7 +3402,7 @@ hist(ARR_HR,xlab=c("Arrival time-hour"),col=c("purple"))
 #### ARR_MIN: Arrival time-minute
 
 
-```{r, cache=TRUE}
+```{r diag-209, cache=TRUE}
 ## ARR_MIN
 head(ARR_MIN,10)
 summary(ARR_MIN)
@@ -3414,7 +3418,7 @@ hist(ARR_MIN,xlab=c("Arrival time-minute"),col=c("maroon"))
 
 
 
-```{r, cache=TRUE}
+```{r diag-210, cache=TRUE}
 ## DEP_HR
 head(DEP_HR,10)
 summary(DEP_HR)
@@ -3427,7 +3431,7 @@ hist(DEP_HR,xlab=c("Departure time-hour"),col=c("gold"))
 #### DEP_MIN: Departure time-minute
 
 
-```{r, cache=TRUE}
+```{r diag-211, cache=TRUE}
 ## DEP_MIN
 head(DEP_MIN,10)
 summary(DEP_MIN)
@@ -3440,7 +3444,7 @@ hist(DEP_MIN,xlab=c("Departure time-minute"),col=c("purple"))
 #### TRIPDUR: Travel time to place in minutes
 
 
-```{r, cache=TRUE}
+```{r diag-212, cache=TRUE}
 ## TRIPDUR
 head(TRIPDUR,10)
 summary(TRIPDUR)
@@ -3450,19 +3454,19 @@ boxplot(TRIPDUR,xlab=c("Travel time to place in minutes by walking"),col=c("yell
 
 We generate boxplots of trip duration for different trip distances
 
-```{r, cache=TRUE}
+```{r diag-213, cache=TRUE}
 boxplot(TRIPDUR,TRIPDUR[TripDistance<=50],TRIPDUR[TripDistance<=100],col=c("yellow"))
 ```
 
 Here, we are generating boxplots of trip duration for different modes.
 
-```{r, cache=TRUE}
+```{r diag-214, cache=TRUE}
 boxplot(TRIPDUR[MODE==1],TRIPDUR[MODE==2],TRIPDUR[MODE==c(5,6)],TRIPDUR[MODE==c(12,15,19,22,23,24,25,26)],TRIPDUR[MODE==13],col=c("yellow"))
 ```
 
 We also generate histogram of trip duration for trip distance less than 100 mile.
 
-```{r, cache=TRUE}
+```{r diag-215, cache=TRUE}
 hist(TRIPDUR[TripDistance<=100],xlab=c("Travel time to place in minutes"),col=c("green"))
 ```
 
@@ -3471,7 +3475,7 @@ hist(TRIPDUR[TripDistance<=100],xlab=c("Travel time to place in minutes"),col=c(
 #### ACTDUR: Activity duration at place in minutes
 
 
-```{r, cache=TRUE}
+```{r diag-216, cache=TRUE}
 ## ACTDUR
 head(ACTDUR,10)
 summary(ACTDUR)
@@ -3483,7 +3487,7 @@ SAMPN[ACTDUR>15000]
 
 We use following codes to check the origin and destination location variables.
 
-```{r, cache=TRUE}
+```{r diag-217, cache=TRUE}
 attach(nplace_data)
 head(PNAME,10) 
 sum(is.na(PNAME))
@@ -3530,7 +3534,7 @@ boxplot(dYCORD,xlab=c("dYCORD"))
 #### TripDistance: Trip distance
 
 
-```{r, cache=TRUE}
+```{r diag-218, cache=TRUE}
 ## TripDistance
 head(TripDistance,10)
 summary(TripDistance)
@@ -3543,7 +3547,7 @@ hist(TripDistance,xlab=c("TripDistance"),col=("green"))
 #### AirTripDistance: Air Trip distance
 
 
-```{r, cache=TRUE}
+```{r diag-219, cache=TRUE}
 ## AirTripDistance
 head(AirTripDistance,10)
 summary(AirTripDistance)
@@ -3552,7 +3556,7 @@ boxplot(AirTripDistance,xlab=c("AirTripDistance"))
 
 The following codes are used to check trip location variables
 
-```{r, cache=TRUE}
+```{r diag-220, cache=TRUE}
 ## CTFIP: Trip location county FIP  Code 2010
 head(CTFIP,10)
 summary(CTFIP[CTFIP<999])
@@ -3574,7 +3578,7 @@ summary(PSTFIP[PSTFIP<99])
 #### PERWGT: Final Person weight
 
 
-```{r, cache=TRUE}
+```{r diag-221, cache=TRUE}
 ## PERWGT
 head(PERWGT,10)
 summary(PERWGT)
@@ -3586,7 +3590,7 @@ boxplot(PERWGT,xlab=c("Final Person weight"),col=c("green"))
 #### EXPPERWGT: Final expanded person weight
 
 
-```{r, cache=TRUE}
+```{r diag-222, cache=TRUE}
 ## EXPPERWGT
 head(EXPPERWGT,10)
 summary(EXPPERWGT)
@@ -3598,7 +3602,7 @@ boxplot(EXPPERWGT,xlab=c("Final expanded person weight"),col=c("gold"))
 #### TRIPNO: Unlinked Trip id
 
 
-```{r, cache=TRUE}
+```{r diag-223, cache=TRUE}
 ## TRIPNO
 head(TRIPNO,10)
 summary(TRIPNO)
@@ -3610,7 +3614,7 @@ boxplot(TRIPNO,xlab=c("TRIPNO"))
 #### TCF: Trip correction factor
 
 
-```{r, cache=TRUE}
+```{r diag-224, cache=TRUE}
 ## TCF
 head(TCF,10)
 summary(TCF)
@@ -3622,7 +3626,7 @@ boxplot(TCF,xlab=c("Trip correction factor"),col=c("gold"))
 #### TCFPERWGT: Final trip weight
 
 
-```{r, cache=TRUE}
+```{r diag-225, cache=TRUE}
 ## TCFPERWGT
 head(TCFPERWGT,10)
 summary(TCFPERWGT)
@@ -3634,7 +3638,7 @@ boxplot(TCFPERWGT,xlab=c("Final trip weight"),col=c("yellow"))
 #### EXPTCFPERWGT: Expanded final trip weight
 
 
-```{r, cache=TRUE}
+```{r diag-226, cache=TRUE}
 ## EXPTCFPERWGT
 head(EXPTCFPERWGT,10)
 summary(EXPTCFPERWGT)
@@ -3643,7 +3647,7 @@ boxplot(EXPTCFPERWGT,xlab=c("EXPTCFPERWGT"))
 
 We have finished checking all the place level variables. Now we need to detach the place level file.
 
-```{r, cache=TRUE}
+```{r diag-227, cache=TRUE}
 ## Detach the file
 detach(nplace_data)
 ```
@@ -3655,7 +3659,7 @@ detach(nplace_data)
 Here we check the variables of activity data. First we import the activity csv file and check it's dimension and see the variable names. 
 
 
-```{r, cache=TRUE}
+```{r diag-228, cache=TRUE}
 #Import the activity level variables csv file and give a new name
 #activity_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_activity.csv", header=TRUE)
 activity_data <- chts_act
@@ -3670,14 +3674,14 @@ names(activity_data)
 
 Before start checking variables, we need to attach the file.
 
-```{r, cache=FALSE}
+```{r diag-229, cache=FALSE}
 # Attach the file
 attach(activity_data)
 ```
 
 We sort the data based no sample number.
 
-```{r, cache=TRUE}
+```{r diag-230, cache=TRUE}
 # SAMPN: Sample number
 # Sorting data by sample number
 activity_data<-activity_data[order(SAMPN),]
@@ -3690,7 +3694,7 @@ Now we start checking variables one by one.
 #### PERNO:Person Number
 
 
-```{r, cache=TRUE}
+```{r diag-231, cache=TRUE}
 ## PERNO
 ### Show the first 10 observations (if you want to see more put that number in place of 10)
 head(PERNO,10)
@@ -3708,7 +3712,7 @@ boxplot(PERNO,xlab=c("PERNO"))
 #### PLANO: Place number
 
 
-```{r, cache=TRUE}
+```{r diag-232, cache=TRUE}
 ## PLANO
 head(PLANO,10)
 summary(PLANO)
@@ -3722,7 +3726,7 @@ sum(is.na(PLANO))
 #### ACTNO: Activity number
 
 
-```{r, cache=TRUE}
+```{r diag-233, cache=TRUE}
 ## ACTNO
 head(ACTNO,10)
 summary(ACTNO)
@@ -3736,7 +3740,7 @@ sum(is.na(ACTNO))
 #### ACTOTH: Did anyone else participate with you? (1=yes;2=no;8=DK;9=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-234, cache=TRUE}
 ## ACTOTH
 head(ACTOTH,10)
 summary(ACTOTH[ACTOTH<8])
@@ -3748,7 +3752,7 @@ boxplot(ACTOTH,xlab=c("ACTOTH"))
 #### ACTHH: Number of HH/family members
 
 
-```{r, cache=TRUE}
+```{r diag-235, cache=TRUE}
 ## ACTHH
 head(ACTHH,10)
 summary(ACTHH)
@@ -3763,7 +3767,7 @@ sum(ACTHH>20,na.rm=T)
 #### ACTOR: Number of other relatives
 
 
-```{r, cache=TRUE}
+```{r diag-236, cache=TRUE}
 ## ACTOR
 head(ACTOR,10)
 summary(ACTOR)
@@ -3777,7 +3781,7 @@ sum(!is.na(ACTOR)&!ACTOTH==1)
 #### ACTWK: Number of people from your work
 
 
-```{r, cache=TRUE}
+```{r diag-237, cache=TRUE}
 ## ACTWK
 head(ACTWK,10)
 summary(ACTWK)
@@ -3792,7 +3796,7 @@ sum(!is.na(ACTWK)&!ACTOTH==1)
 #### ACTSC: Number of people from your school
 
 
-```{r, cache=TRUE}
+```{r diag-238, cache=TRUE}
 ## ACTSC
 head(ACTSC,10)
 summary(ACTSC)
@@ -3807,7 +3811,7 @@ sum(!is.na(ACTSC)&!ACTOTH==1)
 #### ACTRG: Number of people from same rel/social org
 
 
-```{r, cache=TRUE}
+```{r diag-239, cache=TRUE}
 ## ACTRG
 head(ACTRG,10)
 summary(ACTRG)
@@ -3822,7 +3826,7 @@ sum(!is.na(ACTRG)&!ACTOTH==1)
 #### ACTFR: Number of friends
 
 
-```{r, cache=TRUE}
+```{r diag-240, cache=TRUE}
 ## ACTFR
 head(ACTFR,10)
 summary(ACTFR)
@@ -3836,7 +3840,7 @@ sum(!is.na(ACTFR)&!ACTOTH==1)
 #### ACTOT: Number of other relations
 
 
-```{r, cache=TRUE}
+```{r diag-241, cache=TRUE}
 ## ACTOT
 head(ACTOT,10)
 summary(ACTOT)
@@ -3851,7 +3855,7 @@ sum(!is.na(ACTOT)&!ACTOTH==1)
 #### APURP: Purpose; (1 to 39; 99=DK/RF)
 
 
-```{r, cache=TRUE}
+```{r diag-242, cache=TRUE}
 ## APURP
 head(APURP,10)
 summary(APURP[APURP<99])
@@ -3865,7 +3869,7 @@ sum(is.na(O_APURP)&APURP==38)
 
 Here we check the start and end time of the activities.
 
-```{r, cache=TRUE}
+```{r diag-243, cache=TRUE}
 ## STIME: Start time
 head(STIME,10)
 sum(is.na(STIME))
@@ -3880,7 +3884,7 @@ sum(is.na(ETIME))
 #### PERWGT: Final Person weight
 
 
-```{r, cache=TRUE}
+```{r diag-244, cache=TRUE}
 ## PERWGT
 head(PERWGT,10)
 summary(PERWGT)
@@ -3893,7 +3897,7 @@ sum(is.na(PERWGT))
 #### EXPPERWGT: Final expanded person weight
 
 
-```{r, cache=TRUE}
+```{r diag-245, cache=TRUE}
 ## EXPPERWGT
 head(EXPPERWGT,10)
 summary(EXPPERWGT)
@@ -3906,7 +3910,7 @@ sum(is.na(EXPPERWGT))
 #### TRIPNO: Unlinked Trip id
 
 
-```{r, cache=TRUE}
+```{r diag-246, cache=TRUE}
 ## TRIPNO
 head(TRIPNO,10)
 summary(TRIPNO)
@@ -3918,7 +3922,7 @@ boxplot(TRIPNO,xlab=c("TRIPNO"))
 #### TCF: Trip correction factor
 
 
-```{r, cache=TRUE}
+```{r diag-247, cache=TRUE}
 ## TCF
 head(TCF,10)
 summary(TCF)
@@ -3930,7 +3934,7 @@ boxplot(TCF,xlab=c("TCF"))
 #### TCFPERWGT: Final trip weight
 
 
-```{r, cache=TRUE}
+```{r diag-248, cache=TRUE}
 ## TCFPERWGT
 head(TCFPERWGT,10)
 summary(TCFPERWGT)
@@ -3942,7 +3946,7 @@ boxplot(TCFPERWGT,xlab=c("TCFPERWGT"))
 #### EXPTCFPERWGT: Expanded final trip weight
 
 
-```{r, cache=TRUE}
+```{r diag-249, cache=TRUE}
 ## EXPTCFPERWGT
 head(EXPTCFPERWGT,10)
 summary(EXPTCFPERWGT)
@@ -3951,7 +3955,7 @@ boxplot(EXPTCFPERWGT,xlab=c("EXPTCFPERWGT"))
 
 We have checked all the variables of activity data. Now we need to detach the file. 
 
-```{r, cache=TRUE}
+```{r diag-250, cache=TRUE}
 ## Detach the file
 detach(activity_data)
 ```
@@ -3965,7 +3969,7 @@ detach(activity_data)
 Same way as previous, we first need to save long distance file and look up file as csv format manually and then we import those files and merge them.
 
 
-```{r, cache=TRUE}
+```{r diag-251, cache=TRUE}
 #Import the long distance  variables csv file and give a new name
 #LD_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/Deliv_LD.csv", header=TRUE)
 LD_data <- chts_ld
@@ -3987,7 +3991,7 @@ names(lookup_LD)
 Here, we are merging them.
 
 
-```{r, cache=TRUE}
+```{r diag-252, cache=TRUE}
 #Merging two data set
 LD_data1<-merge(LD_data,lookup_LD, by =c("SAMPN", "LDNO"), all = TRUE)
 
@@ -4017,7 +4021,7 @@ names(nLD_data)
 Now we have a new merged file which we need to attach and sort based on sample number.
 
 
-```{r, cache=FALSE}
+```{r diag-253, cache=FALSE}
 # Attach the file
 attach(nLD_data)
 
@@ -4033,7 +4037,7 @@ We check each of the variables one by one using following codes.
 #### LDNO:Long distance trip Number
 
 
-```{r, cache=TRUE}
+```{r diag-254, cache=TRUE}
 ## LDNO
 ### Show the first 10 observations (if you want to see more put that number in place of 10)
 head(LDNO,10)
@@ -4050,7 +4054,7 @@ sum(is.na(LDNO))
 #### LDDAT: LD date
 
 
-```{r, cache=TRUE}
+```{r diag-255, cache=TRUE}
 ## LDDAT
 head(LDDAT,10)
 summary(LDDAT)
@@ -4061,7 +4065,7 @@ sum(is.na(LDDAT))
 The following variables are related with long distance trip origin location. We check them by using following codes. 
 
 
-```{r, cache=FALSE}
+```{r diag-256, cache=FALSE}
 attach(nLD_data)
 ## LDORG: Origin;(1 to 4;7=other;8=DK;9=RF)
 head(LDORG)
@@ -4104,7 +4108,7 @@ We use following codes to check the variables related to destination location
 
 
 
-```{r, cache=TRUE}
+```{r diag-257, cache=TRUE}
 ## LDDPNM: Destination place name
 head(LDDPNM,10)
 sum(is.na(LDDPNM))
@@ -4141,7 +4145,7 @@ boxplot(LDDYCORD,xlab=c("LDDYCORD"))
 #### LDTPURP: LD Trip Purpose;(1 to 12;97=other;98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-258, cache=TRUE}
 ## LDTPURP
 head(LDTPURP,10)
 summary(LDTPURP[LDTPURP<97])
@@ -4160,7 +4164,7 @@ sum(is.na(O_LDTPUPR)&LDTPURP==97)
 #### LDWHO: People on trip;(Rang:0-25;98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-259, cache=TRUE}
 ## LDWHO
 head(LDWHO,10)
 summary(LDWHO[LDWHO<98])
@@ -4176,7 +4180,7 @@ sum(is.na(LDWHO))
 #### LDMHH: Household members on trip;(Rang:0-8;98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r diag-260, cache=TRUE}
 ## LDMHH
 head(LDMHH,10)
 summary(LDMHH[LDMHH<98])
@@ -4190,7 +4194,7 @@ sum(is.na(LDMHH)&(LDWHO>0&LDWHO<98))
 There are eight variables related with person who made long distance trip. We use following codes to check these variables.
 
 
-```{r, cache=TRUE}
+```{r diag-261, cache=TRUE}
 ## LDINI1: Person who made trip1
 head(LDINI1,10)
 summary(LDINI1[LDINI1<97])
@@ -4223,7 +4227,7 @@ summary(LDINI8)
 #### LDMODE1: Long distance mode;(1 to 29;99=DK/RF)
 
 
-```{r, cache=TRUE}
+```{r diag-262, cache=TRUE}
 ## LDMODE1
 head(LDMODE1,10)
 summary(LDMODE1[LDMODE1<99])
@@ -4236,7 +4240,7 @@ hist(LDMODE1[LDMODE1<98],xlab=c("Long distance mode"),col=c("gold"))
 #### LDMODE2: Long distance mode;(1 to 29;99=DK/RF)
 
 
-```{r, cache=TRUE}
+```{r diag-263, cache=TRUE}
 ## LDMODE2
 head(LDMODE2,10)
 summary(LDMODE2[LDMODE2<99])
@@ -4249,7 +4253,7 @@ hist(LDMODE2,xlab=c("Long distance mode"),col=c("green"))
 #### LDMODE3: Long distance mode;(1 to 29;99=DK/RF)
 
 
-```{r, cache=TRUE}
+```{r diag-264, cache=TRUE}
 ## LDMODE3
 head(LDMODE3,10)
 summary(LDMODE3)
@@ -4260,7 +4264,7 @@ summary(LDMODE3)
 #### LDMODE4: Long distance mode;(1 to 29;99=DK/RF)
 
 
-```{r, cache=TRUE}
+```{r diag-265, cache=TRUE}
 ## LDMODE4
 head(LDMODE4,10)
 summary(LDMODE4)
@@ -4271,7 +4275,7 @@ summary(LDMODE4)
 #### MAXDATE: Latest LD Trip flag;(1=yes, 0=NO)
 
 
-```{r, cache=TRUE}
+```{r diag-266, cache=TRUE}
 ## MAXDATE
 head(MAXDATE,10)
 summary(MAXDATE)
@@ -4283,7 +4287,7 @@ boxplot(MAXDATE,xlab=c("MAXDATE"))
 #### LDTIM: Time start
 
 
-```{r, cache=TRUE}
+```{r diag-267, cache=TRUE}
 ## LDTIM
 head(LDTIM,10)
 sum(is.na(LDTIM)&MAXDATE==1)
@@ -4291,7 +4295,7 @@ sum(is.na(LDTIM)&MAXDATE==1)
 
 Here, we are checking variables related with departure place and modes
 
-```{r, cache=TRUE}
+```{r diag-268, cache=TRUE}
 ## LDDPPNM: Departure place name
 head(LDDPPNM,10)
 
@@ -4307,7 +4311,7 @@ hist(LDDPMODE1,xlab=c("Departure mode"),col=c("brown"))
 #### LDDPMODE2: Departure mode;(1 to 29;99=DK/RF)
 
 
-```{r, cache=TRUE}
+```{r diag-269, cache=TRUE}
 ## LDDPMODE2
 head(LDDPMODE2,10)
 summary(LDDPMODE2)
@@ -4326,7 +4330,7 @@ summary(LDDPMODE4)
 The following codes are used to check the arrival place and arrival modes variables.
 
 
-```{r, cache=TRUE}
+```{r diag-270, cache=TRUE}
 ## LDARPNM: Arrival place name
 head(LDARPNM,10)
 
@@ -4342,7 +4346,7 @@ hist(LDARMODE1,xlab=c("Arrival mode"),col=c("blue"))
 #### LDARMODE2: Arrival  mode;(1 to 29;99=DK/RF)
 
 
-```{r, cache=TRUE}
+```{r diag-271, cache=TRUE}
 ## LDARMODE2
 head(LDARMODE2,10)
 summary(LDARMODE2[LDARMODE2<97])
@@ -4364,7 +4368,7 @@ We use following codes to check long distance origin and destination location va
 #### LDOCTFIP: LD trip origin location county FIP  Code 2010
 
 
-```{r, cache=TRUE}
+```{r diag-272, cache=TRUE}
 ## LDOCTFIP
 LDOCTFIP <- as.integer(LDOCTFIP)
 head(LDOCTFIP,10)
@@ -4384,7 +4388,7 @@ sum(is.na(LDOCTRACT))
 #### LDDCTFIP: LD trip destination location county FID  Code 2010
 
 
-```{r, cache=TRUE}
+```{r diag-273, cache=TRUE}
 ## LDDCTFIP
 LDDCTFIP <- as.integer(LDDCTFIP)
 head(LDDCTFIP,10)
@@ -4402,7 +4406,7 @@ sum(is.na(LDDCTRACT))
 #### ReturnHomeTripFlag: Return home trip flag (1=Return home trip)
 
 
-```{r, cache=TRUE}
+```{r diag-274, cache=TRUE}
 ## ReturnHomeTripFlag
 head(ReturnHomeTripFlag,10)
 summary(ReturnHomeTripFlag)
@@ -4412,7 +4416,7 @@ summary(ReturnHomeTripFlag)
 We have finished checking long distance variables. Now, we need to detach the file.
 
 
-```{r, cache=TRUE}
+```{r diag-275, cache=TRUE}
 ## Detach the file
 detach(nLD_data)
 ```

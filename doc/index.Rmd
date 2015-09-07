@@ -5,16 +5,28 @@ date: "09/07/2015"
 output: html_document
 ---
 
-```{r setup}
+```{r setup,echo=FALSE,cache=FALSE}
 rd <- '/home/crindt/chts-book'
+source(paste(rd,'R/setup-hooks.R',sep="/"))
 ```
 
 # Introduction
 
 
+FIXME: TO BE ADDED
 
 # Use of R Program for CHTS Data Analysis
 
+FIXME: TO BE COMPLETED
+
+Libraries required to generate this document:
+
+* `chts2011`
+* `chts2011pvt`
+* `dplyr`
+
+
+# Diagnostic Checks of the CHTS
 
 ```{r child = '3.Diagnostic.Rmd'}
 ```
@@ -38,7 +50,14 @@ rd <- '/home/crindt/chts-book'
 ```{r child = 'chts-linked-trips.Rmd'}
 ```
 
+```{r child = 'recreating-2001-tables-sltn.Rmd'}
+```
+
+
 # Data Analysis Requests
+
+The following sections provide R solutions to the questions asked by various districts
+during the course of the project.
 
 ```{r child = '6.1SantaCruz county.Rmd'}
 ```

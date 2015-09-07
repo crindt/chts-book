@@ -29,7 +29,7 @@ The following commands are used to generate the results.
 
 To answer the questions we need the place level table (with weights) that we computed in the section 4.
 
-```{r, cache=TRUE}
+```{r mc-1, cache=TRUE}
 rd <- "/home/crindt/chts-book"
 p <- function(ps) { return(paste(rd,ps,sep="/")) }
 
@@ -47,7 +47,7 @@ head(nplace)# Show first ten observations
 Next, we do some manipulations to determine origin county and convert the `MODE` codes into 
 text descriptions.
 
-```{r,cache=TRUE}
+```{r mc-2,cache=TRUE}
 # Create trip origin county 
 # Need dplyr
 library("dplyr")
@@ -63,7 +63,7 @@ weights depending on the origin of the trip.  Specifically, when the origin is M
 County, we use the county-specific weights.  When the origin is outside 
 Mendocino County, we use the statewide weights.
 
-```{r,cache=TRUE}
+```{r mc-3,cache=TRUE}
 # Trips to Mendocino County
 # Create a subset for trips to Mendocino county 
 # We are only interested in trips to Mendocino County (CTFIP=45) 
@@ -81,7 +81,7 @@ to Mendocino based on these weights.
 
 Notes: In the tables: Ob = Observations, Per = Percent, UW = Unweighted and W = Weighted.
 
-```{r,cache=TRUE}
+```{r mc-4,cache=TRUE}
 ## Generate frequency for trip Mode
 temp1<-as.data.frame(table(place_45$Mode))
 ## Create percentage of frequency
@@ -96,7 +96,7 @@ temp1
 
 Now we compute the weighted frequency.
 
-```{r,cache=TRUE}
+```{r mc-5,cache=TRUE}
 ## Create weighted frequency
 temp2<-aggregate(NTCFW~Mode,FUN=sum,data=place_45)
 ## Create weighted percentage
@@ -111,7 +111,7 @@ temp2
 
 Now we can save these results in a `csv` file for later use.
 
-```{r,cache=TRUE}
+```{r mc-6,cache=TRUE}
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=TRUE)
 temp3 <- temp3[,c(1,2,4,3,5)]
@@ -132,7 +132,7 @@ rm(temp3)
 Next, we perform a similar computation for Total Trip duration for all trips ending 
 in Mendocino, by mode.
 
-```{r,cache=TRUE}
+```{r mc-7,cache=TRUE}
 ## Generate frequency for trip Mode
 temp1<-aggregate(TRIPDUR~Mode,FUN=sum,data=place_45)
 ## Create  percentage
@@ -147,7 +147,7 @@ temp1
 
 Again, we compute the weighted frequency.
 
-```{r,cache=TRUE}
+```{r mc-8,cache=TRUE}
 ## Create weighted frequency
 temp<-place_45$NTCFW*place_45$TRIPDUR
 temp2<-aggregate(temp~Mode,FUN=sum,data=place_45)
@@ -164,7 +164,7 @@ temp2
 
 And as before, we save the results for later use. 
 
-```{r,cache=TRUE}
+```{r mc-9,cache=TRUE}
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="Mode", all = TRUE)
 temp3 <- temp3[,c(1,2,4,3,5)]
@@ -188,7 +188,7 @@ rm(temp)
 
 Moving on, we determine Total Trip distance for all trips ending in Mendocino, by mode.
 
-```{r,cache=TRUE}
+```{r mc-10,cache=TRUE}
 ## Generate frequency for trip Mode
 temp1<-aggregate(TripDistance~Mode,FUN=sum,data=place_45)
 ## Create  percentage
@@ -203,7 +203,7 @@ temp1
 
 Next, we compute the weighted trip distance by mode.
 
-```{r,cache=TRUE}
+```{r mc-11,cache=TRUE}
 ## Create weighted frequency
 temp<-place_45$NTCFW*place_45$TripDistance
 temp2<-aggregate(temp~Mode,FUN=sum,data=place_45)
@@ -219,7 +219,7 @@ temp2
 
 And, we save the results for later use.
 
-```{r,cache=TRUE}
+```{r mc-12,cache=TRUE}
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="Mode", all = TRUE)
 temp3 <- temp3[,c(1,2,4,3,5)]
@@ -245,14 +245,14 @@ The next question was the modal split for Drive Alone.  To compute this, we
 subset the data based on `TOTTR` (Total travelers) and `MODE={5, 6, 7, 8, 10}` 
 (basically, the driver of a car, truck, or motorcycle)
 
-```{r}
+```{r mc-13}
 place_45d<-subset(place_45,(TOTTR==1 & (MODE==5|MODE==6|MODE==7|MODE==8|MODE==10)))
 head(place_45d)
 ```
 
 Now we compute the frequency of modes for this subset.
 
-```{r}
+```{r mc-14}
 ## Create frequency for different Mode category for drive alone
 temp1<-as.data.frame(table(place_45d$Mode))
 ## Create percentage of frequency
@@ -267,7 +267,7 @@ temp1
 
 Following the pattern, we compute the weighted frequency.
 
-```{r}
+```{r mc-15}
 ## Create weighted frequency
 temp2<-aggregate(NTCFW~Mode,FUN=sum,data=place_45d)
 ## Create weighted percentage
@@ -282,7 +282,7 @@ temp2
 
 Then, once again, we save the results for later use.
 
-```{r}
+```{r mc-16}
 
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
@@ -304,7 +304,7 @@ rm(temp3)
 Now we perform a similar computation for trips *from* Mendocino County.  As before, we
 subset the place data, but this time for trips originating in Mendocino County.
 
-```{r,cache=TRUE}
+```{r mc-17,cache=TRUE}
 
 # Let us estimate trips from Mendocino county (OCTFIP=45) 
 # Create a subset for trips from Mendocino county 
@@ -317,7 +317,7 @@ head(place_45O)
 
 Now we generate the mode frequency table for all trips from Mendocino County.
 
-```{r,cache=TRUE}
+```{r mc-18,cache=TRUE}
 # Generate observations for modal split for trips from Mendocino based on new weights
 ## Generate frequency for trip Mode
 temp1<-as.data.frame(table(place_45O$Mode))
@@ -333,7 +333,7 @@ temp1
 
 This should be looking familiar now.  Here is the weighted frequency.
 
-```{r,cache=TRUE}
+```{r mc-19,cache=TRUE}
 ## Create weighted frequency
 temp2<-aggregate(NEXPTCFPERWGT~Mode,FUN=sum,data=place_45O)
 ## Create weighted percentage
@@ -348,7 +348,7 @@ temp2
 
 And again, we save for later use.
 
-```{r,cache=TRUE}
+```{r mc-20,cache=TRUE}
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
@@ -368,7 +368,7 @@ rm(temp3)
 
 Now we repeat the trip duration calculation for Mendocino Origins.
 
-```{r,cache=TRUE}
+```{r mc-21,cache=TRUE}
 ## Total Trip duration for all trips from Mendocino, by Mode
 ## Generate frequency for trip Mode
 temp1<-aggregate(TRIPDUR~Mode,FUN=sum,data=place_45O)
@@ -384,7 +384,7 @@ temp1
 
 Here is the weighted frequency calculation.
 
-```{r,cache=TRUE}
+```{r mc-22,cache=TRUE}
 ## Create weighted frequency
 temp<-place_45O$NEXPTCFPERWGT*place_45O$TRIPDUR
 temp2<-aggregate(temp~Mode,FUN=sum,data=place_45O)
@@ -400,7 +400,7 @@ temp2
 
 And we save again.
 
-```{r,cache=TRUE}
+```{r mc-23,cache=TRUE}
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="Mode", all = TRUE)
 temp3 <- temp3[,c(1,2,4,3,5)]
@@ -424,7 +424,7 @@ rm(temp)
 
 Here is the trip distance calculation for all trips from Mendocino, by Mode.
 
-```{r,cache=TRUE}
+```{r mc-24,cache=TRUE}
 ## Generate frequency for trip Mode
 temp1<-aggregate(TripDistance~Mode,FUN=sum,data=place_45O)
 ## Create  percentage
@@ -439,7 +439,7 @@ temp1
 
 Followed again by the weighted frequency calculation.
 
-```{r,cache=TRUE}
+```{r mc-25,cache=TRUE}
 ## Create weighted frequency
 temp<-place_45O$NEXPTCFPERWGT*place_45O$TripDistance
 temp2<-aggregate(temp~Mode,FUN=sum,data=place_45O)
@@ -455,7 +455,7 @@ temp2
 
 And our now familiar save of the data.
 
-```{r,cache=TRUE}
+```{r mc-26,cache=TRUE}
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="Mode", all = TRUE)
 temp3 <- temp3[,c(1,2,4,3,5)]
@@ -481,14 +481,14 @@ And lastly for the Mendocino origins, here is the drive alone modal split.  As b
 we subset the data based on `TOTTR` (Total travelers) and `MODE={5, 6, 7, 8, 10}`
 (the driver of a car, truck, or motorcycle) 
 
-```{r,cache=TRUE} 
+```{r mc-27,cache=TRUE} 
 place_45dO<-subset(place_45O,(TOTTR==1 & (MODE==5|MODE==6|MODE==7|MODE==8|MODE==10)))
 head(place_45dO)
 ```
 
 The raw frequency table is here.
 
-```{r,cache=TRUE}
+```{r mc-28,cache=TRUE}
 ## Create frequency for different mode category for drive alone
 temp1<-as.data.frame(table(place_45dO$Mode))
 ## Create percentage of frequency
@@ -503,7 +503,7 @@ temp1
 
 This is followed by the weighted frequency table.
 
-```{r,cache=TRUE}
+```{r mc-29,cache=TRUE}
 ## Create weighted frequency
 temp2<-aggregate(NEXPTCFPERWGT~Mode,FUN=sum,data=place_45dO)
 ## Create weighted percentage
@@ -518,7 +518,7 @@ temp2
 
 And here we again save the results.
 
-```{r,cache=TRUE}
+```{r mc-30,cache=TRUE}
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
@@ -538,7 +538,7 @@ rm(temp3)
 Now we need trip purpose breakdown, so we need to import activity level data with the 
 appropriate weights.  Here we load and merge them.
 
-```{r,cache=TRUE}
+```{r mc-31,cache=TRUE}
 #Import the activity level variables csv file and give a new name
 #act_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_activity.csv", header=TRUE)
 library(chts2011)
@@ -552,7 +552,7 @@ names(act_place)
 
 For display purposes, we convert the purpose codes into readable strings.
 
-```{r, cache=TRUE}
+```{r mc-32, cache=TRUE}
 act_place$Actpur<-ifelse(
   act_place$APURP==1," Personal Activities",
   ifelse
@@ -639,7 +639,7 @@ head(act_place)
 
 We start with trips from Mendocino County, subsetting based open the origin county `OCTFIP=45`.
 
-```{r, cache=TRUE}
+```{r mc-33, cache=TRUE}
 # Now we are interested in trips from Mendocino county (OCTFIP=45) 
 # Create a subset for trips from Mendocino County 
 act_45O<-subset(act_place,OCTFIP==45)
@@ -649,7 +649,7 @@ head(act_45O)
 
 Next, we compute the observations for trip purpose for trips from Mendocino based on new weights.
 
-```{r,cache=TRUE}
+```{r mc-34,cache=TRUE}
 ## Generate frequency for trip Mode
 temp1<-as.data.frame(table(act_45O$Actpur))
 ## Create percentage of frequency
@@ -664,7 +664,7 @@ temp1
 
 This is followed by the weighted trip purpose frequencies.
 
-```{r,cache=TRUE}
+```{r mc-35,cache=TRUE}
 ## Create weighted frequency
 temp2<-aggregate(NEXPTCFPERWGT~Actpur,FUN=sum,data=act_45O)
 ## Create weighted percentage
@@ -679,7 +679,7 @@ temp2
 
 And here we save the results.
 
-```{r}
+```{r mc-36}
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="Actpur", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
@@ -705,14 +705,14 @@ The last sub question wanted work trips by Mode for Mendocino County.
 First, we reuse the merged activity table from above for trips activities (and associated trips) originating in Mendocino 
 County, and subset it for work trips only.
 
-```{r}
+```{r mc-37}
 # Create a subset for work trips
 actw_45O<-subset(act_45O,APURP==9)
 ```
 
 Now, we can determine the observations of each Mode used for work trips.
 
-```{r,cache=TRUE}
+```{r mc-38,cache=TRUE}
 ## Generate frequency for trip Mode
 temp1<-as.data.frame(table(actw_45O$Mode))
 ## Create percentage of frequency
@@ -727,7 +727,7 @@ temp1
 
 Given those, we can expand them with the weights for Mendocino.
 
-```{r,cache=TRUE}
+```{r mc-39,cache=TRUE}
 ## Create weighted frequency
 temp2<-aggregate(NEXPTCFPERWGT~Mode,FUN=sum,data=actw_45O)
 ## Create weighted percentage
@@ -742,7 +742,7 @@ temp2
 
 And again, we finish by saving the results.
 
-```{r,cache=TRUE}
+```{r mc-40,cache=TRUE}
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
@@ -764,7 +764,7 @@ the place table and adjust the weights to be Mendocino weights if the origins ar
 Mendocino, and to use statewide weights if the origins are outside Mendocino.
 
 
-```{r,cache=TRUE}
+```{r mc-41,cache=TRUE}
 # Create a subset for trips from Mendocino County 
 act_45D<-subset(act_place,CTFIP==45)
 names(act_45D)
@@ -777,7 +777,7 @@ head(act_45D)
 
 Again, we generate a frequency table by purpose.
 
-```{r}
+```{r mc-42}
 # Generate observations by trip purpose from Mendocino based on new weights
 ## Generate frequency for trip Mode
 temp1<-as.data.frame(table(act_45D$Actpur))
@@ -793,7 +793,7 @@ temp1
 
 We follow this with the weighted frequency table.
 
-```{r,cache=TRUE}
+```{r mc-43,cache=TRUE}
 ## Create weighted frequency
 temp2<-aggregate(NTCFW~Actpur,FUN=sum,data=act_45D)
 ## Create weighted percentage
@@ -808,7 +808,7 @@ temp2
 
 And again we save the result.
 
-```{r,cache=TRUE}
+```{r mc-44,cache=TRUE}
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="Actpur", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
@@ -826,7 +826,7 @@ rm(temp3)
 Finally, we compute the frequencies of various Modes used for work trips ending
 in Mendocino County.
 
-```{r,cache=TRUE}
+```{r mc-45,cache=TRUE}
 # We want only work trips (APURP=9)
 # Create a subset for work trips
 actw_45D<-subset(act_45D,APURP==9)
@@ -844,7 +844,7 @@ temp1
 
 Here is the weighted frequency table.
 
-```{r,cache=TRUE}
+```{r mc-46,cache=TRUE}
 ## Create weighted frequency
 temp2<-aggregate(NTCFW~Mode,FUN=sum,data=actw_45D)
 ## Create weighted percentage
@@ -866,7 +866,7 @@ temp3
 
 ...and one last time we save it.
 
-```{r,cache=TRUE}
+```{r mc-47,cache=TRUE}
 ## Save as csv file
 write.csv(temp3,file="Mode_wact45D.csv",row.names=FALSE)
 rm(temp1)

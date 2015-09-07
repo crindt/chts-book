@@ -1,0 +1,47 @@
+Region,County,Year 2000 Estimated Households,Weekday Sample Size (goal),Weekend Sample Size
+Western Slope/Sierra Nevada,Amador,"12,819",111,16
+Western Slope/Sierra Nevada,Calaveras,"17,553",152,9
+Western Slope/Sierra Nevada,Mariposa,"6,815",59,8
+Western Slope/Sierra Nevada,Tuolumne,"20,505",178,20
+Western Slope/Sierra Nevada,Region Total,"57,692",500,63
+AMBAG,Monterey,"108,675",255,38
+AMBAG,San Benito,"15,410",36,18
+AMBAG,Santa Cruz,"88,687",448,50
+AMBAG,Region Total,"212,772",740,106
+MTC,Alameda,"515,170",209,113
+MTC,Contra Costa,"353,547",144,98
+MTC,Marin,"98,159",40,60
+MTC,Napa,"45,115",18,52
+MTC,San Francisco,"311,191",127,56
+MTC,San Mateo,"266,130",108,39
+MTC,Santa Clara,"568,257",231,46
+MTC,Solano,"131,947",54,22
+MTC,Sonoma,"169,923",69,15
+MTC,Region Total,"2,459,437","1,000",501
+SACOG,El Dorado,"64,827",92,81
+SACOG,Placer,"90,431",128,28
+SACOG,Sacramento,"443,139",627,78
+SACOG,Sutter,"31,300",44,14
+SACOG,Yolo,"55,817",79,13
+SACOG,Yuba,"21,804",31,7
+SACOG,Region Total,"707,317","1,000",221
+SCAG,Imperial,"52,405",500,0
+SCAG,Los Angeles,"3,178,460",500,0
+SCAG,Orange,"935,603",500,0
+SCAG,Riverside,"558,796",500,0
+SCAG,San Bernardino,"569,105",500,0
+SCAG,Ventura,"244,749",500,0
+SCAG,Region Total,"5,539,119","3,000",0
+Butte,Butte,"80,383",500,67
+Fresno,Fresno,"269,554",500,97
+Kern,Kern,"233,013",500,91
+Merced,Merced,"65,703",500,64
+San Diego,San Diego,"994,253","1,000",267
+San Joaquin,San Joaquin,"187,966",500,84
+San Luis Obispo,San Luis Obispo,"87,003",500,68
+Santa Barbara,Santa Barbara,"138,217",750,103
+Shasta,Shasta,"67,051",500,64
+Stanislaus,Stanislaus,"154,167",500,78
+Tulare,Tulare,"121,000",500,73
+Rural,All others,330095,2500,52
+TOTAL,TOTALS,11704742,14990,2000

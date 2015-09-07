@@ -30,10 +30,12 @@ The following commands are used to generate person weight for City of Los Angele
 
 First we set the working directory. Then we need to import the person data file and corresponding lookup file (containing location information) and then we merge them.
 
-```{r,cache=TRUE}
-rd <- "/home/crindt/chts-book"
+```{r og-1,echo=FALSE}
+if ( !exists(rd) ) { rd <- "/home/crindt/chts-book" }
 p <- function(ps) { return(paste(rd,ps,sep="/")) }
+```
 
+```{r og-2,cache=TRUE}
 # Set the working directory
 setwd(p("Weight/LA_Weight"))
 # Import the person level variables csv file and give a new name
@@ -54,7 +56,7 @@ We have new file which contains information of respondents from the City of Los 
 
 First we will assign zero for 'NA' observations of raking variables because the code we will use later for raking can't read 'NA'. 
 
-```{r,cache=TRUE}
+```{r og-3,cache=TRUE}
 # Assign 0 for all NA observations
 perdata2$HISP[is.na(perdata2$HISP)] <- 0
 perdata2$AGE[is.na(perdata2$AGE)] <- 0
@@ -64,7 +66,7 @@ perdata2$EMPLY[is.na(perdata2$EMPLY)] <- 0
 
 Then, we change the value of hispanic variable to make it similar to census data. 
 
-```{r,cache=TRUE}
+```{r og-4,cache=TRUE}
 # For changing values of Hispanic
 perdata2$HISPn<-ifelse(perdata2$HISP>2,2,perdata2$HISP)
 
@@ -74,7 +76,7 @@ head(perdata2$HISPn,10)
 
 Next, we recode the age and race variable.
 
-```{r,cache=TRUE}
+```{r og-5,cache=TRUE}
 # For recoding AGE
 perdata2$AGEn<-ifelse(perdata2$AGE<20,1,ifelse((perdata2$AGE>=20 & perdata2$AGE<=24),2,ifelse((perdata2$AGE>=25 & perdata2$AGE<=34),3,ifelse((perdata2$AGE>=35 & perdata2$AGE<=54),4,ifelse((perdata2$AGE>=55 & perdata2$AGE<=64),5,6)))))
 # Show values
@@ -88,7 +90,7 @@ head(perdata2$RACEn,10)
 
 Here, we recode employmnet (EMPLY) and Gender variable.
 
-```{r,cache=TRUE}
+```{r og-6,cache=TRUE}
 # For recoding EMPLY
 perdata2$EMPLYn<-ifelse(perdata2$EMPLY==1,1,ifelse(perdata2$EMPLY==2,2,ifelse(perdata2$EMPLY==8,1,2)))
 # Show values
@@ -102,7 +104,7 @@ head(perdata2$GENDn,10)
 
 Now we have data file (perdata2) which has similar coding  as census data for raking variables. Next, we need to subset the data for respondents who live in the City of Los Angeles. The variable named as HCITY contain the city name of respondents' residential  location.
 
-```{r,cache=TRUE}
+```{r og-7,cache=TRUE}
 # Create a subset for city of LA
 sum(perdata2$HCITY=="LOS ANGELES")
 perdata_LA<-subset(perdata2,HCITY=="LOS ANGELES")
@@ -114,7 +116,7 @@ Now we have a new file named as perdata_LA which we use to generate person weigh
  
 First we import race variable for City of LA.
 
-```{r,cache=TRUE}
+```{r og-8,cache=TRUE}
 #Import the LA city population data of raking variables 
 race.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/race_LA.csv"), header=TRUE)
 race.data_LA
@@ -122,21 +124,21 @@ race.data_LA
 
 Next, we import hispanic variable for the City of LA.
 
-```{r,cache=TRUE}
+```{r og-9,cache=TRUE}
 hisp.data_LA<- read.csv(p("Weight/LA_Weight/Raking variables/hisp_LA.csv"), header=TRUE)
 hisp.data_LA
 ```
 
 Then, we import age variable.
 
-```{r,cache=TRUE}
+```{r og-10,cache=TRUE}
 age.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/age_LA.csv"), header=TRUE)
 age.data_LA
 ```
 
 Finally, we import geneder and employment status variable.
 
-```{r,cache=TRUE}
+```{r og-11,cache=TRUE}
 gend.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/gend_LA.csv"), header=TRUE)
 gend.data_LA
 
@@ -147,7 +149,7 @@ emply.data_LA
 As our data is ready for raking, next we proceed for raking to generate person weight for the City of LA. To do this we need to install the library "survey". First we design a survey using 'svydesign' command and we use sampling without replacement (pps ="brewer") option. Since sampling information is not available for the City of Los Angeles, we assume equal probability here. So we don't need to specify the fpc option here. 
 
 
-```{r,cache=TRUE}
+```{r og-12,cache=TRUE}
 # Survey design with equal probability
 # Need library "survey"
 library (survey)
@@ -156,7 +158,7 @@ temp1<- svydesign(id=~1,data=perdata_LA,pps="brewer")
 
 Then we perform the raking using 'rake' command and check the summary statistics of new weight.
 
-```{r,cache=TRUE}
+```{r og-13,cache=TRUE}
 # Raking for the City of LA to create new expanded weight
 temp2<- rake(temp1, list(~RACEn,~HISPn,~AGEn,~EMPLYn,~GENDn), list(race.data_LA,hisp.data_LA,age.data_LA,emply.data_LA,gend.data_LA),control = list(maxit = 100))
 # Summary statistics of new weight
@@ -165,7 +167,7 @@ summary(weights(temp2))
 
 After raking, we trim the weight so that very large weights were capped to be no more than five times the mean of weight. The generated expanded person weights for City of LA are saved in our specified directory.
 
-```{r,cache=TRUE}
+```{r og-14,cache=TRUE}
 # Trim the weights (max value no greater than 5 times the mean)
 temp3<-trimWeights(temp2,lower=(min(weights(temp2))),upper=(5*mean(weights(temp2))))
 # Summary of trimmed weight
@@ -185,7 +187,7 @@ Now we have on file which contains new expanded person weight for the City of LA
 
 First, we generate sample ratio for the City of LA.
 
-```{r,cache=TRUE}
+```{r og-15,cache=TRUE}
 # Create a variable for sampling ratio (sr)=sample population (4889) / City total population based on 2010 census(3792621)
 sr<- (sum(perdata2$HCITY=="LOS ANGELES"))/3792621 
 perdata_LA$SR <- sr
@@ -194,7 +196,7 @@ head(perdata_LA$sr)
 
 Here, we generate the unexpanded new person weight for the City of LA.
 
-```{r,cache=TRUE}
+```{r og-16,cache=TRUE}
 # Unexpanded person weight= Expanded weight* sample ratio
 perweight_LA$NPERWGT_LA<-perweight_LA$NEXPPERWGT_LA*perdata_LA$SR
 head(perweight_LA)
@@ -202,14 +204,14 @@ head(perweight_LA)
 
 We save the new weight as csv file by using following code.
 
-```{r,cache=TRUE}
+```{r og-17,cache=TRUE}
 # Save as csv file
 write.csv(perweight_LA, file="PerWeight_LA.csv",row.names=FALSE) 
 ```
 
 We want to merge the new weight with the City of LA person data file.
 
-```{r,cache=TRUE}
+```{r og-18,cache=TRUE}
 # Merge the new weight file with original person data file
 nper_LA<-merge(perdata_LA,perweight_LA, by =c("SAMPN","PERNO"), all = TRUE)
 head(nper_LA)
@@ -220,7 +222,7 @@ Now, we have a person data file of the City of LA with new person weight.
 
 As we mentioned earlier we want check whether the new weights represent the total population of the City of LA. So we perform some random checks for different variables using following codes. 
 
-```{r,cache=TRUE}
+```{r og-19,cache=TRUE}
 # Random Check
 ## For nativity
 wntv<-aggregate(NEXPPERWGT_LA~NTVTY,FUN=sum,data=nper_LA)
@@ -232,7 +234,7 @@ wntv1
 
 Here, we do a random check for education variable.
 
-```{r,cache=TRUE}
+```{r og-20,cache=TRUE}
 # For education
 weduc<-aggregate(NEXPPERWGT_LA~EDUCA,FUN=sum,data=nper_LA)
 weduc$Percent<-weduc$NEXPPERWGT_LA*100/sum(weduc$NEXPPERWGT_LA)
@@ -244,7 +246,7 @@ The total population of the City of LA is 3,792,621  (based on census). Our rand
 
 Now we need to calculate the new final trip weight using the new person weight of the City of LA. To do this, first, we need to import the place level file and merge it with new weight file of the City of LA.
 
-```{r,cache=TRUE}
+```{r og-21,cache=TRUE}
 #Import the place level data  csv file and give a new name
 nplacedata <- read.csv(p("Weight/NewWeightData/nplacedata932015.csv"), header=TRUE)
 
@@ -255,7 +257,7 @@ names(nplacedata_LA)
 
 The final trip weight is an outcome of Trip Correction Factor (TCF) * New Person Weight of LA City. The follow codes are used to calculate the final trip weight and the expanded final trip weight for the City of LA.
 
-```{r,cache=TRUE}
+```{r og-22,cache=TRUE}
 # Generate Final trip weight (TCF*NPERWGT_LA) for LA
 nplacedata_LA$NTCFPERWGT_LA<-nplacedata_LA$TCF*nplacedata_LA$NPERWGT_LA
 # Generate Final expanded trip weight (TCF*NEXPPERWGT_LA) for LA
@@ -268,7 +270,7 @@ head(placedata_LA)
 
 If we want to save the new file with new trip weight as csv file, we can do it by using following codes.
 
-```{r,cache=TRUE}
+```{r og-23,cache=TRUE}
 write.csv(placedata_LA, file="nplacedata_LA.csv",row.names=FALSE)
 ```
 

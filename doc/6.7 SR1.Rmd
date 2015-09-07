@@ -16,7 +16,7 @@ The following commands are used to generate the results.
 
 To answer the questions we need the place file with new county wide person weight that we computed in the section 4.1.
 
-```{r, }
+```{r sr1-1, }
 rd <- "/home/crindt/chts-book"
 p <- function(ps) { return(paste(rd,ps,sep="/")) }
 
@@ -26,21 +26,21 @@ nplace<- read.csv(p("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
 
 Next, we  convert the `MODE` codes into text descriptions.
 
-```{r, }
+```{r sr1-2, }
 # For recoding Mode
 nplace$Mode<-ifelse(nplace$MODE==1,"Walk",ifelse(nplace$MODE==2,"Bike",ifelse(nplace$MODE==3,"Wheelchair/Mobility Scooter",ifelse(nplace$MODE==4,"Other Non-Motorized",ifelse(nplace$MODE==5,"Auto/Van/Truck Driver",ifelse(nplace$MODE==6,"Auto /Van/Truck Passenger",ifelse(nplace$MODE==7,"Carpool/Vanpool",ifelse(nplace$MODE==8,"Motorcycle",ifelse(nplace$MODE==9,"Taxi/Hired Car/Limo",ifelse(nplace$MODE==10,"Rental Car/Vehicle",ifelse(nplace$MODE==11,"Private shuttle ",ifelse(nplace$MODE==12,"Greyhound Bus",ifelse(nplace$MODE==13,"Plane",ifelse(nplace$MODE==14,"Other Private Transit",ifelse(nplace$MODE==15,"Local Bus,Rapid Bus",ifelse(nplace$MODE==16,"Express Bus",ifelse(nplace$MODE==17,"Premium Bus",ifelse(nplace$MODE==18,"School Bus",ifelse(nplace$MODE==19,"Public Transit Shuttle",ifelse(nplace$MODE==20,"Air BART/LAX Fly Away",ifelse(nplace$MODE==21,"Dial-a-Ride/Paratransit", ifelse(nplace$MODE==22,"Amtrak Bus", ifelse(nplace$MODE==23,"Other Bus ", ifelse(nplace$MODE==24,"BART,Metro",ifelse(nplace$MODE==25,"ACE, Amtrak etc",ifelse(nplace$MODE==26,"Metro",ifelse(nplace$MODE==27,"Street Car",ifelse(nplace$MODE==28,"Other Rail",ifelse(nplace$MODE==29,"Ferry / Boat","Don't Know/Refused")))))))))))))))))))))))))))))
 ```
 
 We  found 269 household respondents (622 person respondents) including 98 GPS respondents within 1 km on each side of the SR1 (San Francisco Golden Gate Bridge to Pacifica) using ArcGis and we saved it in a 'csv' file. Now we need to import that file. 
 
-```{r, }
+```{r sr1-3, }
 # Import SR1 sample households (obtained from GIS) 
 sr1 <- read.csv(p("District 4/SR1/SR1_block1km.csv"), header=TRUE)
 ```
 
 And, we merge this file with place file.
 
-```{r, }
+```{r sr1-4, }
 # Merge the SR1 sample data with place level data
 sr1_place<-merge(nplace,sr1, by ="SAMPN", all = FALSE)
 
@@ -57,7 +57,7 @@ head(sr1_place)
 
 First, we generate trip frequency by mode.
 
-```{r, }
+```{r sr1-5, }
 ## Generate frequency for trip Mode
 temp1<-as.data.frame(table(sr1_place$Mode))
 temp1
@@ -74,7 +74,7 @@ temp1
 
 Then, we compute the weighted trip frequency.
 
-```{r, }
+```{r sr1-6, }
 ## Create weighted frequency
 temp2<-aggregate(NEXPTCFPERWGT~Mode,FUN=sum,data=sr1_place)
 ## Create weighted percentage
@@ -90,7 +90,7 @@ temp2
 Now we can save these results in a `csv` file for later use.
 
 
-```{r, }
+```{r sr1-7, }
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
@@ -111,7 +111,7 @@ rm(temp3)
 
 Next, we perform a similar computation for Total Trip duration for all trips for SR1 corridor, by mode.
 
-```{r, }
+```{r sr1-8, }
 ## Generate frequency for trip Mode
 temp1<-aggregate(TRIPDUR~Mode,FUN=sum,data=sr1_place)
 ## Create  percentage
@@ -126,7 +126,7 @@ temp1
 
 Again, we compute the weighted frequency.
 
-```{r, }
+```{r sr1-9, }
 ## Create weighted frequency
 temp<-sr1_place$NEXPTCFPERWGT*sr1_place$TRIPDUR
 temp2<-aggregate(temp~Mode,FUN=sum,data=sr1_place)
@@ -142,7 +142,7 @@ temp2
 
 Now, we compute the average trip duration.
 
-```{r,}
+```{r sr1-10,}
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="Mode", all = TRUE)
 temp3 <- temp3[,c(1,2,4,3,5)]
@@ -159,7 +159,7 @@ temp3
 
 And as before, we save the results for later use.
 
-```{r,}
+```{r sr1-11,}
 ## Save as csv file
 write.csv(temp3,file="TripDUrm_sr1.csv",row.names=FALSE)
 rm(temp1)
@@ -174,7 +174,7 @@ rm(temp)
 Moving on, we determine Total Trip distance for SR1 Corridor, by mode.
 
 
-```{r,}
+```{r sr1-12,}
 ## Generate frequency for trip Mode
 temp1<-aggregate(TripDistance~Mode,FUN=sum,data=sr1_place)
 ## Create  percentage
@@ -189,7 +189,7 @@ temp1
 
 Again, we compute the weighted frequency.
 
-```{r,}
+```{r sr1-13,}
 ## Create weighted frequency
 temp<-sr1_place$NEXPTCFPERWGT*sr1_place$TripDistance
 temp2<-aggregate(temp~Mode,FUN=sum,data=sr1_place)
@@ -205,7 +205,7 @@ temp2
 
 Now, we compute the average trip distance.
 
-```{r,}
+```{r sr1-14,}
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="Mode", all = TRUE)
 temp3 <- temp3[,c(1,2,4,3,5)]
@@ -222,7 +222,7 @@ temp3
 
 And, we save the results for later use.
 
-```{r,}
+```{r sr1-15,}
 ## Save as csv file
 write.csv(temp3,file="TripDistanceM_sr1.csv",row.names=FALSE)
 rm(temp1)
@@ -238,7 +238,7 @@ Now we need trip purpose breakdown, so we need to import activity level data wit
 appropriate weights.  Here we load and merge them.
 
 
-```{r,}
+```{r sr1-16,}
 #Import the activity level variables csv file and give a new name
 #act_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_activity.csv", header=TRUE)
 library(chts2011)
@@ -251,14 +251,14 @@ names(act_place)
 
 For display purposes, we convert the purpose codes into readable strings.
 
-```{r,}
+```{r sr1-17,}
 # Recoding activity purpose
 act_place$Actpur<-ifelse(act_place$APURP==1," Personal Activities",ifelse(act_place$APURP==2," Preparing Meals/Eating ",ifelse(act_place$APURP==3," Hosting Visitors",ifelse(act_place$APURP==4," Exercise ",ifelse(act_place$APURP==5," Study/Schoolwork ",ifelse(act_place$APURP==6," Work For Pay At Home",ifelse(act_place$APURP==7,"Using Computer/Telephone/Cell",ifelse(act_place$APURP==8," All Other Activities At My Home ",ifelse(act_place$APURP==9," Work/Job Duties ",ifelse(act_place$APURP==10," Training",ifelse(act_place$APURP==11," Meals At Work ",ifelse(act_place$APURP==12," Work-Sponsored Social Activities ",ifelse(act_place$APURP==13," Non-Work Related Activities",ifelse(act_place$APURP==14," Exercise/Sports ",ifelse(act_place$APURP==15," Volunteer Work/Activities ",ifelse(act_place$APURP==16," All Other Work-Related Activities",ifelse(act_place$APURP==17," In School/Classroom/Laboratory ",ifelse(act_place$APURP==18," Meals At School/College ",ifelse(act_place$APURP==19," After School Sports/Physical Activity ",ifelse(act_place$APURP==20," All Other After SchoolActivities ",ifelse(act_place$APURP==21," Change Type Of Transportation/Transfer ", ifelse(act_place$APURP==22," Pickup/Drop Off Passenger(S) ", ifelse(act_place$APURP==23," Drive Through Meals", ifelse(act_place$APURP==24," Drive Through Other (ATM, Bank) ",ifelse(act_place$APURP==25," Work-Related",ifelse(act_place$APURP==26," Service Private Vehicle",ifelse(act_place$APURP==27," Routine Shopping ",ifelse(act_place$APURP==28," Shopping For Major Purchases",ifelse(act_place$APURP==29," Household Errands", ifelse(act_place$APURP==30," Personal Business", ifelse(act_place$APURP==31," Eat Meal at Restaurant/Diner", ifelse(act_place$APURP==32," Health Care", ifelse(act_place$APURP==33," Civic/Religious Activities", ifelse(act_place$APURP==34," Outdoor Exercise", ifelse(act_place$APURP==35," Indoor Exercise ", ifelse(act_place$APURP==36," Entertainment ", ifelse(act_place$APURP==37," Social/Visit Friends/Relatives", ifelse(act_place$APURP==38," Other ", ifelse(act_place$APURP==39," Loop Trip", " Don't Know/Refused")))))))))))))))))))))))))))))))))))))))
 ```
 
 Now, merge the this data with SR1 data table.
 
-```{r,}
+```{r sr1-18,}
 # Merge the SR1 sample data with activity level data
 sr1_act<-merge(act_place,sr1, by ="SAMPN", all = FALSE)
 
@@ -272,7 +272,7 @@ head(sr1_act)
 
 We compute the observations for trip purpose for trips of SR1 corridor based on new weights.
 
-```{r,}
+```{r sr1-19,}
 ## Generate frequency for trip purpose
 temp1<-as.data.frame(table(sr1_act$Actpur))
 ## Create percentage of frequency
@@ -287,7 +287,7 @@ temp1
 
 This is followed by the weighted trip purpose frequencies.
 
-```{r,}
+```{r sr1-20,}
 ## Create weighted frequency
 temp2<-aggregate(NEXPTCFPERWGT~Actpur,FUN=sum,data=sr1_act)
 ## Create weighted percentage
@@ -302,7 +302,7 @@ temp2
 
 And here we save the results.
 
-```{r,}
+```{r sr1-21,}
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="Apurp", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
@@ -324,7 +324,7 @@ We want to generate work trips by Mode for  SR1 Corridor.
 
 First, we reuse the merged activity table from above for trips activities (and associated trips), and subset it for work trips only.
 
-```{r,}
+```{r sr1-22,}
 # Create a subset for work trips
 actw_sr1<-subset(sr1_act,APURP==9)
 head(actw_sr1$Mode)
@@ -332,7 +332,7 @@ head(actw_sr1$Mode)
 
 Now, we can determine the observations of each Mode used for work trips.
 
-```{r,}
+```{r sr1-23,}
 ## Generate frequency for trip Mode
 temp1<-as.data.frame(table(actw_sr1$Mode))
 ## Create percentage of frequency
@@ -347,7 +347,7 @@ temp1
 
 Given those, we can expand them with the county wide weights.
 
-```{r,}
+```{r sr1-24,}
 ## Create weighted frequency
 temp2<-aggregate(NEXPTCFPERWGT~Mode,FUN=sum,data=actw_sr1)
 ## Create weighted percentage
@@ -362,7 +362,7 @@ temp2
 
 And again, we finish by saving the results.
 
-```{r,}
+```{r sr1-25,}
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]

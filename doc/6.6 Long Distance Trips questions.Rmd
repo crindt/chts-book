@@ -28,7 +28,7 @@ The following commands are used to generate the results.
 
 To answer the questions we need the long distance table (with new weights) that we computed in the section 4.4.
 
-```{r, }
+```{r ldtq-1, }
 rd <- "/home/crindt/chts-book"
 p <- function(ps) { return(paste(rd,ps,sep="/")) }
 
@@ -42,7 +42,7 @@ names(wLDdata)
 
 Next, we convert the `LDMODE1` codes into text descriptions.
 
-```{r}
+```{r ldtq-2}
 # For recoding Mode
 wLDdata$Mode<-ifelse(wLDdata$LDMODE1==1,"Walk",ifelse(wLDdata$LDMODE1==2,"Bike",ifelse(wLDdata$LDMODE1==3,"Wheelchair / Mobility Scooter",ifelse(wLDdata$LDMODE1==4,"Other Non-Motorized",ifelse(wLDdata$LDMODE1==5,"Auto/Van/Truck Driver",ifelse(wLDdata$LDMODE1==6,"Auto /Van/Truck Passenger",ifelse(wLDdata$LDMODE1==7,"Carpool/Vanpool",ifelse(wLDdata$LDMODE1==8,"Motorcycle/Scooter/Moped",ifelse(wLDdata$LDMODE1==9,"Taxi/Hired Car/Limo",ifelse(wLDdata$LDMODE1==10,"Rental Car/Vehicle",ifelse(wLDdata$LDMODE1==11,"Private shuttle",ifelse(wLDdata$LDMODE1==12,"Greyhound Bus",ifelse(wLDdata$LDMODE1==13,"Plane",ifelse(wLDdata$LDMODE1==14,"Other Private Transit",ifelse(wLDdata$LDMODE1==15,"Local Bus,Rapid Bus",ifelse(wLDdata$LDMODE1==16,"Express Bus/Commuter Bus",ifelse(wLDdata$LDMODE1==17,"Premium Bus",ifelse(wLDdata$LDMODE1==18,"School Bus",ifelse(wLDdata$LDMODE1==19,"Public Transit Shuttle",ifelse(wLDdata$LDMODE1==20,"Air BART/LAX Fly Away",ifelse(wLDdata$LDMODE1==21,"Dial-a-Ride/Paratransit", ifelse(wLDdata$LDMODE1==22,"Amtrak Bus", ifelse(wLDdata$LDMODE1==23,"Other Bus ", ifelse(wLDdata$LDMODE1==24,"BART,Metro Red/Purple Line",ifelse(wLDdata$LDMODE1==25,"ACE, Amtrak,  etc",ifelse(wLDdata$LDMODE1==26,"Metro Blue / Green / Gold Line etc",ifelse(wLDdata$LDMODE1==27,"Street Car / Cable Car",ifelse(wLDdata$LDMODE1==28,"Other Rail",ifelse(wLDdata$LDMODE1==29,"Ferry / Boat","Don't Know/Refused")))))))))))))))))))))))))))))
 ```
@@ -53,7 +53,7 @@ wLDdata$Mode<-ifelse(wLDdata$LDMODE1==1,"Walk",ifelse(wLDdata$LDMODE1==2,"Bike",
 Now, we first focus on long distance trips originating from District 1. we
 subset the long distance data for trips originating in District 1.
 
-```{r}
+```{r ldtq-3}
 # Create a subset of variables for districts (Here District==1)
 Odist1<-subset(wLDdata,LDOCTFIP==15|LDOCTFIP==23|LDOCTFIP==33|LDOCTFIP==45)
 table(Odist1$LDOCTFIP)
@@ -61,7 +61,7 @@ table(Odist1$LDOCTFIP)
 
 Then we subset the data for non-commute trips
 
-```{r}
+```{r ldtq-4}
 # Creat subset for non-commute trips
 Odistrict1<-subset(Odist1,!(LDTPURP==1))
 table(Odistrict1$LDTPURP)
@@ -73,7 +73,7 @@ from District 1 based on these weights.
 
 Notes: In the tables:  UW = Unweighted and W = Weighted.
 
-```{r, }
+```{r ldtq-5, }
 ## Generate frequency for trip mode
 temp1<-as.data.frame(table(Odistrict1$Mode))
 ## Create percentage of frequency
@@ -88,7 +88,7 @@ temp1
 
 Now we compute the weighted frequency.
 
-```{r, }
+```{r ldtq-6, }
 ## Create weighted frequency
 temp2<-aggregate(EXPLDWGT~Mode,FUN=sum,data=Odistrict1)
 ## Create weighted percentage
@@ -103,7 +103,7 @@ temp2
 
 Now we can save these results in a `csv` file for later use.
 
-```{r, }
+```{r ldtq-7, }
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
@@ -120,7 +120,7 @@ Next, we perform a similar computation for total number of non-commute long dist
 
 First  we subset the long distance data for trips originating in District 2.
 
-```{r, }
+```{r ldtq-8, }
 # For origin in District2
 ## Creat subset
 Odist2<-subset(wLDdata,LDOCTFIP==35|LDOCTFIP==49|LDOCTFIP==63|LDOCTFIP==89|LDOCTFIP==93|LDOCTFIP==103|LDOCTFIP==105)
@@ -129,7 +129,7 @@ table(Odist2$LDOCTFIP)
 
 Then, we subset the non-commute long distance trips originating in District 2.
 
-```{r, }
+```{r ldtq-9, }
 ## create subset for non-commute trips
 Odistrict2<-subset(Odist2,!(LDTPURP==1))
 table(Odistrict2$LDTPURP)
@@ -137,7 +137,7 @@ table(Odistrict2$LDTPURP)
 
 Here, we generate trip frequency.
 
-```{r, }
+```{r ldtq-10, }
 ## Generate frequency and percentage for trip mode
 O_mode2<-as.data.frame(table(Odistrict2$Mode))
 O_mode2$Percent<-O_mode2$Freq*100/sum(O_mode2$Freq)
@@ -148,7 +148,7 @@ O_mode2
 
 Again, we compute the weighted frequency.
 
-```{r, }
+```{r ldtq-11, }
 temp2<-aggregate(EXPLDWGT~Mode,FUN=sum,data=Odistrict2)
 temp2$Percent<-temp2$EXPLDWGT*100/sum(temp2$EXPLDWGT)
 names(temp2)
@@ -158,7 +158,7 @@ temp2
 
 And as before, we save the results for later use. 
 
-```{r, }
+```{r ldtq-12, }
 temp3<-merge(O_mode2,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
 temp3
@@ -174,7 +174,7 @@ Here we determine total number of non-commute long distance trips from District 
 First  we subset the long distance non-commute  trips originating in District 3.
 
 
-```{r, }
+```{r ldtq-13, }
 # For origin in District 3
 ## Creat subset
 Odist3<-subset(wLDdata,LDOCTFIP==7|LDOCTFIP==11|LDOCTFIP==17|LDOCTFIP==21|LDOCTFIP==57|LDOCTFIP==61|LDOCTFIP==67|LDOCTFIP==91|LDOCTFIP==101|LDOCTFIP==113|LDOCTFIP==115)
@@ -186,7 +186,7 @@ table(Odistrict3$LDTPURP)
 
 Now, we compute the trip frequency
 
-```{r, }
+```{r ldtq-14, }
 ## Generate frequency and percentage for trip mode
 O_mode3<-as.data.frame(table(Odistrict3$Mode))
 O_mode3$Percent<-O_mode3$Freq*100/sum(O_mode3$Freq)
@@ -197,7 +197,7 @@ O_mode3
 
 Next, we compute the weighted trip frequency by mode.
 
-```{r, }
+```{r ldtq-15, }
 temp2<-aggregate(EXPLDWGT~Mode,FUN=sum,data=Odistrict3)
 temp2$Percent<-temp2$EXPLDWGT*100/sum(temp2$EXPLDWGT)
 names(temp2)
@@ -207,7 +207,7 @@ temp2
 
 And, here we save the results.
 
-```{r, }
+```{r ldtq-16, }
 temp3<-merge(O_mode3,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
 temp3
@@ -223,7 +223,7 @@ We compute total number of non-commute long distance trips from District 4, by m
 
 First  we subset the long distance non-commute  trips originating in District 4.
 
-```{r, }
+```{r ldtq-17, }
 # For origin in District 4
 ## Creat subset
 odist4<-subset(wLDdata,LDOCTFIP==1|LDOCTFIP==13|LDOCTFIP==41|LDOCTFIP==55|LDOCTFIP==81|LDOCTFIP==75|LDOCTFIP==85|LDOCTFIP==95|LDOCTFIP==97)
@@ -235,7 +235,7 @@ table(odistrict4$LDTPURP)
 
 Now, we compute the trip frequency
 
-```{r, }
+```{r ldtq-18, }
 ## Generate frequency and percentage for trip mode
 O_mode4<-as.data.frame(table(odistrict4$Mode))
 O_mode4$Percent<-O_mode4$Freq*100/sum(O_mode4$Freq)
@@ -246,7 +246,7 @@ O_mode4
 
 Next, we compute the weighted trip frequency by mode.
 
-```{r, }
+```{r ldtq-19, }
 temp2<-aggregate(EXPLDWGT~Mode,FUN=sum,data=odistrict4)
 temp2$Percent<-temp2$EXPLDWGT*100/sum(temp2$EXPLDWGT)
 names(temp2)
@@ -256,7 +256,7 @@ temp2
 
 And, we save the results as 'csv' format for later use. 
 
-```{r, }
+```{r ldtq-20, }
 temp3<-merge(O_mode4,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
 temp3
@@ -271,7 +271,7 @@ We compute total number of non-commute long distance trips from District 5, by m
 
 First  we subset the long distance non-commute  trips originating in District 5.
 
-```{r, }
+```{r ldtq-21, }
 # For origin in District 5
 ## Creat subset
 odist5<-subset(wLDdata,LDOCTFIP==53|LDOCTFIP==69|LDOCTFIP==79|LDOCTFIP==83|LDOCTFIP==87)
@@ -283,7 +283,7 @@ table(odistrict5$LDTPURP)
 
 Now we compute the frequency of modes for this subset.
 
-```{r, }
+```{r ldtq-22, }
 ## Generate frequency and percentage for trip mode
 O_mode5<-as.data.frame(table(odistrict5$Mode))
 O_mode5$Percent<-O_mode5$Freq*100/sum(O_mode5$Freq)
@@ -294,7 +294,7 @@ O_mode5
 
 Following the pattern, we compute the weighted frequency.
 
-```{r, }
+```{r ldtq-23, }
 temp2<-aggregate(EXPLDWGT~Mode,FUN=sum,data=odistrict5)
 temp2$Percent<-temp2$EXPLDWGT*100/sum(temp2$EXPLDWGT)
 names(temp2)
@@ -304,7 +304,7 @@ temp2
 
 Then, once again, we save the results for later use.
 
-```{r, }
+```{r ldtq-24, }
 temp3<-merge(O_mode5,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
 temp3
@@ -319,7 +319,7 @@ We compute total number of non-commute long distance trips from Southern Califor
 
 First  we subset the long distance non-commute  trips originating in Southern California.
 
-```{r, }
+```{r ldtq-25, }
 # For origin in Southern California
 ## Creat subset
 oSC<-subset(wLDdata,LDOCTFIP==19|(LDOCTFIP==71 & LDOTRACT>=103 & LDOTRACT<5000)|LDOCTFIP==31|LDOCTFIP==39|LDOCTFIP==107|LDOCTFIP==29|LDOCTFIP==37|LDOCTFIP==59|LDOCTFIP==73|LDOCTFIP==25|LDOCTFIP==111|LDOCTFIP==65)
@@ -331,7 +331,7 @@ table(oSouthCal$LDTPURP)
 
 Now we compute trip frequency for this subset. 
 
-```{r, }
+```{r ldtq-26, }
 ## Generate frequency and percentage for trip mode
 O_modesc<-as.data.frame(table(oSouthCal$Mode))
 O_modesc$Percent<-O_modesc$Freq*100/sum(O_modesc$Freq)
@@ -342,7 +342,7 @@ O_modesc
 
 Then, we compute weighted long distance trip frequency.
 
-```{r, }
+```{r ldtq-27, }
 temp2<-aggregate(EXPLDWGT~Mode,FUN=sum,data=oSouthCal)
 temp2$Percent<-temp2$EXPLDWGT*100/sum(temp2$EXPLDWGT)
 names(temp2)
@@ -352,7 +352,7 @@ temp2
 
 And, we save the results for later use.
 
-```{r, }
+```{r ldtq-28, }
 temp3<-merge(O_modesc,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
 temp3
@@ -367,7 +367,7 @@ We compute total number of non-commute long distance trips from District 9, by m
 
 First  we subset the long distance non-commute  trips originating in District 9.
 
-```{r, }
+```{r ldtq-29, }
 # For origin in District 9
 ## Creat subset
 odist9<-subset(wLDdata,LDOCTFIP==27|LDOCTFIP==51|(LDOCTFIP==71 & LDOTRACT>=5000))
@@ -379,7 +379,7 @@ table(odistrict9$LDTPURP)
 
 Here, we compute frequency of non-commute trips
 
-```{r, }
+```{r ldtq-30, }
 ## Generate frequency and percentage for trip mode
 O_mode9<-as.data.frame(table(odistrict9$Mode))
 O_mode9$Percent<-O_mode9$Freq*100/sum(O_mode9$Freq)
@@ -390,7 +390,7 @@ O_mode9
 
 This should be looking familiar now.  Here is the weighted frequency.
 
-```{r, }
+```{r ldtq-31, }
 temp2<-aggregate(EXPLDWGT~Mode,FUN=sum,data=odistrict9)
 temp2$Percent<-temp2$EXPLDWGT*100/sum(temp2$EXPLDWGT)
 names(temp2)
@@ -400,7 +400,7 @@ temp2
 
 And again, we save for later use.
 
-```{r, }
+```{r ldtq-32, }
 temp3<-merge(O_mode9,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
 temp3
@@ -416,7 +416,7 @@ subset the long distance data, but this time for trips ending in District 1 and 
 We first focus on long distance trips ending to District 1. we
 subset the long distance data for trips ending in District 1.
 
-```{r, }
+```{r ldtq-33, }
 # Create a subset of variables for districts (Here District==1)
 ddist1<-subset(wLDdata,LDDCTFIP==15|LDDCTFIP==23|LDDCTFIP==33|LDDCTFIP==45)
 table(ddist1$LDDCTFIP)
@@ -424,7 +424,7 @@ table(ddist1$LDDCTFIP)
 
 Then we subset the data for non-commute trips.
 
-```{r, }
+```{r ldtq-34, }
 # Creat subset for non-commute trips
 ddistrict1<-subset(ddist1,!(LDTPURP==1))
 table(ddistrict1$LDTPURP)
@@ -435,7 +435,7 @@ expansion weights appended.  Now we can generate observations for modal split fo
 to District 1 based on these weights.
 
 
-```{r, }
+```{r ldtq-35, }
 ## Generate frequency for trip mode
 temp1<-as.data.frame(table(ddistrict1$Mode))
 ## Create percentage of frequency
@@ -450,7 +450,7 @@ temp1
 
 Now we compute the weighted frequency.
 
-```{r, }
+```{r ldtq-36, }
 ## Create weighted frequency
 temp2<-aggregate(EXPLDWGT~Mode,FUN=sum,data=ddistrict1)
 ## Create weighted percentage
@@ -465,7 +465,7 @@ temp2
 
 Now we can save these results in a `csv` file for later use.
 
-```{r, }
+```{r ldtq-37, }
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
@@ -482,7 +482,7 @@ Next, we perform a similar computation for total number of non-commute long dist
 
 First  we subset the long distance data for trips ending in District 2.
 
-```{r, }
+```{r ldtq-38, }
 # For destination in District2
 ## Creat subset
 ddist2<-subset(wLDdata,LDDCTFIP==35|LDDCTFIP==49|LDDCTFIP==63|LDDCTFIP==89|LDDCTFIP==93|LDDCTFIP==103|LDDCTFIP==105)
@@ -491,7 +491,7 @@ table(ddist2$LDDCTFIP)
 
 Then, we subset the non-commute long distance trips ending in District 2.
 
-```{r, }
+```{r ldtq-39, }
 ## create subset for non-commute trips
 ddistrict2<-subset(ddist2,!(LDTPURP==1))
 table(ddistrict2$LDTPURP)
@@ -499,7 +499,7 @@ table(ddistrict2$LDTPURP)
 
 Here, we generate trip frequency.
 
-```{r, }
+```{r ldtq-40, }
 ## Generate frequency and percentage for trip mode
 O_mode2<-as.data.frame(table(ddistrict2$Mode))
 O_mode2$Percent<-O_mode2$Freq*100/sum(O_mode2$Freq)
@@ -510,7 +510,7 @@ O_mode2
 
 Again, we compute the weighted frequency.
 
-```{r, }
+```{r ldtq-41, }
 temp2<-aggregate(EXPLDWGT~Mode,FUN=sum,data=ddistrict2)
 temp2$Percent<-temp2$EXPLDWGT*100/sum(temp2$EXPLDWGT)
 names(temp2)
@@ -520,7 +520,7 @@ temp2
 
 And as before, we save the results for later use. 
 
-```{r, }
+```{r ldtq-42, }
 temp3<-merge(O_mode2,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
 temp3
@@ -536,7 +536,7 @@ Here we determine total number of non-commute long distance trips to District 3,
 First  we subset the long distance non-commute  trips ending in District 3.
 
 
-```{r, }
+```{r ldtq-43, }
 # For destination in District 3
 ## Creat subset
 ddist3<-subset(wLDdata,LDDCTFIP==7|LDDCTFIP==11|LDDCTFIP==17|LDDCTFIP==21|LDDCTFIP==57|LDDCTFIP==61|LDDCTFIP==67|LDDCTFIP==91|LDDCTFIP==101|LDDCTFIP==113|LDDCTFIP==115)
@@ -548,7 +548,7 @@ table(ddistrict3$LDTPURP)
 
 Now, we compute the trip frequency
 
-```{r, }
+```{r ldtq-44, }
 ## Generate frequency and percentage for trip mode
 O_mode3<-as.data.frame(table(ddistrict3$Mode))
 O_mode3$Percent<-O_mode3$Freq*100/sum(O_mode3$Freq)
@@ -559,7 +559,7 @@ O_mode3
 
 Next, we compute the weighted trip frequency by mode.
 
-```{r, }
+```{r ldtq-45, }
 temp2<-aggregate(EXPLDWGT~Mode,FUN=sum,data=ddistrict3)
 temp2$Percent<-temp2$EXPLDWGT*100/sum(temp2$EXPLDWGT)
 names(temp2)
@@ -569,7 +569,7 @@ temp2
 
 And, here we save the results.
 
-```{r, }
+```{r ldtq-46, }
 temp3<-merge(O_mode3,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
 temp3
@@ -585,7 +585,7 @@ We compute total number of non-commute long distance trips to District 4, by mod
 
 First  we subset the long distance non-commute  trips ending in District 4.
 
-```{r, }
+```{r ldtq-47, }
 # For destination in District 4
 ## Creat subset
 ddist4<-subset(wLDdata,LDDCTFIP==1|LDDCTFIP==13|LDDCTFIP==41|LDDCTFIP==55|LDDCTFIP==81|LDDCTFIP==75|LDDCTFIP==85|LDDCTFIP==95|LDDCTFIP==97)
@@ -597,7 +597,7 @@ table(ddistrict4$LDTPURP)
 
 Now, we compute the trip frequency
 
-```{r, }
+```{r ldtq-48, }
 ## Generate frequency and percentage for trip mode
 O_mode4<-as.data.frame(table(ddistrict4$Mode))
 O_mode4$Percent<-O_mode4$Freq*100/sum(O_mode4$Freq)
@@ -608,7 +608,7 @@ O_mode4
 
 Next, we compute the weighted trip frequency by mode.
 
-```{r, }
+```{r ldtq-49, }
 temp2<-aggregate(EXPLDWGT~Mode,FUN=sum,data=ddistrict4)
 temp2$Percent<-temp2$EXPLDWGT*100/sum(temp2$EXPLDWGT)
 names(temp2)
@@ -618,7 +618,7 @@ temp2
 
 And, we save the results as 'csv' format for later use. 
 
-```{r, }
+```{r ldtq-50, }
 temp3<-merge(O_mode4,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
 temp3
@@ -633,7 +633,7 @@ We compute total number of non-commute long distance trips to District 5, by mod
 
 First  we subset the long distance non-commute  trips ending in District 5.
 
-```{r, }
+```{r ldtq-51, }
 # For destination in District 5
 ## Creat subset
 ddist5<-subset(wLDdata,LDDCTFIP==53|LDDCTFIP==69|LDDCTFIP==79|LDDCTFIP==83|LDDCTFIP==87)
@@ -645,7 +645,7 @@ table(ddistrict5$LDTPURP)
 
 Now we compute the frequency of modes for this subset.
 
-```{r, }
+```{r ldtq-52, }
 ## Generate frequency and percentage for trip mode
 O_mode5<-as.data.frame(table(ddistrict5$Mode))
 O_mode5$Percent<-O_mode5$Freq*100/sum(O_mode5$Freq)
@@ -656,7 +656,7 @@ O_mode5
 
 Following the pattern, we compute the weighted frequency.
 
-```{r, }
+```{r ldtq-53, }
 temp2<-aggregate(EXPLDWGT~Mode,FUN=sum,data=ddistrict5)
 temp2$Percent<-temp2$EXPLDWGT*100/sum(temp2$EXPLDWGT)
 names(temp2)
@@ -666,7 +666,7 @@ temp2
 
 Then, once again, we save the results for later use.
 
-```{r, }
+```{r ldtq-54, }
 temp3<-merge(O_mode5,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
 temp3
@@ -681,7 +681,7 @@ We compute total number of non-commute long distance trips to Southern Californi
 
 First  we subset the long distance non-commute  trips ending in Southern California.
 
-```{r, }
+```{r ldtq-55, }
 # For destination in Southern California
 ## Creat subset
 oSC<-subset(wLDdata,LDDCTFIP==19|(LDDCTFIP==71 & LDDTRACT>=103 & LDDTRACT<5000)|LDDCTFIP==31|LDDCTFIP==39|LDDCTFIP==107|LDDCTFIP==29|LDDCTFIP==37|LDDCTFIP==59|LDDCTFIP==73|LDDCTFIP==25|LDDCTFIP==111|LDDCTFIP==65)
@@ -693,7 +693,7 @@ table(oSouthCal$LDTPURP)
 
 Now we compute trip frequency for this subset. 
 
-```{r, }
+```{r ldtq-56, }
 ## Generate frequency and percentage for trip mode
 O_modesc<-as.data.frame(table(oSouthCal$Mode))
 O_modesc$Percent<-O_modesc$Freq*100/sum(O_modesc$Freq)
@@ -704,7 +704,7 @@ O_modesc
 
 Then, we compute weighted long distance trip frequency.
 
-```{r, }
+```{r ldtq-57, }
 temp2<-aggregate(EXPLDWGT~Mode,FUN=sum,data=oSouthCal)
 temp2$Percent<-temp2$EXPLDWGT*100/sum(temp2$EXPLDWGT)
 names(temp2)
@@ -714,7 +714,7 @@ temp2
 
 And, we save the results for later use.
 
-```{r, }
+```{r ldtq-58, }
 temp3<-merge(O_modesc,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
 temp3
@@ -729,7 +729,7 @@ We compute total number of non-commute long distance trips to District 9, by mod
 
 First  we subset the long distance non-commute  trips ending in District 9.
 
-```{r,}
+```{r ldtq-59,}
 # For destination in District 9
 ## Creat subset
 ddist9<-subset(wLDdata,LDDCTFIP==27|LDDCTFIP==51|(LDDCTFIP==71 & LDDTRACT>=5000))
@@ -741,7 +741,7 @@ table(ddistrict9$LDTPURP)
 
 Here, we compute frequency of non-commute trips
 
-```{r, }
+```{r ldtq-60, }
 ## Generate frequency and percentage for trip mode
 O_mode9<-as.data.frame(table(ddistrict9$Mode))
 O_mode9$Percent<-O_mode9$Freq*100/sum(O_mode9$Freq)
@@ -752,7 +752,7 @@ O_mode9
 
 This should be looking familiar now.  Here is the weighted frequency.
 
-```{r,}
+```{r ldtq-61,}
 temp2<-aggregate(EXPLDWGT~Mode,FUN=sum,data=ddistrict9)
 temp2$Percent<-temp2$EXPLDWGT*100/sum(temp2$EXPLDWGT)
 names(temp2)
@@ -762,7 +762,7 @@ temp2
 
 And again, we save for later use.
 
-```{r,}
+```{r ldtq-62,}
 temp3<-merge(O_mode9,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
 temp3

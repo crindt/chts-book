@@ -33,12 +33,15 @@ The following commands are used to generate county wide person weight.
 
 First we need to import the person data file and corresponding lookup file (containing location information) and then we merge them.
 
-```{r,cache=TRUE}
+```{r pw-1,echo=FALSE}
+if ( !exists(rd) ) { rd <- "/home/crindt/chts-book" }
+p <- function(ps) { return(paste(rd,ps,sep="/")) }
+```
+
+```{r pw-2,cache=TRUE}
 library(chts2011)
 library(dplyr)
 # Set the working directory
-rd <- "/home/crindt/chts-book"
-p <- function(ps) { return(paste(rd,ps,sep="/")) }
 setwd(p("Weight/PersonWeight_County"))
 # Import the person level variables csv file and give a new name
 #persondata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_per.csv", header=TRUE)
@@ -57,7 +60,7 @@ Now we have new merged file which is used to generate new person weight. We need
 
 First we will assign zero for 'NA' observations of raking variables because the code we will use later for raking can't read 'NA'. 
 
-```{r,cache=TRUE}
+```{r pw-3,cache=TRUE}
 # Assign 0 for all NA observations
 perdata2$HISP[is.na(perdata2$HISP)] <- 0
 perdata2$AGE[is.na(perdata2$AGE)] <- 0
@@ -67,7 +70,7 @@ perdata2$EMPLY[is.na(perdata2$EMPLY)] <- 0
 
 Then, we change the value of hispanic variable to make it similar to census data. 
 
-```{r,cache=TRUE}
+```{r pw-4,cache=TRUE}
 # For changing values of Hispanic
 perdata2$HISPn<-ifelse(perdata2$HISP>2,2,perdata2$HISP)
 
@@ -77,7 +80,7 @@ head(perdata2$HISPn,10)
 
 Next, we recode the age and race variable.
 
-```{r,cache=TRUE}
+```{r pw-5,cache=TRUE}
 # For recoding AGE
 perdata2$AGEn<-ifelse(perdata2$AGE<20,1,ifelse((perdata2$AGE>=20 & perdata2$AGE<=24),2,ifelse((perdata2$AGE>=25 & perdata2$AGE<=34),3,ifelse((perdata2$AGE>=35 & perdata2$AGE<=54),4,ifelse((perdata2$AGE>=55 & perdata2$AGE<=64),5,6)))))
 # Show values
@@ -92,7 +95,7 @@ head(perdata2$RACEn,10)
 
 Here, we recode employmnet (EMPLY) and Gender variable.
 
-```{r,cache=TRUE}
+```{r pw-6,cache=TRUE}
 # For recoding EMPLY
 perdata2$EMPLYn<-ifelse(perdata2$EMPLY==1,1,ifelse(perdata2$EMPLY==2,2,ifelse(perdata2$EMPLY==8,1,2)))
 # Show values
@@ -108,7 +111,7 @@ Now we have data file (perdata2) which has similar coding  as census data for ra
 We need county wide total population data which we collect from census and save it as csv (we organize them as per our requriment).Here we import that file and merge this data with perdata2. 
 
 
-```{r,cache=TRUE}
+```{r pw-7,cache=TRUE}
 # Assgin county wide total population into perdata2 file
 # Import the countywise total population csv file and give a new name
 tot.pop <- read.csv(p("Weight/Data_County/Total/county_totpop2.csv"), header=TRUE)
@@ -123,7 +126,7 @@ So, now we have a new file named perdata3 which contains all the raking variable
 But we need a single dataframe for each county. So we need to create a list of seperate dataframe for each county.
 
 
-```{r,cache=TRUE}
+```{r pw-8,cache=TRUE}
 # create list of dataframes for different counties 
 percnty_list <- split(perdata3, as.factor(perdata3$HCTFIP))
 # Show the list of one county
@@ -134,7 +137,7 @@ We need census data of raking variables (Hispanic, Race, Employment status, Gend
 
 First, we do it for hispanic data.
 
-```{r,cache=TRUE}
+```{r pw-9,cache=TRUE}
 # Hispanic data
 hisp.county <- read.csv(p("Weight/Data_County/Hispanic/Hisp_county.csv"), header=TRUE)
 head(hisp.county)
@@ -150,7 +153,7 @@ head(hisp.data[1])
 
 Here, we import the race data.
 
-```{r,cache=TRUE}
+```{r pw-10,cache=TRUE}
 # Race
 race.county <- read.csv(p("Weight/Data_County/Race/Race_county.csv"), header=TRUE)
 race.county$id <- 1:nrow(race.county)
@@ -162,7 +165,7 @@ head(race.data[1])
 
 Then, we repeat the process for employment data.
 
-```{r,cache=TRUE}
+```{r pw-11,cache=TRUE}
 ## Employment data
 emply.county <- read.csv(p("Weight/Data_County/Employment/Employment_county.csv"), header=TRUE)
 
@@ -175,7 +178,7 @@ head(emply.data[1])
 
 Finally, we import gender and age data.
 
-```{r,cache=TRUE}
+```{r pw-12,cache=TRUE}
 #Gender
 gend.county <- read.csv(p("Weight/Data_County/Gender/Gender_county.csv"), header=TRUE) 
 
@@ -198,7 +201,7 @@ head(age.data[48])
 
 Here we want to set the directory where we want to save our output.
 
-```{r,cache=TRUE}
+```{r pw-13,cache=TRUE}
 # Set directory where we want to save
 setwd(p("Weight/PersonWeight_County"))
 ```
@@ -207,7 +210,7 @@ setwd(p("Weight/PersonWeight_County"))
 As our data is ready for raking, we proceed for raking next. We  do it in a for loop function which generate weight for each county. To do this we need to install the library "survey". First we design a survey using 'svydesign' command and we use sampling without replacement (pps ="brewer") option. The 'fpc (finite population correction)' is the ratio of sample population and county wide total population. Then we perform the raking. After raking, we trim the weight so that very large weights were capped to be no more than five times the mean of weight.The following codes also give us informaiotn about the errors (the fip code of counties for which the weight can't be generated). The generated expanded person weights for different counties are saved in our specified directory. 
 
 
-```{r,cache=TRUE}
+```{r pw-14,cache=TRUE}
 # Raking for all county to create new expanded weight
 #Need library "survey"
 library (survey)
@@ -230,7 +233,7 @@ for (i in 1:length(hisp.data)){ #length must be equal to 58=total number of coun
 
 After running the codes, we get nine errors for nine county data sets and we need to treat them indiviudally (HCTFIP= 3,15,21,27,49,51,91,103,105). The errors show that some race categories are absent from sample of these counties, so we don't include race as raking variable for these counties in the following codes.
 
-```{r,cache=TRUE}
+```{r pw-15,cache=TRUE}
 # Loop function for the rest of the counties
 d=c(2,8,11,14,25,26,46,52,53) # # only for counties which gave error for previous cases (HCTFIP=3(i=2);HCTFIP=15(i=8);HCTFIP=21(i=11) and so on)
 for (i in d){ 
@@ -253,7 +256,7 @@ for (i in d){
 There is no error now. So, we have expanded person weights for all 58 counties and these weights are saved in the directory we specified earlier. We need to combine these weights of 58 counties into one file. The following codes are used to import and combine them.
 
 
-```{r,cache=TRUE}
+```{r pw-16,cache=TRUE}
 # Import multiple csv file of new expanded weight and combine into one file
 setwd(p("Weight/PersonWeight_County"))
 # Import the files
@@ -267,7 +270,7 @@ Now we have on file which contains new county wide expanded person weight for al
 
 First, we merge the fpc data with expanded new person weight.
 
-```{r,cache=TRUE}
+```{r pw-17,cache=TRUE}
 # fpc =sample population/county total population
 # Subest the fpc
 fpc<-subset(perdata3,select=c(SAMPN,PERNO,fpc))
@@ -280,7 +283,7 @@ names(nperweight)
 
 Here, we generate the unexpanded new person weight.
 
-```{r,cache=TRUE}
+```{r pw-18,cache=TRUE}
 # Unexpanded person weight= Expanded weight* fpc
 nperweight$NPERWGT<-nperweight$NEXPPERWGT*nperweight$fpc
 head(nperweight)
@@ -288,7 +291,7 @@ head(nperweight)
 
 Now, we subset the weight data and exclude the fpc variable (since we don't need it).
 
-```{r,cache=TRUE}
+```{r pw-19,cache=TRUE}
 # Subset the dataset (excluding the fpc variable)
 nperweight2<-subset(nperweight,select=-c(3))
 names(nperweight2)
@@ -300,7 +303,7 @@ head(nperweight2)
 
 Now we have a file with new county wide expaned and unexpanded person weights. Here we save it in our desired directory.
 
-```{r,cache=TRUE}
+```{r pw-20,cache=TRUE}
 # Save 
 setwd(p("Weight/NewWeightData"))
 write.csv(nperweight2, file="nperweight922015.csv",row.names = FALSE) # save as csv
@@ -308,7 +311,7 @@ write.csv(nperweight2, file="nperweight922015.csv",row.names = FALSE) # save as 
 
 We want to merge the new weight with person data file.
 
-```{r,cache=TRUE}
+```{r pw-21,cache=TRUE}
 # Merge the new weight file with original person data file
 npersondata<-merge(persondata,nperweight2, by =c("SAMPN","PERNO"), all = TRUE)
 head(npersondata)
@@ -319,7 +322,7 @@ write.csv(npersondata, file="npersondata922015.csv",row.names=FALSE)
 Now we have a person data file with new county wide weight. 
 As we mentioned earlier we want check whether the new weights represent the total population of the counties. So we perform some random checks for different variables using following codes. We do it for Mendocino county as an example.
 
-```{r,cache=TRUE}
+```{r pw-22,cache=TRUE}
 # Random Check
 setwd(p("Weight/Check"))
 # We do it for Mendocino county (FIP code=45)
@@ -338,7 +341,7 @@ wrace
 
 Here, we do a random check for education variable.
 
-```{r,cache=TRUE}
+```{r pw-23,cache=TRUE}
 # For education
 educ<-as.data.frame(table(popdata_45$EDUCA))
 educ$Percent<-educ$Freq*100/sum(educ$Freq)
@@ -354,7 +357,7 @@ The total population of Mendocino county is 87,487 (based on census). Our random
 
 Now we need to calculate the new final  trip weight using the new county wide person weight. To do this, first, we need to import the place level file and merge it with new weight file.
 
-```{r,cache=TRUE}
+```{r pw-24,cache=TRUE}
 #Import the place level data  csv file and give a new name
 #place_data1 <- read.csv("../Data/deliv_place.csv", header=TRUE)
 place_data1 <- chts_pla
@@ -366,7 +369,7 @@ names(nplacedata)
 
 The final trip weight is an outcome of Trip Correction Factor (TCF) * New county wide Person Weight. The follow codes are used to calculate the final trip weight and the expanded final trip weight for all counties.
 
-```{r,cache=TRUE}
+```{r pw-25,cache=TRUE}
 # Generate Final trip weight (TCF*NPERWGT) 
 nplacedata$NTCFPERWGT<-nplacedata$TCF*nplacedata$NPERWGT
 # Generate Final expanded trip weight (TCF*NEXPPERWGT) 
@@ -377,7 +380,7 @@ head(nplacedata)
 
 If we want to save the new file with new trip weight as csv file, we can do it by using following codes.
 
-```{r,cache=TRUE}
+```{r pw-26,cache=TRUE}
 # Set the working directory
 setwd(p("Weight/NewWeightData"))
 

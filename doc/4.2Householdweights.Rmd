@@ -30,10 +30,14 @@ The following commands are used to generate county wide household weight.
 
 First we need to import the person data file and corresponding lookup file (containing location information) and then we merge them.
 
-```{r,cache=TRUE}
-# Set the working directory
-rd <- "/home/crindt/chts-book"
+```{r hw-1,echo=FALSE}
+if ( !exists(rd) ) { rd <- "/home/crindt/chts-book" }
 p <- function(ps) { return(paste(rd,ps,sep="/")) }
+```
+
+
+```{r hw-2,cache=TRUE}
+# Set the working directory
 
 setwd(p("Weight/HHWeight_County"))
 #Import the household level variables csv file and give a new name
@@ -54,7 +58,7 @@ names(nhhdata)
 ```
 
 Next, we standardize the HCTFIP value to be an integer.
-```{r}
+```{r hw-3}
 nhhdata$HCTFIP <- as.integer(nhhdata$HCTFIP) %% 1000
 ```
 
@@ -62,7 +66,7 @@ Now we have new merged file which is used to generate new household weight. We n
 
 First we will assign zero for 'NA' observations of raking variables because the code we will use later for raking can't read 'NA'. 
 
-```{r,cache=TRUE}
+```{r hw-4,cache=TRUE}
 # Assign 0 for all NA observations
 nhhdata[is.na(nhhdata$INCOM)] <- 0
 nhhdata[is.na(nhhdata$HHSIZ)] <- 0
@@ -72,7 +76,7 @@ nhhdata[is.na(nhhdata$HHEMP)] <- 0
 
 Then, we change the value of household income (INCOM) variable to make it similar to census data. 
 
-```{r,cache=TRUE}
+```{r hw-5,cache=TRUE}
 # Recoding income variable (INCOM)
 nhhdata$INCOME<-ifelse(nhhdata$INCOM<=2,1,ifelse((nhhdata$INCOM>=3 &nhhdata$INCOM<=4),2,ifelse(nhhdata$INCOM==5,3,ifelse(nhhdata$INCOM==6,4,ifelse(nhhdata$INCOM==7,5,6)))))
 # Show the values
@@ -81,7 +85,7 @@ head(nhhdata$INCOME)
 
 Next, we recode Household size (HHSIZE) variable.
 
-```{r,cache=TRUE}
+```{r hw-6,cache=TRUE}
 # Recoding household size
 nhhdata$HHSIZE<-ifelse(nhhdata$HHSIZ>=4,4,nhhdata$HHSIZ)
 # Show values
@@ -90,7 +94,7 @@ head(nhhdata$HHSIZE,10)
 
 Here, we recode nubmer of household vehicles (HHVEH) variable.
 
-```{r,cache=TRUE}
+```{r hw-7,cache=TRUE}
 # Recoding household vehicle(HHVEH)
 nhhdata$HHVEHC<-ifelse(nhhdata$HHVEH>=3,3,nhhdata$HHVEH)
 # Show values
@@ -99,7 +103,7 @@ head(nhhdata$HHVEHC,10)
 
 Finally, we change the value of number of household workers (HHEMP)
 
-```{r,cache=TRUE}
+```{r hw-8,cache=TRUE}
 # Recoding number of workers (HHEMP)
 nhhdata$HHWRK<-ifelse(nhhdata$HHEMP>=3,3,nhhdata$HHEMP)
 # See the data
@@ -112,7 +116,7 @@ Now we have data file (nhhdata) which has similar coding  as census data for rak
 We need county wide total household data which we collect from census and save it as csv (we organize them as per our requriment).Here we import that file and merge this data with nhhdata. 
 
 
-```{r,cache=TRUE}
+```{r hw-9,cache=TRUE}
 # Assgin county wide total household into nhhdata file
 #Import the county wide total hosuehold csv file and give a new name
 tot.hh <- read.csv(p("Weight/Data_County/Total/county_tothh2.csv"), header=TRUE)
@@ -126,7 +130,7 @@ So, now we have a new file named hhdata3 which contains all the raking variables
 But we need seperate dataframes for each county. So we need to create a list of seperate dataframes for each county containing all the information.
 
 
-```{r,cache=TRUE}
+```{r hw-10,cache=TRUE}
 # create list of dataframes for different counties 
 hhcnty_list <- split(hhdata3, as.factor(hhdata3$HCTFIP))
 # Show the list of one county
@@ -137,7 +141,7 @@ We need census data of raking variables (Household size, Household income, Numbe
 
 First, we do it for Household size variable.
 
-```{r,cache=TRUE}
+```{r hw-11,cache=TRUE}
 # Household size data
 hhsize.county <- read.csv(p("Weight/Data_County/County_HH/HHSize/hhsize.csv"), header=TRUE)
 head(hhsize.county)
@@ -152,7 +156,7 @@ head(hhsize.data[1])
 
 Here, we import the Household income variable.
 
-```{r,cache=TRUE}
+```{r hw-12,cache=TRUE}
 # Income
 hhincome.county <- read.csv(p("Weight/Data_County/County_HH/Income/hhincome.csv"), header=TRUE)
 head(hhincome.county)
@@ -165,7 +169,7 @@ head(hhincome.data[1])
 
 Then, we repeat the process for number of household vehicles variable.
 
-```{r,cache=TRUE}
+```{r hw-13,cache=TRUE}
 ## Number of vehicles data
 hhveh.county <- read.csv(p("Weight/Data_County/County_HH/HHVeh/hhvehicle.csv"), header=TRUE)
 head(hhveh.county)
@@ -178,7 +182,7 @@ head(hhveh.data[2])
 
 Finally, we import nubmer of household number of workers.
 
-```{r,cache=TRUE}
+```{r hw-14,cache=TRUE}
 ## Number of workers
 hhwrk.county <- read.csv(p("Weight/Data_County/County_HH/Worker/hhworkers.csv"), header=TRUE)
 head(hhwrk.county)
@@ -191,7 +195,7 @@ head(hhwrk.data[3])
 
 Here we want to set the directory where we want to save our output.
 
-```{r,cache=TRUE}
+```{r hw-15,cache=TRUE}
 # Set directory where we want to save
 setwd(p("Weight/HHWeight_County"))
 ```
@@ -200,7 +204,7 @@ setwd(p("Weight/HHWeight_County"))
 As our data is ready for raking, we proceed for raking next. We  do it in a for loop function which generate weight for each county. To do this we need to install the library "survey". First we design a survey using 'svydesign' command and we use sampling without replacement (pps ="brewer") option. The option 'fpc (finite population correction)' is the ratio of sample household number and county wide total household. Then we perform the raking. After raking, we trim the weight so that very large weights were capped to be no more than five times the mean of weight.The following codes also give us informaiotn about the errors (the fip code of counties for which the weight can't be generated). The generated expanded household weights for different counties are saved in our specified directory. 
 
 
-```{r,cache=TRUE}
+```{r hw-16,cache=TRUE}
 # Raking to create new expanded weight for all counties
 #Need library "survey"
 library (survey)
@@ -226,7 +230,7 @@ for (i in 1:length(hhwrk.data)){ #length must be equal to 58=total number of cou
 
 After running the codes, we get two errors for two county data sets (HCTFIP=3,43) and we need to treat them indiviudally. The errors show that some HHVEHC (number of household vehicles)  categories are absent from sample of these counties, so we don't include HHVEHC as raking variable for these counties in the following codes.
 
-```{r,cache=TRUE}
+```{r hw-17,cache=TRUE}
 # Loop function for the rest of the counties
 e=c(2,22) # only for counties which gave error for previous cases (HCTFIP=3[i=2],HCTFIP= 43[i=22])
 for (i in e){ 
@@ -249,7 +253,7 @@ for (i in e){
 There is no error now. So, we have expanded household weights for all 58 counties and these weights are saved in the directory we specified earlier. We need to combine these weights of 58 counties into one file. The following codes are used to import and combine them.
 
 
-```{r,cache=TRUE}
+```{r hw-18,cache=TRUE}
 # Import multiple csv file of new weight and combine into one file
 setwd(p("Weight/HHWeight_County"))
 # Import the files
@@ -263,7 +267,7 @@ Now we have on file which contains new county wide expanded household weight for
 
 First, we merge the fpc data with expanded new household weight.
 
-```{r,cache=TRUE}
+```{r hw-19,cache=TRUE}
 # fpc =sample household number/county total household number
 # Subset the fpc
 fpc2<-subset(hhdata3,select=c(SAMPN,fpc))
@@ -275,7 +279,7 @@ names(nhhweight)
 
 Here, we generate the unexpanded new household weight.
 
-```{r,cache=TRUE}
+```{r hw-20,cache=TRUE}
 # Unexpanded household weight= Expanded weight* fpc
 nhhweight$NHHWGT<-nhhweight$NEXPHHWGT*nhhweight$fpc
 head(nhhweight)
@@ -283,7 +287,7 @@ head(nhhweight)
 
 Now, we subset the weight data and exclude the fpc variable (since we don't need it).
 
-```{r,cache=TRUE}
+```{r hw-21,cache=TRUE}
 # Subset the dataset (excluding the fpc variable)
 nhhweight2<-subset(nhhweight,select=-c(2))
 head(nhhweight2)
@@ -295,7 +299,7 @@ head(nhhweight2)
 
 Now we have a file with new county wide expaned and unexpanded household weights. Here we save it in our desired directory.
 
-```{r,cache=TRUE}
+```{r hw-22,cache=TRUE}
 # Save 
 setwd(p("Weight/NewWeightData"))
 write.csv(nhhweight2, file="nhhweight922015.csv",row.names = FALSE) # save as csv
@@ -303,7 +307,7 @@ write.csv(nhhweight2, file="nhhweight922015.csv",row.names = FALSE) # save as cs
 
 We want to merge the new weight with household data file and save it as csv.
 
-```{r,cache=TRUE}
+```{r hw-23,cache=TRUE}
 # Merge the new weight file with original household data file
 nhhdataw<-merge(hhdata,nhhweight2, by =c("SAMPN"), all = TRUE)
 head(nhhdataw)
@@ -314,7 +318,7 @@ write.csv(nhhdataw, file="nhhdataw922015.csv",row.names=FALSE)
 Now we have a household data file with new county wide household weight. 
 As we mentioned earlier we want check whether the new weights represent the total household of the counties. So we perform some random checks for different variables using following codes. We do it for Alameda county as an example.
 
-```{r,cache=TRUE}
+```{r hw-24,cache=TRUE}
 # Random Check
 setwd(p("Weight/Check"))
 # We do it for Alameda county (FIP code=1)
@@ -333,7 +337,7 @@ whsize
 
 Then we do a random check for household home ownership (OWN) variable. 
 
-```{r,cache=TRUE}
+```{r hw-25,cache=TRUE}
 # For home ownership  variable
 hown<-as.data.frame(table(hhdata_01$OWN))
 hown$Percent<-hown$Freq*100/sum(hown$Freq)
