@@ -4,10 +4,11 @@ author: "Craig Rindt"
 date: "09/07/2015"
 output:
   pdf_document:
-    highlight: kate
+    highlight: pygments
     keep_tex: yes
     number_sections: yes
     toc: yes
+    toc_depth: 5
 ---
 
 ```{r setup,echo=FALSE,cache=FALSE}
@@ -24,6 +25,21 @@ FIXME: TO BE ADDED
 
 FIXME: TO BE COMPLETED
 
+Things to install (windows)
+
+* R 
+* R tools
+* RStudio
+* install.packages("chts2011")
+* install.packages("chts2011pvt")
+* install.packages("dplyr")
+* install.packages("logging")
+* install.packages("survey")
+* install.packages("RCurl")
+* install.packages("jsonlite")
+* Change rd variable in chts-book.Rmd to chts-book root directory
+* install.packages("chts2011wgt")
+
 Libraries required to generate this document:
 
 * `chts2011`
@@ -38,11 +54,17 @@ Libraries required to generate this document:
 
 # Calculating Weights
 
+## County Level Person Weights
+
 ```{r child = '4.1Personweights.Rmd'}
 ```
 
+## Household Level Person Weights
+
 ```{r child = '4.2Householdweights.Rmd'}
 ```
+
+## Weights for Other Geographies
 
 ```{r child = '4.3Other Geographies.Rmd'}
 ```
@@ -52,8 +74,12 @@ Libraries required to generate this document:
 
 # Linked Trip Tables
 
+## How to Create the Linked Trip Table
+
 ```{r child = 'chts-linked-trips.Rmd'}
 ```
+
+#  Creating the CHTS Summary Tables
 
 ```{r child = 'recreating-2001-tables-sltn.Rmd'}
 ```
@@ -64,26 +90,42 @@ Libraries required to generate this document:
 The following sections provide R solutions to the questions asked by various districts
 during the course of the project.
 
+## Data Request for Santa Cruz County
+
 ```{r child = '6.1SantaCruz county.Rmd'}
 ```
+
+## Data Request for Del Note County
 
 ```{r child = '6.2DelNortecounty.Rmd'}
 ```
 
+## Humboldt for Humboldt County
+
 ```{r child = '6.3 Humboldt county.Rmd'}
 ```
+
+## Data Request for Lake County
 
 ```{r child = '6.4 Lake County.Rmd'}
 ```
 
+## Data Request for Mendocino County
+
 ```{r child = '6.5 Mendocino County.Rmd'}
 ```
+
+## Long Distance Trips Questions
 
 ```{r child = '6.6 Long Distance Trips questions.Rmd'}
 ```
 
+## Travel Statistics along the SR-1 Corridor
+
 ```{r child = '6.7 SR1.Rmd'}
 ```
+
+## Travel Statistics along the SR-17 Corridor
 
 ```{r child = '6.8 SR17.Rmd'}
 ```

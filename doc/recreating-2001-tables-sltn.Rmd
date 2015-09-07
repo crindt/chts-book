@@ -5,7 +5,7 @@ date: "03/04/2015"
 output: html_document
 ---
 
-### Setup
+## Setup
 
 ```{r echo=FALSE}
 #rd <- gsub("(.*?chts-analysis).*","\\1",getwd())
@@ -47,7 +47,7 @@ single.family <- c(1)   # RESTY values: single family homes
 multi.family  <- c(2:6) # RESTY values
 ```
 
-### Weighting Calculations
+## Weighting Calculations
 
 
 Here we load in weights by region, weights by area, and weights by wd.
@@ -57,7 +57,7 @@ library(chts2011wgt)
 ```
 
 
-### Table A: KEY 2000-2001 TRAVEL SURVEY DATA FOR CALIFORNIA
+## Table A: KEY 2000-2001 TRAVEL SURVEY DATA FOR CALIFORNIA
 
 Table A contains a range of information about households.  We describe how each is computed below.
 
@@ -234,7 +234,7 @@ pandoc.table(tab,
              caption="Household Vehicle Availability")
 ```
 
-### Table B: Weekday Trip Information
+## Table B: Weekday Trip Information
 
 The weekday trip information is based upon linked trips, which we can read in but we
 need appropriate weights for weekday travel.  Recall that for Table A, we computed
@@ -528,7 +528,7 @@ tabstr<-pandoc.table.return(tab,
 cat(gsub("(\\*\\*\\s*)     0","\\1&nbsp;",tabstr))
 ```
 
-### Table C - TRAVEL SURVEY DATA FOR CALIFORNIA---Travel Mode Distribution
+## Table C - TRAVEL SURVEY DATA FOR CALIFORNIA---Travel Mode Distribution
 
 
 ```{r table-c,results='asis'}
@@ -588,7 +588,8 @@ pandoc.table(tab,
              caption="Weekday Mode Share Information")
 ```
 
-### Table D: TRAVEL SURVEY DATA FOR CALIFORNIA---Weekday Commute Mode Share Information
+## Table D: TRAVEL SURVEY DATA FOR CALIFORNIA---Weekday Commute Mode Share Information
+
 ```{r table-d,results='asis'}
 # Commuter Mode Share-Weekday Trips
 # Drove Alone
@@ -670,7 +671,7 @@ pandoc.table(tabf,
              emphasize.strong.cols = 1) 
 ```
 
-### Table E: AREA(REGION) DEFINITION
+## Table E: AREA(REGION) DEFINITION
 
 The definition of regions differ between 2001 and 2011.  We summarize both here.
 
@@ -719,7 +720,7 @@ pandoc.table(
 
 ```
 
-### Table F: SAMPLE SIZE BY REGION (AREA)
+## Table F: SAMPLE SIZE BY REGION (AREA)
 
 ```{r table-f,results='asis'}
 tabf <-   chts_hh_reg %>% 
@@ -784,7 +785,7 @@ pandoc.table(
   )
 ```
 
-### Table 1: PERSONS/VEHICLE PER HOUSEHOLD By Region
+## Table 1: PERSONS/VEHICLE PER HOUSEHOLD By Region
 
 ```{r table-1,results='asis'}
 hh <- chts_hh %>% 
@@ -809,7 +810,7 @@ pandoc.table(
   )
 ```
 
-### Table 2: PERSONS/HH By Region and Housing Unit Type
+## Table 2: PERSONS/HH By Region and Housing Unit Type
 
 Single family is defined as:
 ```{r table-2-setup-1,results='asis'}
@@ -880,7 +881,7 @@ pandoc.table(
 ```
 
 
-### Table 3: VEHICLES/HH By Region and Housing Unit Type
+## Table 3: VEHICLES/HH By Region and Housing Unit Type
 
 ```{r table-3}
 hh <- chts_hh %>% 
@@ -933,7 +934,7 @@ single %>% left_join(mult) %>% left_join(all) %>%
   pander()
 ```
 
-### TABLE 4: HOUSEHOLDS BY VEHICLE, HOUSING UNIT TYPE AND REGION (Percentages)
+## TABLE 4: HOUSEHOLDS BY VEHICLE, HOUSING UNIT TYPE AND REGION (Percentages)
 
 ```{r table-4,results='asis'}
 tmp <- chts_hh %>%
@@ -1012,7 +1013,7 @@ pandoc.table(
   )
 ```
 
-### TABLE 5: LICENSED DRIVERS PER HOUSHEOLD
+## TABLE 5: LICENSED DRIVERS PER HOUSHEOLD
 
 Persons 16 years of age or older.
 
@@ -1036,7 +1037,7 @@ pandoc.table(
   )
 ```
 
-### TABLE 6: EMPLOYEES PER HOUSEHOLD
+## TABLE 6: EMPLOYEES PER HOUSEHOLD
 
 ```{r table-6,results='asis'}
 emp.ca <- chts_hh %>% summarise(
@@ -1059,7 +1060,7 @@ pandoc.table(
   
 ```
 
-### TABLE 7: PERSONS 16 YEARS OF AGE AND OLDER By Region and Employment Status (Percentages)
+## TABLE 7: PERSONS 16 YEARS OF AGE AND OLDER By Region and Employment Status (Percentages)
 
 ```{r table-7,results='asis'}
 per.emp <- chts_per %>% 
@@ -1131,7 +1132,7 @@ pandoc.table(
   )
 ```
 
-### TABLE 9: WEEKDAY TRIP-TYPE DISTRIBUTION
+## TABLE 9: WEEKDAY TRIP-TYPE DISTRIBUTION
 
 ```{r table-9-1,results='asis'}
 suppressMessages(require(Hmisc))
@@ -1223,7 +1224,7 @@ for (var in sort(unique(data$AREA))) {
 ```
 
 
-### TABLE 17a: WEEKDAY UNLINKED AND LINKED TRIPS DISTRIBUTED BY PARTICULAR TRAVEL MODE AND GROUP
+## TABLE 17a: WEEKDAY UNLINKED AND LINKED TRIPS DISTRIBUTED BY PARTICULAR TRAVEL MODE AND GROUP
 
 ```{r table-17a,results='asis'}
 mode.groups <- data.frame( 
