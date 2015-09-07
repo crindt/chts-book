@@ -1,0 +1,10 @@
+.Rproj.user
+.Rhistory
+.RData
+doc/*.CSV
+doc/*.csv
+doc/*_cache/
+doc/*_files/
+*~
+*.zip
+doc/*.html

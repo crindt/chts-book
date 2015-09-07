@@ -17,8 +17,11 @@ The following commands are used to generate the results.
 To answer the questions we need the place file with new county wide person weight that we computed in the section 4.1.
 
 ```{r, }
+rd <- "/home/crindt/chts-book"
+p <- function(ps) { return(paste(rd,ps,sep="/")) }
+
 #Import the place level with new weight csv file and give a new name
-nplace<- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/NewWeightData/nplacedata3032015.csv", header=TRUE)
+nplace<- read.csv(p("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
 ```
 
 Next, we  convert the `MODE` codes into text descriptions.
@@ -32,7 +35,7 @@ We  found 74 household respondents (177 person respondents) including 8 GPS resp
 
 ```{r, }
 #Import SR17 sample households (obtained from GIS) 
-sr17 <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/SR 17/SR17_block1km.csv", header=TRUE)
+sr17 <- read.csv(p("District 4/SR 17/SR17_block1km.csv"), header=TRUE)
 ```
 
 And, we merge this file with place file.
@@ -235,7 +238,9 @@ appropriate weights.  Here we load and merge them.
 
 ```{r,}
 #Import the activity level variables csv file and give a new name
-act_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_activity.csv", header=TRUE)
+#act_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_activity.csv", header=TRUE)
+library(chts2011)
+act_data <- chts_act
 names(act_data)
 # Merge the person weight file with place level data file
 act_place<-merge(act_data,nplace, by =c("SAMPN","PERNO","PLANO"), all = FALSE)

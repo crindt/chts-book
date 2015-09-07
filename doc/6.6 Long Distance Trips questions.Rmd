@@ -8,13 +8,13 @@ output: html_document
 ## Data Request for Long Distane Travel
 
 Tables for number of non-commute, long distance trips by trip mode for the counties in the  following geographic areas:
-  ???*	District 1 - Del Norte, Humboldt, Lake, Mendocino
-  ???*	District 2 - Lassen, Modoc, Plumas, Shasta, Siskiyou, Tehama, Trinity
-  ???*	District 3 - Butte, Colusa, El Dorado, Glenn, Nevada, Placer, Sacramento, Sierra, Sutter, Yolo, Yuba
-???  *	District 4 - Alameda, Contra Costa, Marin, Napa, San Mateo, San Francisco, Santa Clara, Solano, Sonoma
-  ???*	District 5 - Monterey, San Benito, San Luis Obispo, Santa Barbara, Santa Cruz
-  ???*	Southern California - Fresno, Madera, Kings, Tulare, Kern, Los Angeles, Orange, San Diego, Imperial, Ventura, Riverside and a portion of San       Bernardino
-  ???*	District 9 - Inyo, Mono and the rest of San Bernardino County.
+  *	District 1 - Del Norte, Humboldt, Lake, Mendocino
+  *	District 2 - Lassen, Modoc, Plumas, Shasta, Siskiyou, Tehama, Trinity
+  *	District 3 - Butte, Colusa, El Dorado, Glenn, Nevada, Placer, Sacramento, Sierra, Sutter, Yolo, Yuba
+  *	District 4 - Alameda, Contra Costa, Marin, Napa, San Mateo, San Francisco, Santa Clara, Solano, Sonoma
+  *	District 5 - Monterey, San Benito, San Luis Obispo, Santa Barbara, Santa Cruz
+  *	Southern California - Fresno, Madera, Kings, Tulare, Kern, Los Angeles, Orange, San Diego, Imperial, Ventura, Riverside and a portion of San       Bernardino
+  *	District 9 - Inyo, Mono and the rest of San Bernardino County.
 
 
 ## Summary and Methodology
@@ -29,11 +29,14 @@ The following commands are used to generate the results.
 To answer the questions we need the long distance table (with new weights) that we computed in the section 4.4.
 
 ```{r, }
+rd <- "/home/crindt/chts-book"
+p <- function(ps) { return(paste(rd,ps,sep="/")) }
+
 # Set the working directory
-setwd("~/Suman_research/Caltrans Project/LD data request")
+setwd(p("LD data request"))
 
 #Import the long distance  (with new weight) csv file and give a new name
-wLDdata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/LD_Weight2/wLD_data13015.csv", header=TRUE)
+wLDdata <- read.csv(p("Weight/LD_Weight2/wLD_data13015.csv"), header=TRUE)
 names(wLDdata)
 ```
 
