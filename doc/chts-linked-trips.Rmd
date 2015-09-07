@@ -251,7 +251,7 @@ your local setup.  However, it should be fairly portable.
 ```{r lt-setup,cache=FALSE,echo=TRUE}
 # Set the working directory so we can access libraries
 #rd <- gsub("(.*?chts2011).*","\\1",getwd())
-if ( !exists(rd) ) { rd <- "/home/crindt/chts-book" }
+if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
 write(paste("Setting working directory to",rd,"\n"),stderr())
 setwd(rd)
 

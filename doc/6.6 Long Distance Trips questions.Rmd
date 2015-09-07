@@ -29,7 +29,7 @@ The following commands are used to generate the results.
 To answer the questions we need the long distance table (with new weights) that we computed in the section 4.4.
 
 ```{r ldtq-0,echo=FALSE}
-if ( !exists(rd) ) { rd <- "/home/crindt/chts-book" }
+if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
 p <- function(ps) { return(paste(rd,ps,sep="/")) }
 ```
 

@@ -1133,7 +1133,7 @@ pandoc.table(
 
 ### TABLE 9: WEEKDAY TRIP-TYPE DISTRIBUTION
 
-```{r results='asis'}
+```{r table-9-1,results='asis'}
 suppressMessages(require(Hmisc))
 dat<-(ltf2 %>% left_join(chts_per %>% select(SAMPN,PERNO,EXPPERWGT)) %>% 
              mutate(EXPTCFPERWGT=EXPPERWGT*ltTCF) %>%

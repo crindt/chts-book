@@ -31,7 +31,7 @@ The following commands are used to generate county wide weights for long distanc
 First we need to import the person data file and corresponding lookup file (containing location information) and then we merge them.
 
 ```{r ldw-1,echo=FALSE}
-if ( !exists(rd) ) { rd <- "/home/crindt/chts-book" }
+if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
 p <- function(ps) { return(paste(rd,ps,sep="/")) }
 ```
 

@@ -29,10 +29,14 @@ The following commands are used to generate the results.
 
 To answer the questions we need the place level table (with weights) that we computed in the section 4.
 
-```{r dnc-1, cache=TRUE}
-rd <- "/home/crindt/chts-book"
+```{r dnc-0,echo=FALSE}
+if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
 p <- function(ps) { return(paste(rd,ps,sep="/")) }
+source(p("R/setup-hooks.R"))
+```
 
+
+```{r dnc-1, cache=TRUE}
 # Set the working directory
 setwd(p("District 1/DelNorte County"))
 

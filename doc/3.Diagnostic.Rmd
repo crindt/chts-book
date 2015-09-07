@@ -35,7 +35,7 @@ The following commands are used for diagnostics checks of the CHTS.
 We first import the household data and corresponding look up data (contain x-y coordinates). Before doing this, we need to save the household and look up file manually as 'csv' format and keep them in our desired location. We import those files from that location and merge them.
 
 ```{r,echo=FALSE}
-if ( !exists(rd) ) { rd <- "/home/crindt/chts-book" }
+if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
 ```
 
 ```{r diag-setup,cache=TRUE}
