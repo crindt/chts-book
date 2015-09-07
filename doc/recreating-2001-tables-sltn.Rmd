@@ -1160,35 +1160,35 @@ pandoc.table(tabtot,caption="Weekday Trip Type Distribution",
 And here are the trip distribution tables by region.
 
 ```{r trip-dist-by-region,results='asis'}
-data<-ltf2 %>% 
-  filter(!is.na(dplano)) %>%
-  left_join(chts_hh_reg %>% select(SAMPN,CTFIP,Region,AREA),by=c("SAMPN")) %>%
-  mutate(ICTFIP=as.integer(gsub("^06","",CTFIP))) %>%
-  left_join(chts_per.wgt.region %>% select(SAMPN,PERNO,NEXPPERREGWGT)) %>%
-  mutate(NEXPTCPPERREGWGT = NEXPPERREGWGT*ltTCF) %>%
-  group_by(TripType) %>% filter(TripType!="")
-suppressMessages(data$AREA <- assign_factors(data$AREA,'hh','AREA'))
-
-for (var in sort(unique(data$Region))) {
-  dat<-data %>% filter(Region==var)
-  tt <- t(t(wtd.table(dat$TripType,weights=dat$NEXPTCPPERREGWGT,type='table')))
-  ttt <- rownames(tt)
-  rownames(tt)<-NULL
-  tabtot <- data.frame(
-    "Trip Type"=ttt,
-    "Number"=tt,
-    "Percent"=round(tt/sum(tt)*100,2))
-  tabtot <- rbind(tabtot,
-                  data.frame(
-                    "Trip Type"=c("TOTAL"),
-                    "Number"=sum(tabtot$Number),
-                    "Percent"=sum(tabtot$Percent)))
-  pandoc.table(tabtot,
-               caption=paste("Weekday Trip Type Distribution (",var,")",sep=""),
-               split.table=Inf,split.cells=Inf,
-               justify=c('center','right','right'),
-               style='multiline')
-}
+# data<-ltf2 %>% 
+#   filter(!is.na(dplano)) %>%
+#   left_join(chts_hh_reg %>% select(SAMPN,CTFIP,Region,AREA),by=c("SAMPN")) %>%
+#   mutate(ICTFIP=as.integer(gsub("^06","",CTFIP))) %>%
+#   left_join(chts_per.wgt.region %>% select(SAMPN,PERNO,NEXPPERREGWGT)) %>%
+#   mutate(NEXPTCPPERREGWGT = NEXPPERREGWGT*ltTCF) %>%
+#   group_by(TripType) %>% filter(TripType!="")
+# suppressMessages(data$AREA <- assign_factors(data$AREA,'hh','AREA'))
+# 
+# for (var in sort(unique(data$Region))) {
+#   dat<-data %>% filter(Region==var)
+#   tt <- t(t(wtd.table(dat$TripType,weights=dat$NEXPTCPPERREGWGT,type='table')))
+#   ttt <- rownames(tt)
+#   rownames(tt)<-NULL
+#   tabtot <- data.frame(
+#     "Trip Type"=ttt,
+#     "Number"=tt,
+#     "Percent"=round(tt/sum(tt)*100,2))
+#   tabtot <- rbind(tabtot,
+#                   data.frame(
+#                     "Trip Type"=c("TOTAL"),
+#                     "Number"=sum(tabtot$Number),
+#                     "Percent"=sum(tabtot$Percent)))
+#   pandoc.table(tabtot,
+#                caption=paste("Weekday Trip Type Distribution (",var,")",sep=""),
+#                split.table=Inf,split.cells=Inf,
+#                justify=c('center','right','right'),
+#                style='multiline')
+# }
 ```
 
 

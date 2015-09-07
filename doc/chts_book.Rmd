@@ -2,7 +2,12 @@
 title: "2012 California Household Travel Survey Data Analysis"
 author: "Craig Rindt"
 date: "09/07/2015"
-output: html_document
+output:
+  pdf_document:
+    highlight: kate
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
 ---
 
 ```{r setup,echo=FALSE,cache=FALSE}
@@ -85,3 +90,4 @@ during the course of the project.
 
 # Conclusions
 
+FIXME: To be added.

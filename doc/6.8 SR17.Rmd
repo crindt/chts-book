@@ -16,10 +16,12 @@ The following commands are used to generate the results.
 
 To answer the questions we need the place file with new county wide person weight that we computed in the section 4.1.
 
-```{r sr17-1, }
-rd <- "/home/crindt/chts-book"
+```{r sr17-0,echo=FALSE}
+if ( !exists(rd) ) { rd <- "/home/crindt/chts-book" }
 p <- function(ps) { return(paste(rd,ps,sep="/")) }
+```
 
+```{r sr17-1, }
 #Import the place level with new weight csv file and give a new name
 nplace<- read.csv(p("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
 ```
