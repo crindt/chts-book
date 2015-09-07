@@ -1,0 +1,871 @@
+---
+title: "6.1 Data Request for Santa Cruz County"
+author: "Suman Mitra"
+date: "September 3, 2015"
+output: html_document
+---
+
+## Data Request for Santa Cruz County
+
+1. Trips by Mode
+2. Modal split for driving alone
+3. Trip distance by Mode
+4. Trip duration by Mode
+5. Trips by Purpose
+6. Work trips by mode
+
+## Summary and Methodology
+
+We generate tables by mode for the following: total number of trips, total trip distance, average trip distance, total trip duration, average trip duration, and total number of trips for driving alone.  To calculate the drive alone numbers we extract data for total travelers (`TOTTR=1`) and `MODE={5, 6, 7, 8, 10}` (basically, drivers of cars, trucks, or motorcycles). We also generate tables for the total number of trips by trip purpose and for work trips by mode. Here, we actually generate tables for total number of trips by activity purpose since the trip purpose is given in the database as activity purpose and there is more than one activity in many single trips. We consider each activity as a trip. We only consider the purpose code (`APURP=9`) for work trips.  We generate every table for both trips originating in and ending in Santa Cruz County. We use the new county wide weights of the Santa Cruz County to generate weighted results for trips that originated in Santa Cruz County and statewide weights to generate weighted results for trips that originated outside of Santa Cruz County. 
+
+
+## R Code and Implementation
+
+The following commands are used to generate the results.
+
+### Trips to  Santa Cruz County
+
+#### Mode split calculations
+
+To answer the questions we need the place level table (with weights) that we computed in the section 4.
+
+```{r, }
+# Set the working directory
+setwd("~/Suman_research/Caltrans Project/Santa Cruz County")
+
+
+#Import the place level with new weight csv file and give a new name
+nplace<- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/NewWeightData/nplacedata3032015.csv", header=TRUE)
+names(nplace)
+head(nplace)# Show first ten observations
+
+```
+
+Next, we do some manipulations to determine origin county and convert the `MODE` codes into 
+text descriptions.
+
+```{r,}
+# Create trip origin county 
+# Need dplyr
+library("dplyr")
+nplacedata <- nplace %>% group_by(SAMPN,PERNO)%>% arrange(SAMPN,PERNO,PLANO) %>% mutate(OCTFIP=lag(CTFIP))
+
+# For recoding Mode
+nplacedata$Mode<-ifelse(nplacedata$MODE==1,"Walk",ifelse(nplacedata$MODE==2,"Bike",ifelse(nplacedata$MODE==3,"Wheelchair/Mobility Scooter",ifelse(nplacedata$MODE==4,"Other Non-Motorized",ifelse(nplacedata$MODE==5,"Auto/Van/Truck Driver",ifelse(nplacedata$MODE==6,"Auto /Van/Truck Passenger",ifelse(nplacedata$MODE==7,"Carpool/Vanpool",ifelse(nplacedata$MODE==8,"Motorcycle/Scooter/Moped",ifelse(nplacedata$MODE==9,"Taxi/Hired Car/Limo",ifelse(nplacedata$MODE==10,"Rental Car/Vehicle",ifelse(nplacedata$MODE==11,"Private shuttle ",ifelse(nplacedata$MODE==12,"Greyhound Bus",ifelse(nplacedata$MODE==13,"Plane",ifelse(nplacedata$MODE==14,"Other Private Transit",ifelse(nplacedata$MODE==15,"Local Bus,Rapid Bus",ifelse(nplacedata$MODE==16,"Express Bus/Commuter Bus",ifelse(nplacedata$MODE==17,"Premium Bus",ifelse(nplacedata$MODE==18,"School Bus",ifelse(nplacedata$MODE==19,"Public Transit Shuttle",ifelse(nplacedata$MODE==20,"Air BART/LAX Fly Away",ifelse(nplacedata$MODE==21,"Dial-a-Ride/Paratransit", ifelse(nplacedata$MODE==22,"Amtrak Bus", ifelse(nplacedata$MODE==23,"Other Bus ", ifelse(nplacedata$MODE==24,"BART,Metro Red/Purple Line",ifelse(nplacedata$MODE==25,"ACE, Amtrak, Cal train",ifelse(nplacedata$MODE==26,"Metro",ifelse(nplacedata$MODE==27,"Street Car/Cable Car",ifelse(nplacedata$MODE==28,"Other Rail",ifelse(nplacedata$MODE==29,"Ferry / Boat","Don't Know/Refused")))))))))))))))))))))))))))))
+
+```
+
+
+Now, we first focus on trips ending in  Santa Cruz County.  Here we use different 
+weights depending on the origin of the trip.  Specifically, when the origin is  Santa Cruz 
+County, we use the county-specific weights.  When the origin is outside Santa Cruz County, we use the statewide weights.
+
+```{r,}
+# Trips to  Santa Cruz County
+# Create a subset for trips to  Santa Cruz county 
+# We are only interested in trips to  Santa Cruz County (CTFIP=87) 
+# Create a subset for trips to  Santa Cruz County 
+place_87<-subset(nplacedata,CTFIP==87)
+names(place_87)
+# Change the weight for non  Santa Cruz County origin (Assign state wide weight for non  Santa Cruz origin)
+place_87$NTCFW <- ifelse((place_87$OCTFIP==87), place_87$NEXPTCFPERWGT, place_87$EXPTCFPERWGT)
+head(place_87)
+```
+
+So `place_87$NTCFW` now contains the trips ending in  Santa Cruz county with appropriate 
+expansion weights appended.  Now we can generate observations for modal split for trips 
+to  Santa Cruz based on these weights.
+
+Notes: In the tables: Ob = Observations, Per = Percent, UW = Unweighted and W = Weighted.
+
+```{r,}
+## Generate frequency for trip Mode
+temp1<-as.data.frame(table(place_87$Mode))
+## Create percentage of frequency
+temp1$Percent<-temp1$Freq*100/sum(temp1$Freq)
+## Names 
+names(temp1)
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
+## Show the results
+temp1
+```
+
+Now we compute the weighted frequency.
+
+```{r,}
+## Create weighted frequency
+temp2<-aggregate(NTCFW~Mode,FUN=sum,data=place_87)
+## Create weighted percentage
+temp2$Percent<-temp2$NTCFW*100/sum(temp2$NTCFW)
+## Names
+names(temp2)
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
+## Show
+temp2
+```
+
+Now we can save these results in a `csv` file for later use.
+
+```{r,}
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=TRUE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+Mode_87d<-temp3
+temp3[,1]<-as.character(temp3[,1])
+temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
+temp3
+## Save as csv file
+write.csv(temp3,file="Mode_87d.csv",row.names=FALSE)
+rm(temp1)
+rm(temp2)
+rm(temp3)
+```
+
+#### Trip duration by mode
+
+Next, we perform a similar computation for Total Trip duration for all trips ending 
+in  Santa Cruz, by mode.
+
+```{r,}
+## Generate frequency for trip Mode
+temp1<-aggregate(TRIPDUR~Mode,FUN=sum,data=place_87)
+## Create  percentage
+temp1$Percent<-temp1$TRIPDUR*100/sum(temp1$TRIPDUR)
+## Names
+names(temp1)
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","TDu_UW","Per_UW")
+## Show
+temp1
+```
+
+Again, we compute the weighted frequency.
+
+```{r,}
+## Create weighted frequency
+temp<-place_87$NTCFW*place_87$TRIPDUR
+temp2<-aggregate(temp~Mode,FUN=sum,data=place_87)
+## Create weighted percentage
+temp2$Percent<-temp2$temp*100/sum(temp2$temp)
+## Names
+names(temp2)
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","TDu_W","Per_W")
+## Show
+temp2
+```
+
+
+And as before, we save the results for later use. 
+
+```{r,}
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+# Average trip duration
+temp3$avg_uw<-temp3$TDu_UW/Mode_87d$Ob_UW
+temp3
+temp3$avg_w<-temp3$TDu_W/Mode_87d$Ob_W
+temp3
+temp3[,1]<-as.character(temp3[,1])
+temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
+temp3
+## Save as csv file
+write.csv(temp3,file="TripDUrm_D87.csv",row.names=FALSE)
+rm(temp1)
+rm(temp2)
+rm(temp3)
+rm(temp)
+```
+
+#### Trip distance by mode
+
+Moving on, we determine Total Trip distance for all trips ending in  Santa Cruz, by mode.
+
+```{r,}
+## Generate frequency for trip Mode
+temp1<-aggregate(TripDistance~Mode,FUN=sum,data=place_87)
+## Create  percentage
+temp1$Percent<-temp1$TripDistance*100/sum(temp1$TripDistance)
+## Names
+names(temp1)
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","TDis_UW","Per_UW")
+## Show
+temp1
+```
+
+Next, we compute the weighted trip distance by mode.
+
+```{r,}
+## Create weighted frequency
+temp<-place_87$NTCFW*place_87$TripDistance
+temp2<-aggregate(temp~Mode,FUN=sum,data=place_87)
+## Create weighted percentage
+temp2$Percent<-temp2$temp*100/sum(temp2$temp)
+## Names
+names(temp2)
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","TDis_W","Per_W")
+## Show
+temp2
+```
+
+And, we save the results for later use.
+
+```{r,}
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+# Average trip distance
+temp3$avg_uw<-temp3$TDis_UW/Mode_87d$Ob_UW
+temp3
+temp3$avg_w<-temp3$TDis_W/Mode_87d$Ob_W
+temp3
+temp3[,1]<-as.character(temp3[,1])
+temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
+temp3
+## Save as csv file
+write.csv(temp3,file="TripDistanceM_D87.csv",row.names=FALSE)
+rm(temp1)
+rm(temp2)
+rm(temp3)
+rm(temp)
+```
+
+#### Modal split for driving alone
+
+The next question was the modal split for Drive Alone.  To compute this, we
+subset the data based on `TOTTR` (Total travelers) and `MODE={5, 6, 7, 8, 10}` 
+(basically, the driver of a car, truck, or motorcycle)
+
+```{r}
+place_87d<-subset(place_87,(TOTTR==1 & (MODE==5|MODE==6|MODE==7|MODE==8|MODE==10)))
+head(place_87d)
+```
+
+Now we compute the frequency of modes for this subset.
+
+```{r}
+## Create frequency for different Mode category for drive alone
+temp1<-as.data.frame(table(place_87d$Mode))
+## Create percentage of frequency
+temp1$Percent<-temp1$Freq*100/sum(temp1$Freq)
+## Names 
+names(temp1)
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
+## Show the results
+temp1
+```
+
+Following the pattern, we compute the weighted frequency.
+
+```{r}
+## Create weighted frequency
+temp2<-aggregate(NTCFW~Mode,FUN=sum,data=place_87d)
+## Create weighted percentage
+temp2$Percent<-temp2$NTCFW*100/sum(temp2$NTCFW)
+## Names
+names(temp2)
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
+## Show
+temp2
+```
+
+Then, once again, we save the results for later use.
+
+```{r}
+
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+temp3[,1]<-as.character(temp3[,1])
+temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
+temp3
+## Save as csv file
+write.csv(temp3,file="Mode_87Ddrialn.csv",row.names=FALSE)
+rm(temp1)
+rm(temp2)
+rm(temp3)
+```
+
+
+### Trips from  Santa Cruz County
+
+Now we perform a similar computation for trips *from*  Santa Cruz County.  As before, we
+subset the place data, but this time for trips originating in  Santa Cruz County.
+
+```{r,}
+
+# Let us estimate trips from  Santa Cruz county (OCTFIP=87) 
+# Create a subset for trips from  Santa Cruz county 
+place_87O<-subset(nplacedata,OCTFIP==87)
+names(place_87O)
+head(place_87O)
+```
+
+#### Trips by mode
+
+Now we generate the mode frequency table for all trips from  Santa Cruz County.
+
+```{r,}
+# Generate observations for modal split for trips from  Santa Cruz based on new weights
+## Generate frequency for trip Mode
+temp1<-as.data.frame(table(place_87O$Mode))
+## Create percentage of frequency
+temp1$Percent<-temp1$Freq*100/sum(temp1$Freq)
+## Names 
+names(temp1)
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
+## Show the results
+temp1
+```
+
+This should be looking familiar now.  Here is the weighted frequency.
+
+```{r,}
+## Create weighted frequency
+temp2<-aggregate(NEXPTCFPERWGT~Mode,FUN=sum,data=place_87O)
+## Create weighted percentage
+temp2$Percent<-temp2$NEXPTCFPERWGT*100/sum(temp2$NEXPTCFPERWGT)
+## Names
+names(temp2)
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
+## Show
+temp2
+```
+
+And again, we save for later use.
+
+```{r,}
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+Mode_87O<-temp3
+temp3[,1]<-as.character(temp3[,1])
+temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
+temp3
+## Save as csv file
+write.csv(temp3,file="Mode_87O.csv",row.names=FALSE)
+rm(temp1)
+rm(temp2)
+rm(temp3)
+```
+
+#### Trip duration by Mode
+
+Now we repeat the trip duration calculation for  Santa Cruz Origins.
+
+```{r,}
+## Total Trip duration for all trips from  Santa Cruz, by Mode
+## Generate frequency for trip Mode
+temp1<-aggregate(TRIPDUR~Mode,FUN=sum,data=place_87O)
+## Create  percentage
+temp1$Percent<-temp1$TRIPDUR*100/sum(temp1$TRIPDUR)
+## Names
+names(temp1)
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","TDu_UW","Per_UW")
+## Show
+temp1
+```
+
+Here is the weighted frequency calculation.
+
+```{r,}
+## Create weighted frequency
+temp<-place_87O$NEXPTCFPERWGT*place_87O$TRIPDUR
+temp2<-aggregate(temp~Mode,FUN=sum,data=place_87O)
+## Create weighted percentage
+temp2$Percent<-temp2$temp*100/sum(temp2$temp)
+## Names
+names(temp2)
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","TDu_W","Per_W")
+## Show
+temp2
+```
+
+And we save again.
+
+```{r,}
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+temp3$avg_uw<-temp3$TDu_UW/Mode_87O$Ob_UW
+temp3
+temp3$avg_w<-temp3$TDu_W/Mode_87O$Ob_W
+temp3
+temp3[,1]<-as.character(temp3[,1])
+temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
+temp3
+## Save as csv file
+write.csv(temp3,file="TripDUrm_O.csv",row.names=FALSE)
+rm(temp1)
+rm(temp2)
+rm(temp3)
+rm(temp)
+```
+
+#### Trip distance by Mode
+
+Here is the trip distance calculation for all trips from  Santa Cruz, by Mode.
+
+```{r,}
+## Generate frequency for trip Mode
+temp1<-aggregate(TripDistance~Mode,FUN=sum,data=place_87O)
+## Create  percentage
+temp1$Percent<-temp1$TripDistance*100/sum(temp1$TripDistance)
+## Names
+names(temp1)
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","TDis_UW","Per_UW")
+## Show
+temp1
+```
+
+Followed again by the weighted frequency calculation.
+
+```{r,}
+## Create weighted frequency
+temp<-place_87O$NEXPTCFPERWGT*place_87O$TripDistance
+temp2<-aggregate(temp~Mode,FUN=sum,data=place_87O)
+## Create weighted percentage
+temp2$Percent<-temp2$temp*100/sum(temp2$temp)
+## Names
+names(temp2)
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","TDis_W","Per_W")
+## Show
+temp2
+```
+
+And our now familiar save of the data.
+
+```{r,}
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+temp3$avg_uw<-temp3$TDis_UW/Mode_87O$Ob_UW
+temp3
+temp3$avg_w<-temp3$TDis_W/Mode_87O$Ob_W
+temp3
+temp3[,1]<-as.character(temp3[,1])
+temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
+temp3
+## Save as csv file
+write.csv(temp3,file="TripDistanceM_O.csv",row.names=FALSE)
+rm(temp1)
+rm(temp2)
+rm(temp3)
+rm(temp)
+```
+
+#### Modal split for driving alone
+
+And lastly for the  Santa Cruz origins, here is the drive alone modal split.  As before, 
+we subset the data based on `TOTTR` (Total travelers) and `MODE={5, 6, 7, 8, 10}`
+(the driver of a car, truck, or motorcycle) 
+
+```{r,} 
+place_87dO<-subset(place_87O,(TOTTR==1 & (MODE==5|MODE==6|MODE==7|MODE==8|MODE==10)))
+head(place_87dO)
+```
+
+The raw frequency table is here.
+
+```{r,}
+## Create frequency for different mode category for drive alone
+temp1<-as.data.frame(table(place_87dO$Mode))
+## Create percentage of frequency
+temp1$Percent<-temp1$Freq*100/sum(temp1$Freq)
+## Names 
+names(temp1)
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Observations_UW","Percent_UW")
+## Show the results
+temp1
+```
+
+This is followed by the weighted frequency table.
+
+```{r,}
+## Create weighted frequency
+temp2<-aggregate(NEXPTCFPERWGT~Mode,FUN=sum,data=place_87dO)
+## Create weighted percentage
+temp2$Percent<-temp2$NEXPTCFPERWGT*100/sum(temp2$NEXPTCFPERWGT)
+## Names
+names(temp2)
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Observations_W","Percent_W")
+## Show
+temp2
+```
+
+And here we again save the results.
+
+```{r,}
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+temp3[,1]<-as.character(temp3[,1])
+temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
+temp3
+## Save as csv file
+write.csv(temp3,file="Mode_87Odrialn.csv",row.names=FALSE)
+rm(temp1)
+rm(temp2)
+rm(temp3)
+```
+
+### Trip Purpose Calculations
+
+Now we need trip purpose breakdown, so we need to import activity level data with the 
+appropriate weights.  Here we load and merge them.
+
+```{r,}
+#Import the activity level variables csv file and give a new name
+act_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_activity.csv", header=TRUE)
+names(act_data)
+
+# Merge the person weight file with place level data file
+act_place<-merge(act_data,nplacedata, by =c("SAMPN","PERNO","PLANO"), all = FALSE)
+names(act_place)
+```
+
+For display purposes, we convert the purpose codes into readable strings.
+
+```{r, }
+act_place$Actpur<-ifelse(
+  act_place$APURP==1," Personal Activities",
+  ifelse
+  (act_place$APURP==2," Preparing Meals/Eating",
+   ifelse
+   (act_place$APURP==3," Hosting Visitors/Entertaining Guests",
+    ifelse
+    (act_place$APURP==4," Exercise ",
+     ifelse
+     (act_place$APURP==5," Study/Schoolwork ",
+      ifelse
+      (act_place$APURP==6," Work For Pay At Home Using ",
+       ifelse
+       (act_place$APURP==7," Using Computer/Telephone/Cell Or Smart Phone",
+        ifelse
+        (act_place$APURP==8," All Other Activities At My Home ",
+         ifelse
+         (act_place$APURP==9," Work/Job Duties ",
+          ifelse
+          (act_place$APURP==10," Training",
+           ifelse
+           (act_place$APURP==11," Meals At Work ",
+            ifelse
+            (act_place$APURP==12," Work-Sponsored Social Activities ",
+                                                                                                                                                      ifelse
+             (act_place$APURP==13," Non-Work Related Activities",
+              ifelse
+              (act_place$APURP==14," Exercise/Sports ",
+               ifelse
+               (act_place$APURP==15," Volunteer Work/Activities",
+                ifelse
+                (act_place$APURP==16," All Other Work-Related Activities At My Work ",
+                 ifelse
+                 (act_place$APURP==17," In School/Classroom/Laboratory ",
+                  ifelse
+                  (act_place$APURP==18," Meals At School/College ",
+                   ifelse
+                   (act_place$APURP==19," After School Sports/Physical Activity ",
+                    ifelse
+                    (act_place$APURP==20," All Other After School Related Activities ",
+                     ifelse
+                     (act_place$APURP==21," Change Type Of Transportation/Transfer ", 
+                      ifelse
+                      (act_place$APURP==22," Pickup/Drop Off Passenger(S)", 
+                       ifelse
+                       (act_place$APURP==23," Drive Through Meals ", 
+                        ifelse
+                        (act_place$APURP==24," Drive Through Other (ATM, Bank) ",
+                         ifelse
+                         (act_place$APURP==25," Work-Related",
+                          ifelse
+                          (act_place$APURP==26," Service Private Vehicle",
+                           ifelse
+                           (act_place$APURP==27," Routine Shopping ",
+                            ifelse
+                            (act_place$APURP==28," Shopping For Major Purchases",
+                             ifelse
+                             (act_place$APURP==29," Household Errands", 
+                              ifelse
+                              (act_place$APURP==30," Personal Business ", 
+                               ifelse
+                               (act_place$APURP==31," Eat Meal at Restaurant/Diner", 
+                                ifelse
+                                (act_place$APURP==32," Health Care", 
+                                 ifelse
+                                 (act_place$APURP==33," Civic/Religious Activities", 
+                                  ifelse
+                                  (act_place$APURP==34," Outdoor Exercise", 
+                                   ifelse
+                                   (act_place$APURP==35," Indoor Exercise", 
+                                    ifelse
+                                    (act_place$APURP==36," Entertainment ", 
+                                     ifelse
+                                     (act_place$APURP==37," Social/Visit Friends/Relatives", 
+                                      ifelse
+                                      (act_place$APURP==38," Other ", 
+                                       ifelse
+                                       (act_place$APURP==39," Loop Trip", 
+                                        " Don't Know/Refused")))))))))))))))))))))))))))))))))))))))
+head(act_place)
+```
+
+### Trip Purposes from  Santa Cruz County
+
+We start with trips from  Santa Cruz County, subsetting based open the origin county `OCTFIP=87`.
+
+```{r, }
+# Now we are interested in trips from  Santa Cruz county (OCTFIP=87) 
+# Create a subset for trips from  Santa Cruz County 
+act_87O<-subset(act_place,OCTFIP==87)
+names(act_87O)
+head(act_87O)
+```
+
+Next, we compute the observations for trip purpose for trips from  Santa Cruz based on new weights.
+
+```{r,}
+## Generate frequency for trip Mode
+temp1<-as.data.frame(table(act_87O$Actpur))
+## Create percentage of frequency
+temp1$Percent<-temp1$Freq*100/sum(temp1$Freq)
+## Names 
+names(temp1)
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Actpur","Ob_UW","Per_UW")
+## Show the results
+temp1
+```
+
+This is followed by the weighted trip purpose frequencies.
+
+```{r,}
+## Create weighted frequency
+temp2<-aggregate(NEXPTCFPERWGT~Actpur,FUN=sum,data=act_87O)
+## Create weighted percentage
+temp2$Percent<-temp2$NEXPTCFPERWGT*100/sum(temp2$NEXPTCFPERWGT)
+## Names
+names(temp2)
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Actpur","Ob_W","Per_W")
+## Show
+temp2
+```
+
+And here we save the results.
+
+```{r}
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Actpur", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+temp3[,1]<-as.character(temp3[,1])
+temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
+temp3
+## Save as csv file
+write.csv(temp3,file="Actpur_87O.csv",row.names=FALSE)
+rm(temp1)
+rm(temp2)
+rm(temp3)
+```
+
+
+### Work Trips by Mode
+
+The last sub question wanted work trips by Mode for  Santa Cruz County.  
+
+
+#### Work Trips Originating in  Santa Cruz County
+
+First, we reuse the merged activity table from above for trips activities (and associated trips) originating in  Santa Cruz 
+County, and subset it for work trips only.
+
+```{r}
+# Create a subset for work trips
+actw_87O<-subset(act_87O,APURP==9)
+```
+
+Now, we can determine the observations of each Mode used for work trips.
+
+```{r,}
+## Generate frequency for trip Mode
+temp1<-as.data.frame(table(actw_87O$Mode))
+## Create percentage of frequency
+temp1$Percent<-temp1$Freq*100/sum(temp1$Freq)
+## Names 
+names(temp1)
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
+## Show the results
+temp1
+```
+
+Given those, we can expand them with the weights for  Santa Cruz.
+
+```{r,}
+## Create weighted frequency
+temp2<-aggregate(NEXPTCFPERWGT~Mode,FUN=sum,data=actw_87O)
+## Create weighted percentage
+temp2$Percent<-temp2$NEXPTCFPERWGT*100/sum(temp2$NEXPTCFPERWGT)
+## Names
+names(temp2)
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
+## Show
+temp2
+```
+
+And again, we finish by saving the results.
+
+```{r,}
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+temp3[,1]<-as.character(temp3[,1])
+temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
+temp3
+## Save as csv file
+write.csv(temp3,file="Mode_wact87O.csv",row.names=FALSE)
+rm(temp1)
+rm(temp2)
+rm(temp3)
+```
+
+#### Work Trips Ending in  Santa Cruz County
+
+Now we want to find trips ending in  Santa Cruz county `(CTFIP=87)`.  Again, we subset
+the place table and adjust the weights to be  Santa Cruz weights if the origins are in
+ Santa Cruz, and to use statewide weights if the origins are outside  Santa Cruz.
+
+
+```{r,}
+# Create a subset for trips from  Santa Cruz County 
+act_87D<-subset(act_place,CTFIP==87)
+names(act_87D)
+head(act_87D)
+# Change the weight for non  Santa Cruz county origin (Assign state wide weight for non  Santa Cruz origin)
+act_87D$NTCFW <- ifelse((act_87D$OCTFIP==87), act_87D$NEXPTCFPERWGT, act_87D$EXPTCFPERWGT.y)
+names(act_87D)
+head(act_87D)
+```
+
+Again, we generate a frequency table by purpose.
+
+```{r}
+# Generate observations by trip purpose from  Santa Cruz based on new weights
+## Generate frequency for trip Mode
+temp1<-as.data.frame(table(act_87D$Actpur))
+## Create percentage of frequency
+temp1$Percent<-temp1$Freq*100/sum(temp1$Freq)
+## Names 
+names(temp1)
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Actpur","Ob_UW","Per_UW")
+## Show the results
+temp1
+```
+
+We follow this with the weighted frequency table.
+
+```{r,}
+## Create weighted frequency
+temp2<-aggregate(NTCFW~Actpur,FUN=sum,data=act_87D)
+## Create weighted percentage
+temp2$Percent<-temp2$NTCFW*100/sum(temp2$NTCFW)
+## Names
+names(temp2)
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Actpur","Ob_W","Per_W")
+## Show
+temp2
+```
+
+And again we save the result.
+
+```{r,}
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Actpur", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+temp3[,1]<-as.character(temp3[,1])
+temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
+temp3
+## Save as csv file
+write.csv(temp3,file="Actpur_87D.csv",row.names=FALSE)
+rm(temp1)
+rm(temp2)
+rm(temp3)
+```
+
+Finally, we compute the frequencies of various Modes used for work trips ending
+in  Santa Cruz County.
+
+```{r,}
+# We want only work trips (APURP=9)
+# Create a subset for work trips
+actw_87D<-subset(act_87D,APURP==9)
+## Generate frequency for trip Mode
+temp1<-as.data.frame(table(actw_87D$Mode))
+## Create percentage of frequency
+temp1$Percent<-temp1$Freq*100/sum(temp1$Freq)
+## Names 
+names(temp1)
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
+## Show the results
+temp1
+```
+
+Here is the weighted frequency table.
+
+```{r,}
+## Create weighted frequency
+temp2<-aggregate(NTCFW~Mode,FUN=sum,data=actw_87D)
+## Create weighted percentage
+temp2$Percent<-temp2$NTCFW*100/sum(temp2$NTCFW)
+## Names
+names(temp2)
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
+## Show
+temp2
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+temp3[,1]<-as.character(temp3[,1])
+temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
+temp3
+```
+
+...and one last time we save it.
+
+```{r,}
+## Save as csv file
+write.csv(temp3,file="Mode_wact87D.csv",row.names=FALSE)
+rm(temp1)
+rm(temp2)
+rm(temp3)
+```
+

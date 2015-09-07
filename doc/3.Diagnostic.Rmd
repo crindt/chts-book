@@ -1,0 +1,4385 @@
+---
+title: "3.Diagnostics Checks of the CHTS"
+author: "Suman Mitra"
+date: "August 31, 2015"
+output: html_document
+---
+
+## Summary and Methodology
+
+This section presents summary statistics for the 2010-2012 California Household Travel Survey (2012 CHTS) compared with common variables from the 2000-2001 California Household Travel Survey (2001 CHTS), when possible. The 2012 CHTS is comprised of six main datasets and four additional datasets with location data (x-y coordinates); the latter were merged with the corresponding main datasets to check for compatibility. Merging did not create any problem, and resulted only in two minor discrepancies. First, when we merged the person-level dataset with the corresponding x-y coordinates dataset, one observation did not match in the person dataset. Second, 5 observations did not match when we merged the place dataset with the corresponding x-y coordinates dataset. We checked each variable from all datasets. We generated simple summary statistics for all variables and also generate boxplots and histograms for selected variables.
+
+Overall, data quality is good.  Key statistics of variables and graphical checks did not reveal any major flaws. We also did not find major departures in the summary statistics compared to 2001 CHTS data.
+
+The merged household dataset has 42,431 observations and 83 variables; summary statistics and boxplots and histograms for selected variables of household database show a few minor problems. First, the maximum value of HTRIPS ("Number of household trips on travel day") seems high (it is 99 for the 2012 CHTS versus 54 for the 2001 CHTS). Second, the number of observations for HHNOVs ("Reasons for not possessing a vehicle") and for the number observations without a vehicle should be equal but a cross-check shows that there are 649 missing values in HHNOVs. We also found that there are 25 cases for LDPER1 ("HH members who completed their long distance travel log") where long distance logs should have been completed but are not available.
+
+Then we analyze person variables. The merged person dataset has 149 variables and 109,113 observations.  Two observations were found with data for AGEB ("Age if refused"), which we understand were supposed to be empty.  Moreover, TOLLF ("Did you use a toll?") and SLOC ("Home school") have 221 and 18 missing values respectively. A few other variables have missing values (number of values in parenthesis), including "Relationship to head of household" (1), "Gender" (1), "Hispanic or Latino" (1), "Ethnicity or race" (6), "Nativity" (1), "Toll pass" (1), "Car sharing" (1), "Employed" (1), "Disability type" (4), "Transit trips used in the past week" (1), "Walk in the last week" (1), "Online school" (1), "Pre-school location" (2), and "Level of education completed" (1). Summary statistics are presented in Table 2, which is followed by graphical illustrations of selected variables.
+
+We then consider vehicle data. The vehicle dataset has 79,011 observations and 36 variables. Apart from missing values, there is no problem with this dataset: we found 49 missing values in VEHTRN ("Vehicle transmission"), VEHDRT ("Power train, other") and VEHCYL ("Cylinders"). Moreover, FUELT1 ("Fuel type 1") has 15 missing values, and finally "Vehicle model" and "Series" are missing 1 and 2 values respectively. 
+
+The place level dataset has 460,528 observations and 56 variables. In this dataset, the minimum value for NONHH ("Number of non-household members on trip") is negative, which is not possible. Moreover, oXCORD, oYCORD, dXCORD and dYCORD are not labelled in the original file; we assume that they contain x-y coordinates of origin and destination places, respectively. In this dataset, the "STATE" variable has 728 missing values; moreover, "ROUTE" (Transit route), "PNAME" (Place name) and "CITY" have 1, 1, and 3 missing values, respectively. There is no substantial difference in key statistics between the 2012 CHTS and the 2001 CHTS for common place variables.
+
+The activity level dataset has 604, 711 observations and 22 variables. Activity variables have no missing values. We note, however, that ACTWK ("Number of people for your work in the activity"), ACTSH ("Number of people for your school"), ACTRG ("Number of people from same region/social org"), ACTFR ("Number of friends"), and ACTOT ("Number of other relations") have similar values, which is unexpected. 
+
+Finally,  we analyze long distance travel variables. The merged dataset has 68,193 observations and 59 variables. Since there are no long distance data in the 2001 CHTS, comparison was not possible. We note 625 missing values for LDOST ("Origin State") and 809 missing values for LDDST ("Destination state"). Both LDPNM ("Origin place name") and LDOCTFIP ("Long distance trip origin location county FIP Code 2010") have one missing value. We found no other concern with long distance variables.
+
+
+
+## R Code and Implementation
+
+The following commands are used for diagnostics checks of the CHTS.
+
+
+### Household Data
+
+We first import the household data and corresponding look up data (contain x-y coordinates). Before doing this, we need to save the household and look up file manually as 'csv' format and keep them in our desired location. We import those files from that location and merge them. 
+
+```{r,cache=TRUE}
+#Import the household level variables csv file and give a new name
+hhdata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_hh.csv", header=TRUE)
+
+#Import the lookup variable csv file and give a new name (containing x, y coordinate data)
+lookup_hh <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_hh.csv", header=TRUE)
+
+#Merging two data set
+hhdata1<-merge(hhdata,lookup_hh, by ="SAMPN", all = TRUE)
+
+#Names of the variables in the new dataset
+names(hhdata1)
+
+# Check dimension of the data sets
+dim(hhdata)
+dim(lookup_hh)
+dim(hhdata1)
+```
+
+We have a merged file now, but we need to clean it by deleting the duplicate variables. 
+
+```{r, cache=TRUE}
+# Subset the dataset (excluding the duplicate variables)
+nhhdata<-subset(hhdata1,select=-c(HCITY.x,HZIP.x,HXCORD.x,HYCORD.x,HPrimaryCity.x))
+
+# Dimension of new dataset
+dim(nhhdata)
+
+# Names of the variables of the new data set
+names(nhhdata)
+
+# rename the added variables
+names(nhhdata)[c(76,77,78,79,83)]<-c("HCITY","HZIP","HXCORD","HYCORD","HPrimaryCity")
+
+# Names of the variables
+names(nhhdata)
+```
+
+
+Now we have a new merged file and we use this file for diagnostics checks of household level data. We check variables of household data one by one starting with the sample number.
+
+
+```{r, cache=TRUE}
+# Attach the file
+attach(nhhdata)
+
+# Sorting data by sample number
+## SAMPN:Sample Number
+nhhdata<-nhhdata[order(SAMPN),]
+
+## Summary statistics
+summary(SAMPN)
+## standard deviation
+sd(SAMPN)
+## boxplot
+boxplot(SAMPN)
+
+```
+
+
+
+#### RECMODE: Recruit mode; variable values (1=CATI;2=CAWI)
+
+
+```{r, cache=TRUE}
+### Show the first 10 observations (if you want to see more put that number in place of 10)
+head (RECMODE,10)
+###Summarize of the variable
+summary(RECMODE)
+sd(RECMODE)
+### Create graph
+### box plots
+boxplot(RECMODE,xlab=c("Recruit mode"),col=c("gold"))
+## bar plot
+counts <- table(RECMODE)
+barplot(counts, xlab="Recruit mode (1=CATI;2=CAWI)",ylim=c(0,40000),ylab="Frequency",col="green")
+### Check missing observations
+sum(RECMODE=="")
+sum(is.na(RECMODE))
+
+```
+
+We repeat the same procedure for rest of the variables of household data.
+
+
+#### RETMODE: Retrieval mode (1=CATI;2=CAWI;3=Mail back)
+
+```{r, cache=TRUE}
+## RETMODE
+head (RETMODE,10)
+summary(RETMODE)
+sd(RETMODE)
+boxplot(RETMODE,xlab=c("Retrieval mode"),col=c("gold"))
+counts <- table(RETMODE)
+barplot(counts, xlab="Retrieval mode (1=CATI;2=CAWI;3=Mail back)",ylim=c(0,20000),ylab="Frequency",col="gold")
+sum(RETMODE=="")
+sum(is.na(RETMODE))
+
+```
+
+
+
+#### INCEN: Incentive flag (1:Yes;2=NO)
+
+
+```{r, cache=TRUE}
+## INCEN
+head (INCEN,10)
+summary(INCEN)
+sd(INCEN)
+counts <- table(INCEN)
+barplot(counts, xlab="Incentive flag (1:Yes; 2=No)",ylim=c(0,25000),ylab="Frequency",col="blue1")
+boxplot(INCEN,xlab=c("Incentive flag"),col=c("green"))
+sum(INCEN=="")
+sum(is.na(INCEN))
+
+```
+
+
+
+#### ILANG: Interview language (1:English;2= Spanish)
+
+
+```{r, cache=TRUE}
+## ILANG 
+head(ILANG,10)
+summary(ILANG)
+sd(ILANG)
+counts <- table(ILANG)
+barplot(counts, xlab="Interview language (1:English; 2= Spanish)",ylim=c(0,40000),ylab="Frequency",col="light green")
+boxplot(ILANG,xlab=c("Interview language"),col=c("green"))
+sum(ILANG=="")
+sum(is.na(ILANG))
+```
+
+
+
+#### CTFIP: Residential county (06001 to 06115 )
+
+
+```{r, cache=TRUE}
+## CTFIP
+head (CTFIP,10)
+summary(CTFIP)
+sd(CTFIP)
+boxplot(CTFIP,xlab=c("Residential county"),col=c("gold"))
+###Check missing values
+sum(CTFIP=="")
+sum(is.na(CTFIP))
+```
+
+
+
+#### AREA: MPO (1 to 39)
+
+
+```{r, cache=TRUE}
+## AREA
+head(AREA,10)
+summary(AREA)
+sd(AREA)
+boxplot(AREA,xlab=c("AREA:MPO"),col=c("green"))
+### Check missing values
+sum(AREA=="")
+sum(is.na(AREA))
+```
+
+
+
+#### STRATA: Strata
+
+
+```{r, cache=TRUE}
+## STRATA
+head (STRATA,10)
+summary(STRATA)
+sd(STRATA)
+boxplot(STRATA,xlab=c("Strata"),col=c("yellow"))
+sum(STRATA=="")
+sum(is.na(STRATA))
+```
+
+
+
+#### STYPE: Sample type (1=Matched;2=Unmatched)
+
+
+```{r, cache=TRUE}
+## STYPE
+head(STYPE,10)
+summary(STYPE)
+sd(STYPE)
+boxplot(STYPE,xlab=c("Sample Type"),col=c("yellow"))
+counts <- table(STYPE)
+barplot(counts, xlab="Sample type (1=Matched;2=Unmatched)",ylim=c(0,40000),ylab="Frequency",col="blue1")
+sum(STYPE=="")
+sum(is.na(STYPE))
+```
+
+
+
+#### CEC: CEC sample flag (1=CEC-DMV;2=cEC-UC Davis)
+
+
+```{r, cache=TRUE}
+## CEC
+head (CEC,10)
+summary(CEC)
+boxplot(CEC,xlab=c("CEC sample flag"),col=c("yellow"))
+sd(CEC,na.rm=T)
+sum(is.na(CEC))
+```
+
+
+
+#### GTYPE: GPS sample type (1=GPS sample;2=Non-GPS sample;3=Refused or DQ from GPS)
+
+
+```{r, cache=TRUE}
+## GTYPE
+head (GTYPE,10)
+summary(GTYPE)
+sd(GTYPE)
+boxplot(GTYPE,xlab=c("GTYPE: GPS sample type"),col=c("yellow"))
+sum(GTYPE=="")
+sum(is.na(GTYPE))
+```
+
+
+
+#### GFLAG: GPS type (1=wearable;2=in-vehicle;3=in-vehicle OBD)
+
+
+```{r, cache=TRUE}
+## GFLAG
+head(GFLAG,10)
+summary(GFLAG)
+sd(GFLAG,na.rm=T)
+boxplot(GFLAG,xlab=c("GPS type"),col=c("gold"))
+sum(is.na(GFLAG)&GTYPE==1)
+```
+
+
+
+#### RIBUS: Transit use at least once per week (1=yes;2=No;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+attach(nhhdata)
+## RIBUS
+head (RIBUS,10)
+summary (RIBUS[RIBUS<8])
+sd(RIBUS)
+# Boxplot
+boxplot(RIBUS[RIBUS<8],xlab=c("Transit use at least once per week"),col=c("gold"))
+# Histogram
+hist(RIBUS[RIBUS<8],breaks=c(0,1,2),xlab=c("1=Yes;2=No;8=DK;9=RF"),xaxt="n",ylim=c(0,35000),col=c("green"))
+axis(1,xaxp=c(1,2,1),las=2)
+###Check missing observations
+sum(RIBUS=="")
+sum(is.na(RIBUS))
+```
+
+
+
+#### HHVEH: Number of household vehicles (Range:0-15,98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## HHVEH
+head(HHVEH,10)
+summary(HHVEH[HHVEH<98])
+sd(HHVEH[HHVEH<98])
+boxplot(HHVEH[HHVEH<98],xlab=c("Number of household vehicles"),col=c("gold"))
+hist(HHVEH[HHVEH<98],xlab=c("Number of household vehicles"),col=c("green"))
+hist(HHVEH,xlab=c("Number of household vehicles"),xaxt="n",col=c("green"))
+axis(1,xaxp=c(1,8,1),las=2)
+axis(1, at=seq(0,8, by=1), las=2)
+sum(is.na(HHVEH))
+sum(HHVEH=="")
+```
+
+
+
+#### HHBIC: Number of household bicycles (Range:0-15,98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## HHBIC
+head(HHBIC,10)
+summary(HHBIC[HHBIC<98])
+sd(HHBIC[HHBIC<98])
+boxplot(HHBIC[HHBIC<98],xlab=c("Number of household bicycles"),col=c("green"))
+hist(HHBIC[HHBIC<98],xlab=c("Number of household bicycles"),col=c("gold"))
+hist(HHBIC[HHBIC<98],xlab=c("Number of household bicycles"),xaxt="n",col=c("gold"))
+axis(1,xaxp=c(1,15,1),las=2)
+axis(1, at=seq(0,15, by=1), las=2)
+boxplot(HHBIC[HHBIC<20], xlab=c("HHBIC"))
+sum(is.na(HHBIC))
+sum(HHBIC=="")
+```
+
+Here, we are checking number of observations with higher number of household vehicles
+
+```{r, cache=TRUE}
+### Check the number of observations with HHBIC>=10
+sum(HHBIC>=10)
+SAMPN[HHBIC>=10]
+```
+
+
+
+#### VEHNEW: New vehicle (1=yes;2=No;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## VEHNEW
+head(VEHNEW,10)
+summary(VEHNEW[VEHNEW<8])
+sd(VEHNEW)
+boxplot(VEHNEW,xlab=c("New vehicle"),col=c("green"))
+sum(is.na(VEHNEW))
+sum(VEHNEW=="")
+```
+
+
+
+#### BUYER:(1 to 9 and 98=DK;99=RF)
+
+There are 8 BUYER variables. The following codes are used to check all the BUYER varaibles. 
+
+```{r, cache=TRUE}
+## BUYER1
+head(BUYER1,10)
+summary(BUYER1[BUYER1<98])
+sd(BUYER1,na.rm=T)
+boxplot(BUYER1, xlab=c("BUYER1"))
+```
+
+We know that there should be no observations for BUYER variables if VEHNEW==2 and we cross check this by using following codes. 
+ 
+```{r, cache=TRUE}
+### Cross check the data 
+ind<-(VEHNEW==2 & !is.na(BUYER1))
+ind[is.na(ind)]<-F
+SAMPN[ind]
+```
+
+We repeat the same procedure for other BUYER variables
+
+```{r, cache=TRUE}
+## BUYER2: Buyer 2 (1 to 9 and 98=DK;99=RF)
+head(BUYER2,10)
+summary(BUYER2[BUYER2<98])
+sd(BUYER2,na.rm=T)
+boxplot(BUYER2, xlab=c("Buyer 2"))
+### Cross check the data 
+ind<-(VEHNEW==2 & !is.na(BUYER2))
+ind[is.na(ind)]<-F
+SAMPN[ind]
+## BUYER3: Buyer 3 (1 to 9 and 98=DK;99=RF)
+head(BUYER3,10)
+sd(BUYER3,na.rm=T)
+summary(BUYER3)
+boxplot(BUYER3,xlab=c("BUYER3"))
+### Cross check the data 
+ind<-(VEHNEW==2 & !is.na(BUYER3))
+ind[is.na(ind)]<-F
+SAMPN[ind]
+## BUYER4: Buyer 4 (1 to 9 and 98=DK;99=RF)
+head(BUYER4,10)
+summary(BUYER4)
+### Cross check the data 
+ind<-(VEHNEW==2 & !is.na(BUYER4))
+ind[is.na(ind)]<-F
+SAMPN[ind]
+## BUYER5: Buyer 5 (1 to 9 and 98=DK;99=RF)
+head(BUYER5,10)
+summary(BUYER5)
+### Cross check the data 
+ind<-(VEHNEW==2 & !is.na(BUYER5))
+ind[is.na(ind)]<-F
+SAMPN[ind]
+## BUYER6: Buyer 6 (1 to 9 and 98=DK;99=RF)
+head(BUYER6,10)
+summary(BUYER6)
+### Cross check the data 
+ind<-(VEHNEW==2 & !is.na(BUYER6))
+ind[is.na(ind)]<-F
+SAMPN[ind]
+## BUYER7: Buyer 7 (1 to 9 and 98=DK;99=RF)
+head(BUYER7,10)
+summary(BUYER7)
+### Cross check the data 
+ind<-(VEHNEW==2 & !is.na(BUYER7))
+ind[is.na(ind)]<-F
+SAMPN[ind]
+## BUYER8: Buyer 8 (1 to 9 and 98=DK;99=RF)
+head(BUYER8,10)
+summary(BUYER8)
+### Cross check the data 
+ind<-(VEHNEW==2 & !is.na(BUYER8))
+ind[is.na(ind)]<-F
+SAMPN[ind]
+```
+
+
+
+#### RESTY: Residence Type (1 to 7;97=other;98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## RESTY
+head(RESTY,10)
+summary(RESTY[RESTY<97])
+sd(RESTY)
+boxplot(RESTY,xlab=c("RESTY"))
+sum(is.na(RESTY))
+sum(RESTY=="")
+## O_RESTY: Description of home-Other
+head(O_RESTY,10)
+summary(O_RESTY)
+```
+
+We know from the CHTS report (see appendix) that there should be no observaiton in O_RESTY variable when RESTY is not 97 (others). We check this by using following codes.
+
+```{r, cache=TRUE}
+### Check 
+sum(!is.na(O_RESTY) & RESTY==!97)
+```
+
+
+
+#### OWN: Home ownership (1=Own;2=rent;7=other;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## OWN
+head(OWN,10)
+summary(OWN[OWN<8])
+sd(OWN)
+boxplot(OWN,xlab=c("OWN"))
+## O_OWN: Home ownership-other
+head(O_OWN,10)
+```
+
+We also know that there should be no observation in O_own variable when OWN is not 7. The following codes are used to check this.
+
+```{r, cache=TRUE}
+### Check 
+sum(!is.na(O_OWN) & RESTY==!7)
+```
+
+
+
+#### TEN: Tenure (Range:1-97;98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## TEN 
+head(TEN,10)
+summary(TEN[TEN<98])
+sd(TEN[TEN<98])
+boxplot(TEN[TEN<98],xlab=c("Tenure"),col=c("gold"))
+hist(TEN[TEN<98],xlab=c("Tenure"),ylim=c(0,10000),col=c("green"))
+sum(is.na(TEN))
+sum(TEN=="")
+```
+
+
+We know from CHTS data that there should be prvious address information if TEN variable is greater than 6. The following codes are used to check this.
+
+```{r, cache=TRUE}
+## PREVCITY
+head(PREVCITY,10)
+### Check whether there is any PREVCITY observation when TEN>6 (suppose ot be zero))
+sum(TEN>6 & !PREVCITY=="",na.rm=T)
+## PREVSTAT: Previous address state
+head(PREVSTAT,10)
+### Check whether there is any PREVSTAT observation when TEN>6(suppose to be zero))
+sum(TEN>6 & !PREVSTAT=="")
+## PREVSTAT: Previous address state
+head(PREVSTAT,10)
+### Check whether there is any PREVSTAT observation when TEN>6(suppose to be zero))
+sum(TEN>6 & !PREVSTAT=="")
+## PREVZIP: Previous address zipcode
+head(PREVZIP,10)
+summary(PREVZIP,na.rm=T)
+### Check whether there is any PREVZIP observation when TEN>6(suppose to be zero))
+sum(TEN>6 & !PREVZIP=="")
+```
+
+
+
+#### PHLNS: Number of land line phones (Range:0-15;98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## PHLNS
+head(PHLNS,10)
+summary(PHLNS[PHLNS<98])
+sd(PHLNS[PHLNS<98])
+boxplot(PHLNS[PHLNS<98],xlab=c("Number of land line phones"),col=c("gold"))
+hist(PHLNS[PHLNS<98],xlab=c("Number of land line phones"),col=c("gold"))
+```
+
+
+
+#### INCOM:Household income (1 to 10;98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+attach(nhhdata)
+## INCOM:Household income (1 to 10;98=DK;99=RF)
+head(INCOM,10)
+summary(INCOM[INCOM<98])
+sd(INCOM)
+boxplot(INCOM,xlab=c("Household income "),col=c("green"))
+hist(INCOM[INCOM<15],xlab=c("Household income"),xaxt="n",ylim=c(0,8000),col=c("gold"))
+axis(1, at=seq(0,10, by=1), las=2)
+sum(is.na(INCOM))
+sum(INCOM=="")
+```
+
+
+
+#### HHSIZ: Household size (Range:1-15;98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## HHSIZ
+head(HHSIZ,10)
+summary(HHSIZ[HHSIZ<98])
+sd(HHSIZ[HHSIZ<98])
+boxplot(HHSIZ,xlab=c("Household size"),col=c("gold"))
+hist(HHSIZ,xlab=c("Household size"),col=c("green"))
+axis(1, at=seq(0,10, by=1), las=2)
+sum(is.na(HHSIZ))
+sum(HHSIZ=="")
+```
+
+
+We want to check the number of households with household size greater than 5 and mean household size where household trips are more than 30. 
+
+```{r, cache=TRUE}
+### Check HHSIZ>5
+sum(HHSIZ>5)
+### Mean
+mean(HHSIZ[HTRIPS>30])
+```
+
+
+
+#### NONRELAT: Non-related household flag (1=yes)
+
+
+```{r, cache=TRUE}
+## NONRELAT
+head(NONRELAT,10)
+summary(NONRELAT)
+sd(NONRELAT,na.rm=T)
+boxplot (NONRELAT,xlab=c("NONRELAT"))
+```
+
+
+
+#### HHEMP: Number of household workers
+
+
+```{r, cache=TRUE}
+## HHEMP
+head(HHEMP,10)
+summary(HHEMP)
+sd(HHEMP)
+boxplot(HHEMP,xlab=c("Number of household workers"),col=c("yellow"))
+hist(HHEMP,xlab=c("Number of household workers"),col=c("sky blue"))
+sum(is.na(HHEMP))
+sum(HHEMP=="")
+### Households with HHEMP>3
+sum(HHEMP>3)
+```
+
+
+
+#### HHSTU: Number of household students
+
+
+```{r, cache=TRUE}
+## HHSTU
+head(HHSTU,10)
+summary(HHSTU)
+sd(HHSTU)
+boxplot(HHSTU,xlab=c("Number of household students"),col=c("gold"))
+hist(HHSTU,xlab=c("Number of household students"),col=c("green"))
+sum(is.na(HHSTU))
+sum(HHSTU=="")
+```
+
+The household student numbers can't be greater than household size. The following codes are used to check this.
+
+```{r, cache=TRUE}
+### Check the observations with Number of students>=6 and household size >=6)
+sum(HHSTU>=6&HHSIZ>=6)
+###Checke HHSTU>HHSIZ
+sum(HHSTU>HHSIZ)
+```
+
+
+
+#### HHLIC: Number of household driver license holders
+
+
+```{r, cache=TRUE}
+## HHLIC
+head (HHLIC,10)
+summary(HHLIC)
+boxplot(HHLIC,xlab=c("Number of household driver license holders"),col=c("green"))
+hist(HHLIC,xlab=c("Number of household driver license holders"),col=c("gold"))
+sd(HHLIC)
+sum(is.na(HHLIC))
+sum(HHLIC=="")
+```
+
+Same as household nubmer of students, HHLIC can't be greater than  household size. We check this in the following codes. 
+
+```{r, cache=TRUE}
+###To check whether HHLIC>HHSIZ
+sum(HHLIC>HHSIZ)
+```
+
+
+
+#### RECDate: Recruitment date
+
+
+```{r, cache=TRUE}
+## RECDate
+head(RECDate,10)
+summary(RECDate)
+sum(is.na(RECDate))
+sum(RECDate=="")
+```
+
+
+
+#### ASSN: Assigned travel date
+
+
+```{r, cache=TRUE}
+## ASSN
+head(ASSN,10)
+sum(is.na(ASSN))
+sum(ASSN=="")
+```
+
+
+
+#### DOW: Assigned travel day
+
+
+```{r, cache=TRUE}
+## DOW
+head(DOW,10)
+summary(DOW)
+sd(DOW)
+boxplot(DOW,xlab=c("Assigned travel day"),col=c("green"))
+hist(DOW,xlab=c("Assigned travel day"),col=c("light blue"))
+sum(is.na(DOW))
+sum(DOW=="")
+```
+
+
+
+#### HTRIPS: Number of household trips on travel day
+
+
+```{r, cache=TRUE}
+## HTRIPS: Number of household trips on travel day
+head (HTRIPS,10)
+summary(HTRIPS)
+sd(HTRIPS)
+boxplot(HTRIPS,xlab=c("Number of household trips on travel day"),col=c("red"))
+hist(HTRIPS[HTRIPS<65],xaxt="n",yaxt="n", xlab=c("Number of household trips on travel day"),col=c("yellow"))
+axis(1, at=seq(0,60, by=5), las=2)
+axis(2, at=seq(0,30000, by=2500), las=1, cex.axis=0.8)
+sum(is.na(HTRIPS))
+sum(HTRIPS=="")
+```
+
+Here, we check the observations with higher number of household trips.
+
+```{r, cache=TRUE}
+###NUmber of household trips>20, >30, >90
+sum(HTRIPS>20)
+sum(HTRIPS>30)
+sum(HTRIPS>90)
+### Observations which have HTRIPS>90
+SAMPN[HTRIPS>90]
+```
+
+The following codes are used to check all the home location variables
+
+```{r, cache=TRUE}
+## HCITY: Home city
+head(HCITY,10)
+sum(is.na(HCITY))
+sum(HCITY=="")
+
+##HZIP: Home zip
+head(HZIP,10)
+summary(HZIP)
+sum(is.na(HZIP))
+sum(HZIP=="")
+
+##HXCORD: Home x-coordinate
+head(HXCORD,10)
+summary(HXCORD)
+sd(HXCORD)
+sum(is.na(HXCORD))
+sum(HXCORD=="")
+
+##HYCORD: Home Y-coordinate
+head(HYCORD,10)
+summary(HYCORD)
+sd(HYCORD)
+sum(is.na(HYCORD))
+sum(HXCORD=="")
+```
+
+
+There are eight variables for HHNOVs variables (reason of no possession of vehicle). The followig codes are used to check all the HHNOVs variables.
+
+
+```{r, cache=TRUE}
+#### HHNOV1: Reason of no possession of vehicle1 (1 to 12;98=DK;99=RF)
+head(HHNOV1,10)
+summary(HHNOV1[HHNOV1<98],na.rm=T)
+sd(HHNOV1,na.rm=T)
+boxplot(HHNOV1,xlab=c("HHNOV1"))
+## HHNOV2: Reason of no possession of vehicle2 (1 to 12;98=DK;99=RF)
+head(HHNOV2,10)
+summary(HHNOV2)
+sd(HHNOV2,na.rm=T)
+boxplot(HHNOV2,xlab=c("HHNOV2"))
+## HHNOV3: Reason of no possession of vehicle3 (1 to 12;98=DK;99=RF)
+head(HHNOV3,10)
+summary(HHNOV3)
+sd(HHNOV3,na.rm=T)
+boxplot(HHNOV3,xlab=c("HHNOV3"))
+## HHNOV4: Reason of no possession of vehicle4 (1 to 12;98=DK;99=RF)
+head(HHNOV4,10)
+summary(HHNOV4)
+sd(HHNOV4,na.rm=T)
+boxplot(HHNOV4,xlab=c("HHNOV4"))
+## HHNOV5: Reason of no possession of vehicle5 (1 to 12;98=DK;99=RF)
+head(HHNOV5,10)
+summary(HHNOV5)
+sd(HHNOV5,na.rm=T)
+boxplot(HHNOV5,xlab=c("HHNOV5"))
+## HHNOV6: Reason of no possession of vehicle6 (1 to 12;98=DK;99=RF)
+head(HHNOV6,10)
+summary(HHNOV6)
+sd(HHNOV6,na.rm=T)
+boxplot(HHNOV6,xlab=c("HHNOV6"))
+## HHNOV7: Reason of no possession of vehicle7 (1 to 12;98=DK;99=RF)
+head(HHNOV7,10)
+summary(HHNOV7)
+sd(HHNOV7,na.rm=T)
+boxplot(HHNOV7,xlab=c("HHNOV7"))
+## HHNOV8: Reason of no possession of vehicle8 (1 to 12;98=DK;99=RF)
+head(HHNOV8,10)
+summary(HHNOV8)
+sd(HHNOV8,na.rm=T)
+boxplot(HHNOV8,xlab=c("HHNOV8"))
+```
+
+
+We also check whether there is any missing values for HHNOV variables. The number of observations for HHNOV variables should be equal to the number of households without vehicle. We use following codes to check this. 
+
+
+```{r, cache=TRUE}
+### Check the number of husehold without vehicle
+sum(HHVEH==0)
+### Number of observations for HHNOV should be equal to the number of households without vehicle
+sum(HHVEH==0&!is.na(HHNOV1)|!is.na(HHNOV2)|!is.na(HHNOV3)|!is.na(HHNOV4)|!is.na(HHNOV5)|!is.na(HHNOV6)|!is.na(HHNOV7)|!is.na(HHNOV8))
+sum(HHVEH==0&is.na(HHNOV1)&is.na(HHNOV2)&is.na(HHNOV3)&is.na(HHNOV4)&is.na(HHNOV5)&is.na(HHNOV6)&is.na(HHNOV7)&is.na(HHNOV8))
+#### Show the missing observations
+SAMPN[HHVEH==0&is.na(HHNOV1)&is.na(HHNOV2)&is.na(HHNOV3)&is.na(HHNOV4)&is.na(HHNOV5)&is.na(HHNOV6)&is.na(HHNOV7)&is.na(HHNOV8)]
+```
+
+
+#### VEHOP: Number of operational household vehicle (Range:0-15;98=DK;99=RF)
+
+```{r, cache=TRUE}
+## VEHOP
+head(VEHOP,10)
+summary(VEHOP[VEHOP<98])
+sd(VEHOP[VEHOP<98],na.rm=T)
+boxplot(VEHOP[VEHOP<98],xlab=c("Number of operational household vehicle"),col=c("magenta"))
+hist(VEHOP,xlab=c("Number of operational household vehicle"),col=c("sky blue"))
+boxplot(VEHOP,xlab=c("VEHOP"))
+```
+
+
+
+#### VEHPR: Number of vehicles with power outlet (Range:0-15;98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## VEHPR
+head(VEHPR,10)
+summary(VEHPR[VEHPR<98])
+sd(VEHPR[VEHPR<98],na.rm=T)
+boxplot(VEHPR[VEHPR<98],xlab=c("Number of vehicles with power outlet"),col=c("lawngreen"))
+hist(VEHPR,xlab=c("Number of vehicles with power outlet"),col=c("lawngreen"))
+```
+
+
+
+#### VEDTE:Number of newer vehicles with power outlet (Rangle:0-15)
+
+
+```{r, cache=TRUE}
+## VEDTE
+head(VEDTE,10)
+summary(VEDTE)
+sd(VEDTE,na.rm=T)
+boxplot(VEDTE,xlab=c("Number of newer vehicles with power outlet"),col=c("lawngreen"))
+hist(VEDTE,xlab=c("Number of newer vehicles with power outlet"),col=c("maroon"))
+### Check whether there is any VEDTE observation without VEHPR>0 and GFLAG=3 (suppose ot be zero))
+sum(!is.na(VEDTE)&!VEHPR>0&!GFLAG==3)
+```
+
+There are 9 variables related to long distance log completion. We check all these variables using following codes. 
+
+```{r, cache=TRUE}
+## CMPLD: Complete long distance log (1=yes;2=no;3=did not recieve;8=DK;9=RF)
+head(CMPLD,10)
+summary(CMPLD[CMPLD<8])
+sd(CMPLD,na.rm=T)
+boxplot(CMPLD,xlab=c("CMPLD"))
+sum(is.na(CMPLD))
+##LDPER1: HH member who completed LD log (Range:1-8;98=DK;99=RF)
+head(LDPER1,10)
+summary(LDPER1[LDPER1<98])
+sd(LDPER1,na.rm=T)
+###Check is there any LDPER1 when CMPLD is no
+sum(!is.na(LDPER1)&!CMPLD==1)
+##LDPER2: HH member who completed LD log (Range:1-8;98=DK;99=RF)
+head(LDPER2,10)
+summary(LDPER2)
+###Check is there any LDPER2 when CMPLD is no
+sum(!is.na(LDPER2)&!CMPLD==1)
+##LDPER3: HH member who completed LD log (Range:1-8;98=DK;99=RF)
+head(LDPER3,10)
+summary(LDPER3)
+###Check is there any LDPER3 when CMPLD is no
+sum(!is.na(LDPER3)&!CMPLD==1)
+##LDPER4: HH member who completed LD log (Range:1-8;98=DK;99=RF)
+head(LDPER4,10)
+summary(LDPER4)
+###Check is there any LDPER4 when CMPLD is no
+sum(!is.na(LDPER4)&!CMPLD==1)
+##LDPER5: HH member who completed LD log (Range:1-8;98=DK;99=RF)
+head(LDPER5,10)
+summary(LDPER5)
+###Check is there any LDPER5 when CMPLD is no
+sum(!is.na(LDPER5)&!CMPLD==1)
+##LDPER6: HH member who completed LD log (Range:1-8;98=DK;99=RF)
+head(LDPER6,10)
+summary(LDPER6)
+###Check is there any LDPER6 when CMPLD is no
+sum(!is.na(LDPER6)&!CMPLD==1)
+##LDPER7: HH member who completed LD log (Range:1-8;98=DK;99=RF)
+head(LDPER7,10)
+summary(LDPER7)
+###Check is there any LDPER7 when CMPLD is no
+sum(!is.na(LDPER7)&!CMPLD==1)
+##LDPER8: HH member who completed LD log (Range:1-8;98=DK;99=RF)
+head(LDPER8,10)
+summary(LDPER8)
+###Check is there any LDPER8 when CMPLD is no
+sum(!is.na(LDPER8)&!CMPLD==1)
+```
+
+
+
+#### LDTRP: Last eight weeks (1=Trips to report;2=No LD trip;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## LDTRP
+head(LDTRP,10)
+summary(LDTRP[LDTRP<8])
+sd(LDTRP)
+boxplot(LDTRP,xlab=c("LDTRP"))
+sum(is.na(LDTRP))
+```
+
+
+
+#### LDFlag: Flag for hh who reported LD trip (1=yes)
+
+
+```{r, cache=TRUE}
+## LDFlag
+head(LDFlag,10)
+summary(LDFlag)
+sd(LDFlag,na.rm=T)
+```
+
+The long ditance flag should be zero when no trip is reported for long distance. We check this in the following codes. 
+
+```{r, cache=TRUE}
+### Check whether all LD Flag=1 when LDTRP>0
+sum(LDFlag==1,na.rm=T)
+sum(LDFlag==1& LDTRP>0,na.rm=T)
+```
+
+
+
+#### HH_Complete: Household complete flag (1=complete;2=valid partial complete)
+
+
+```{r, cache=TRUE}
+## HH_Complete
+head(HH_Complete,10)
+summary(HH_Complete)
+sd(HH_Complete,na.rm=T)
+sum(is.na(HH_Complete))
+```
+
+
+
+#### GPS_Complete: Household complete flag for GPS (1=complete;2=valid partial complete)
+
+
+```{r, cache=TRUE}
+head(GPS_Complete,10)
+summary(GPS_Complete)
+sd(GPS_Complete,na.rm=T)
+```
+
+
+
+#### HCTRACT: Home location census tract ID 2010
+
+
+```{r, cache=TRUE}
+## HCTRACT
+head(HCTRACT,10)
+summary(HCTRACT)
+sd(HCTRACT,na.rm=T)
+sum(is.na(HCTRACT))
+```
+
+
+
+#### HPrimaryCity: Home location primary city
+
+
+```{r, cache=TRUE}
+## HPrimaryCity
+head(HPrimaryCity,10)
+sum(is.na(HPrimaryCity))
+```
+
+
+
+#### HHWGT: Final household weight
+
+
+```{r, cache=TRUE}
+##HHWGT
+head(HHWGT,10)
+summary(HHWGT)
+sd(HHWGT)
+boxplot(HHWGT,xlab=c("Final household weight"),col=c("gold"))
+sum(is.na(HHWGT))
+```
+
+
+
+#### EXPHHWGT: Final expanded household weight
+
+
+```{r, cache=TRUE}
+## EXPHHWGT
+head(EXPHHWGT,10)
+summary(EXPHHWGT)
+sd(EXPHHWGT)
+boxplot(EXPHHWGT,xlab=c("Final expanded household weight"),col=c("green"))
+sum(is.na(EXPHHWGT))
+```
+
+
+We finish diagnostic checks of the household data. Now we need to detach the household file.
+
+
+```{r, cache=TRUE}
+# Detach the file
+detach(nhhdata)
+```
+
+
+
+
+### Person Data
+
+
+We first save the person data and corresponding look up data (contain x-y coordinates) as 'csv' file. We then import those two files and merge them using following codes. 
+
+```{r, cache=TRUE}
+#Import the person level variables csv file and give a new name
+persondata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_per.csv", header=TRUE)
+
+#Import the lookup variable csv file and give a new name (containing x, y coordinate data)
+lookup_per <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_per.csv", header=TRUE)
+
+#Check the names of the variables
+names(persondata)
+names(lookup_per)
+
+#Merrging two data set
+perdata1<-merge(persondata,lookup_per, by =c("SAMPN", "PERNO"), all = TRUE)
+
+#Names of the variables in the new dataset
+names(perdata1)
+```
+
+There are few duplicate variables and we need to delete those variables from the new data file.
+
+```{r, cache=TRUE}
+# Subset the dataset (excluding the duplicate variables)
+npersondata<-subset(perdata1,select=-c(38,39,41,42,43,44,45,61,63,64,66,67,68,95,96,98, 99,100,101,102,137:146))
+
+#Dimension of new dataset
+dim(npersondata)
+
+#Names of the variables
+names(npersondata)
+
+#rename the added variables
+names(npersondata)[c(119:146,148,149)]<-c("WNAME","WCITY","WZIP","WXST1","WXST2","WXCORD","WYCORD","WNAME2","WCITY2","WZIP2","WXST2_1","WXST2_2","SNAME","SCITY","SZIP","SXST1","SXST2","SXCORD","SYCORD", "WCTFIP","WTRACT","WBLOCK","WPrimaryCity","WSTFIP","W2PrimaryCity","W2STFIP","SCTFIP","STRACT","SPrimaryCity","SSTFIP")
+
+#Names of the variables
+names(npersondata)
+```
+
+Now we have a new merged file and we use this file for diagnostics checks of person level data. First, we need to attach the file.
+
+```{r, cache=TRUE}
+# Attach the file
+attach(npersondata)
+```
+
+We check the variables of person data one by one starting with the sample number and person number.
+
+
+
+#### SAMPN:Sample Number;variable values(number)
+
+
+```{r, cache=TRUE}
+## SAMPN
+summary(SAMPN)
+sd(SAMPN)
+#PERNO:Person Number
+head(PERNO,10)
+### Summarize of the variable
+summary(PERNO)
+sd(PERNO)
+### Create boxplot  
+boxplot(PERNO,xlab=c("PERNO"))
+### Check missing observations
+sum(PERNO=="")
+sum(is.na(PERNO))
+```
+
+We follow the same steps for rest of the variables of person data.
+
+
+#### RELAT: Relationship to head of house; variable values (1 to 9;99=RF)
+
+
+```{r, cache=TRUE}
+## RELAT
+head(RELAT,10)
+summary(RELAT[RELAT<99])
+sd(RELAT,na.rm=T)
+boxplot(RELAT,xlab=c("RELAT"))
+sum(RELAT=="")
+sum(is.na(RELAT))
+```
+
+
+
+#### GEND: Gender;(1=male;2=female;9=RF)
+
+
+```{r, cache=TRUE}
+## GEND
+head(GEND,10)
+summary(GEND[GEND<9])
+boxplot(GEND,xlab=c("GEND"))
+sum(GEND=="")
+sum(is.na(GEND))
+# Pie diagram
+gendtable<-table(GEND)
+lbls <- c("Male","Female","Refused")
+pct <- round(gendtable/sum(gendtable)*100)
+lbls <- paste(lbls,"\n", pct) # add percents to labels 
+lbls<- paste(lbls,"%",sep="") # ad % to labels 
+pie(gendtable,labels = lbls, col=rainbow(length(lbls)),main="Pie Chart of Gender")
+```
+
+
+
+#### AGE: Age;(Range:0-98;99=99 years old or older;998=DK;999=RF)
+
+
+```{r, cache=TRUE}
+## AGE
+head(AGE,10)
+summary(AGE[AGE<998])
+sd(AGE,na.rm=T)
+boxplot(AGE[AGE<998],xlab=c("Age"),col="gold")
+hist(AGE[AGE<998],xlab=c("Age"),col=c("green"))
+sum(AGE=="")
+sum(is.na(AGE))
+##AGEB: Age if refused;(1=Younger than 16 or over 75;2=16 to 75;8=DK;9=RF)
+head(AGEB,10)
+summary(AGEB[AGEB<8])
+sd(AGEB,na.rm=T)
+boxplot(AGEB,xlab=c("AGEB"))
+```
+
+Based on final report and appendix of cHTS there should be no observations where AGE is not equal to 999 or 998. We check this here.
+
+```{r, cache=TRUE}
+### Check for wrong input ( number observations in AGEB = number of observations in AGE=999 and AGE=998)
+sum(AGE==999|AGE==998)
+sum(!is.na(AGEB)& (AGE==999|AGE==998))
+###  NO observations should be found where AGE is not equal to 999 or 998
+sum(!is.na(AGEB)&(!AGE==999&!AGE==998))
+SAMPN[!is.na(AGEB)&(!AGE==999&!AGE==998)]
+PERNO[!is.na(AGEB)&(!AGE==999&!AGE==998)]
+```
+
+
+
+#### HISP: Hispanic or latino; (1=yes,2=no,8=DK,9=RF)
+
+
+```{r, cache=TRUE}
+## HISP
+head(HISP,10)
+summary(HISP[HISP<8])
+sd(HISP,na.rm=T)
+boxplot(HISP,xlab=c("HISP"))
+sum(HISP=="")
+sum(is.na(HISP))
+```
+
+
+
+#### RACE: Ethnicity or race; (1 to 97;98=DK;99=RF)
+
+
+There are 5 variables for race. The following codes are used to check all of them.
+
+```{r, cache=TRUE}
+##RACE1: Ethnicity or race; (1 to 97;98=DK;99=RF)
+head(RACE1,10)
+summary(RACE1[RACE1<97])
+sd(RACE1,na.rm=T)
+boxplot(RACE1,xlab=c("RACE1"))
+sum(RACE1=="")
+sum(is.na(RACE1))
+SAMPN[is.na(RACE1)]
+##RACE2: Ethnicity or race; (1 to 97;98=DK;99=RF)
+head(RACE2,10)
+summary(RACE2[RACE2<97])
+sd(RACE2,na.rm=T)
+boxplot(RACE2,xlab=c("RACE2"))
+##RACE3: Ethnicity or race; (1 to 97;98=DK;99=RF)
+head(RACE3,10)
+summary(RACE3[RACE3<97])
+sd(RACE3,na.rm=T)
+boxplot(RACE3,xlab=c("RACE3"))
+##RACE4: Ethnicity or race; (1 to 97;98=DK;99=RF)
+head(RACE4,10)
+summary(RACE4[RACE4<97])
+sd(RACE4,na.rm=T)
+boxplot(RACE4,xlab=c("RACE4"))
+##O_RACE: Ethnicity or race, other; 
+head(O_RACE,10)
+###Check missing values
+sum(RACE1==97,na.rm=T)
+sum(!is.na(O_RACE)&RACE1==97,na.rm=T)
+```
+
+
+
+#### NTVTY: Nativity; (1=yes;2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## NTVTY
+head(NTVTY,10)
+summary(NTVTY[NTVTY<8])
+sd(NTVTY,na.rm=T)
+boxplot(NTVTY,xlab=c("NTVTY"))
+sum(NTVTY=="")
+sum(is.na(NTVTY))
+```
+
+
+
+#### CNTRY: Country of birth; (Range:1900-2012;9998=DK;9999=RF)
+
+
+```{r, cache=TRUE}
+## CNTRY
+head(CNTRY,10)
+summary(CNTRY[CNTRY<9998])
+sd(CNTRY,na.rm=T)
+boxplot(CNTRY,xlab=c("CNTRY"))
+###Check missing value
+sum(is.na(CNTRY)&NTVTY>1)
+```
+
+
+
+#### LIC: Valid license (1=yes;2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+#### LIC
+head(LIC,10)
+summary(LIC[LIC<8])
+sd(LIC,na.rm=T)
+boxplot(LIC,xlab=c("LIC"))
+###Check missing value
+sum(is.na(LIC)&AGE>15&AGE<998)
+```
+
+
+
+#### USER: Vehicle driven by respondent (Range: 1-15;98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## USER
+head(USER,10)
+summary(USER[USER<98])
+sd(USER,na.rm=T)
+boxplot(USER[USER<98],xlab=c("Vehicle driven by respondent "),col=c("gold"))
+hist(USER[USER<98],xlab=c("Vehicle driven by respondent"),ylim=c(0,10000),col=c("green"))
+```
+
+
+
+#### TRANS: Transit pass;(1=yes;2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## TRANS
+head(TRANS,10)
+summary(TRANS[TRANS<8])
+sd(TRANS,na.rm=T)
+boxplot(TRANS,xlab=c("TRANS"))
+sum(is.na(TRANS)&AGE>15&AGE<998,na.rm=T)
+```
+
+
+Here wer are checking variables for different types of transit pass.
+
+
+```{r, cache=TRUE}
+attach(npersondata)
+##TPTYP1: Type of transit pass (1 to 97;98=DK;99=RF)
+head(TPTYP1)
+summary(TPTYP1[TPTYP1<97])
+sd(TPTYP1,na.rm=T)
+boxplot(TPTYP1,xlab=c("TPTYP1"))
+sum(is.na(TPTYP1)&TRANS==1,na.rm=T)
+##TPTYP2: Type of transit pass (1 to 97;98=DK;99=RF)
+head(TPTYP2)
+summary(TPTYP2[TPTYP2<97])
+sd(TPTYP2,na.rm=T)
+boxplot(TPTYP2,xlab=c("TPTYP2"))
+##TPTYP3: Type of transit pass (1 to 97;98=DK;99=RF)
+head(TPTYP3)
+summary(TPTYP3)
+sd(TPTYP3,na.rm=T)
+boxplot(TPTYP3,xlab=c("TPTYP3"))
+##TPTYP4: Type of transit pass (1 to 97;98=DK;99=RF)
+head(TPTYP4)
+summary(TPTYP4)
+sd(TPTYP4,na.rm=T)
+boxplot(TPTYP4,xlab=c("TPTYP4"))
+##TPTYP5: Type of transit pass (1 to 97;98=DK;99=RF)
+head(TPTYP5)
+summary(TPTYP5)
+##TPTYP6: Type of transit pass (1 to 97;98=DK;99=RF)
+head(TPTYP6)
+summary(TPTYP6)
+
+##O_TPTYP: Type of transit pass, other 
+head(O_TPTYP)
+sum(is.na(O_TPTYP)&TPTYP1==97)
+```
+
+Here, we check more transit pass variables.
+
+```{r, cache=TRUE}
+##CLIP1: Type of Clipper Card (1 to 27;98=DK;99=RF)
+head(CLIP1)
+summary(CLIP1[CLIP1<98])
+sd(CLIP1,na.rm=T)
+boxplot(CLIP1,xlab=c("CLIP1"))
+
+sum(!is.na(CLIP1)&!TPTYP1==1)
+SAMPN[!is.na(CLIP1)&!TPTYP1==1]
+
+##CLIP2: Type of Clipper Card (1 to 27;98=DK;99=RF)
+head(CLIP2)
+summary(CLIP2[CLIP2<98])
+sd(CLIP2,na.rm=T)
+boxplot(CLIP2,xlab=c("CLIP2"))
+
+##CLIP3: Type of Clipper Card (1 to 27;98=DK;99=RF)
+head(CLIP3)
+summary(CLIP3[CLIP3<98])
+sd(CLIP3,na.rm=T)
+boxplot(CLIP3,xlab=c("CLIP3"))
+
+##COMP: Type of compass card; (1 to 12;98=DK;99=RF)
+head(COMP,10)
+summary(COMP[COMP<98])
+sd(COMP,na.rm=T)
+boxplot(COMP,xlab=c("COMP"))
+
+##MET: Type of TAP/EZ card; (1 to 4;98=DK;99=RF)
+head(MET,10)
+summary(MET[MET<98])
+sd(MET,na.rm=T)
+boxplot(MET,xlab=c("MET"))
+```
+
+
+
+#### PASSTL: Toll Pass; (1=yes;2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## PASSTL
+head(PASSTL,10)
+summary(PASSTL[PASSTL<8])
+sd(PASSTL,na.rm=T)
+boxplot(PASSTL,xlab=c("PASSTL"))
+### Check missing value
+sum(is.na(PASSTL)&AGE>15&AGE<998)
+SAMPN[is.na(PASSTL)&AGE>15&AGE<998]
+PERNO[is.na(PASSTL)&AGE>15&AGE<998]
+```
+
+
+
+#### FLEX: Car Sharing; (1=yes;2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## FLEX
+head(FLEX,10)
+summary(FLEX[FLEX<8])
+sd(FLEX,na.rm=T)
+boxplot(FLEX,xlab=c("FLEX"))
+### Check missing value
+sum(is.na(FLEX)&AGE>15&AGE<998)
+SAMPN[is.na(FLEX)&AGE>15&AGE<998]
+PERNO[is.na(FLEX)&AGE>15&AGE<998]
+```
+
+
+
+#### EMPLY: Employed?(1=yes,2=no,8=DK,9=RF)
+
+
+```{r, cache=TRUE}
+## EMPLY
+head(EMPLY,10)
+summary(EMPLY[EMPLY<8])
+sd(EMPLY,na.rm=T)
+boxplot(EMPLY,xlab=c("EMPLY"))
+sum(is.na(EMPLY)&AGE>15&AGE<998)
+SAMPN[is.na(EMPLY)&AGE>15&AGE<998]
+PERNO[is.na(EMPLY)&AGE>15&AGE<998]
+```
+
+
+
+#### WKSTAT: Employment status; (1 to 7;97=Other;98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## WKSTAT
+head(WKSTAT,10)
+summary(WKSTAT[WKSTAT<97])
+sd(WKSTAT,na.rm=T)
+boxplot(WKSTAT,xlab=c("WKSTAT"))
+sum(is.na(WKSTAT)&EMPLY>1,na.rm=T)
+##O_WKSTAT: Employment status, other
+head(O_WKSTAT,10)
+sum(is.na(O_WKSTAT)&WKSTAT==97,na.rm=T)
+```
+
+
+
+#### WLOC: Work location (1=Fixed; 2=Home;3=No fixed;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## WLOC
+head(WLOC,10)
+summary(WLOC[WLOC<8])
+sd(WLOC,na.rm=T)
+boxplot(WLOC,xlab=c("WLOC"))
+sum(!is.na(WLOC)& EMPLY==1,na.rm=T)
+```
+
+
+
+#### JOBS: How many jobs (Range:1-15,98=DK,99=RF)
+
+
+```{r, cache=TRUE}
+## JOBS
+head(JOBS,10)
+summary(JOBS[JOBS<98])
+sd(JOBS,na.rm=T)
+boxplot(JOBS[JOBS<97],xlab=c("How many jobs"),col=c("green"))
+hist(JOBS[JOBS<98],xlab=c("How many jobs"),col=c("yellow"))
+hist(JOBS[HOURS>99&JOBS<98],xlab=c("How many jobs"),col=c("yellow"))
+```
+
+
+The following codes are used to check the location variables of pirmary work place
+
+
+```{r, cache=TRUE}
+attach(npersondata)
+## WNAME: Primary work name
+head(WNAME,10)
+summary(WNAME)
+##WCITY: Primary work city
+head(WCITY,10)
+sum(is.na(WCITY)&EMPLY==1&WLOC>2)
+##WZIP: Primary work zip
+summary(WZIP)
+sum(is.na(WZIP)&EMPLY==1&WLOC>2)
+##WSTAT: Primary work state
+head(WSTAT,10)
+sum(is.na(WSTAT)&EMPLY==1&WLOC>2)
+##WXST1: Primary work cross street1
+head(WXST1,10)
+summary(WXST1)
+##WXST2: Primary work cross street2
+head(WXST2,10)
+##WXCORD: Primary work X-coordinates
+head(WXCORD,10)
+summary(WXCORD)
+sd(WXCORD,na.rm=T)
+boxplot(WXCORD,xlab=c("Primary work X-coordinates"),col=c("yellow"))
+hist(WXCORD,freq=FALSE,xlab=c("Primary work X-coordinates"),col=c("maroon"))
+##WYCORD: Primary work Y-coordinates
+head(WYCORD,10)
+summary(WYCORD)
+sd(WYCORD,na.rm=T)
+boxplot(WYCORD,xlab=c("Primary work Y-coordinates"),col=c("gold"))
+hist(WYCORD,freq=FALSE,xlab=c("Primary work Y-coordinates"),col=c("blue"))
+```
+
+
+
+#### WDAYS: Days at primary work (RANGE:1-7;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## WDAYS
+head(WDAYS,10)
+summary(WDAYS[WDAYS<8])
+sd(WDAYS[WDAYS<8],na.rm=T)
+boxplot(WDAYS,xlab=c("Days at primary work"),col=c("violet"))
+hist(WDAYS,xlab=c("Days at primary work"),col=c("gold"))
+sum(is.na(WDAYS)&EMPLY==1,na.rm=T)
+```
+
+
+
+#### WDAY1: Work days (1 to 8; 98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## WDAY1
+head(WDAY1,10)
+summary(WDAY1[WDAY1<98])
+sd(WDAY1,na.rm=T)
+boxplot(WDAY1,xlab=c("Work days"),col=c("green"))
+hist(WDAY1[WDAY1<98],xlab=c("Work days"),col=c("maroon"))
+```
+
+
+Now, we generate a pie chart for WDAY1.
+
+
+```{r, cache=TRUE}
+###Pie chart
+wday1table<-table(WDAY1)
+lbls <- paste(names(wday1table))
+lbls <- c("a","b","c","d","e","f","g","h","I","J")
+pct <- round(wday1table/sum(wday1table)*100)
+lbls <- paste(pct,"%", sep="")
+lbls <- paste(lbls,"\n", pct) # add percents to labels 
+lbls<- paste(lbls, "%", sep="") # ad % to labels 
+pie(wday1table,labels = lbls, col=rainbow(length(lbls)),main="Pie Chart of Gender",cex=0.8)
+legend("topright", c("Mon","Tue","Wed","Thu","Fri","Sat","Sun","Mon-Fri","Don't Know","Refused"), cex=0.8, fill=rainbow(length(lbls)))
+```
+
+
+The following codes are used to check the rest of the WDAY variables.
+
+```{r, cache=TRUE}
+## WDAY2
+head(WDAY2,10)
+summary(WDAY2[WDAY2<98])
+sd(WDAY2,na.rm=T)
+boxplot(WDAY2,xlab=c("WDAY2:Work days"),col=c("gold"))
+hist(WDAY2,xlab=c("WDAY2:Work days"),col=c("green"))
+## WDAY3: Work days (1 to 8; 98=DK;99=RF)
+head(WDAY3,10)
+summary(WDAY3)
+sd(WDAY3,na.rm=T)
+boxplot(WDAY3,xlab=c("WDAY3:Work days"),col=c("green"))
+hist(WDAY3,xlab=c("WDAY3:Work days"),col=c("blue"))
+## WDAY4: Work days (1 to 8; 98=DK;99=RF)
+head(WDAY4,10)
+summary(WDAY4)
+sd(WDAY4,na.rm=T)
+boxplot(WDAY4,xlab=c("WDAY4:Work days"),col=c("gold"))
+hist(WDAY4,xlab=c("WDAY4:Work days"),col=c("green"))
+## WDAY5: Work days (1 to 8; 98=DK;99=RF)
+head(WDAY5,10)
+summary(WDAY5)
+sd(WDAY5,na.rm=T)
+boxplot(WDAY5,xlab=c("WDAY5:Work days"),col=c("blue"))
+hist(WDAY5,xlab=c("WDAY5:Work days"),col=c("gold"))
+## WDAY6: Work days (1 to 8; 98=DK;99=RF)
+head(WDAY6,10)
+summary(WDAY6)
+sd(WDAY6,na.rm=T)
+boxplot(WDAY6,xlab=c("WDAY6:Work days"),col=c("gold"))
+hist(WDAY6,xlab=c("WDAY6:Work days"),col=c("green"))
+## WDAY7: Work days (1 to 8; 98=DK;99=RF)
+head(WDAY7,10)
+summary(WDAY7)
+sd(WDAY7,na.rm=T)
+boxplot(WDAY7,xlab=c("WDAY7:Work days"),col=c("gold"))
+hist(WDAY7,xlab=c("WDAY7:Work days"),col=c("gold"))
+```
+
+
+
+#### HOURS: Hours work per week (Range:1-150;998=DK;999=RF)
+
+
+```{r, cache=TRUE}
+## HOURS
+head(HOURS,10)
+summary(HOURS[HOURS<998])
+sd(HOURS,na.rm=T)
+boxplot(HOURS[HOURS<998],xlab=c("Hours worked per week"),col=c("orange"))
+hist(HOURS[HOURS<998],xlab=c("Hours worked per week"),ylim=c(0,25000),col=c("blue"))
+## Cross check the data
+sum(is.na(HOURS)& EMPLY==1,na.rm=T)
+sum(HOURS>99 & HOURS<998,na.rm=T)
+sum(HOURS>80 & HOURS<998,na.rm=T)
+sum(HOURS>60 & HOURS<998,na.rm=T)
+sum(HOURS>99 & HOURS<998,na.rm=T)
+```
+
+We generate different cross tables with hours to cross check the data input.
+
+```{r, cache=TRUE}
+table(HOURS,JOBS)
+psf<-npersondata[(HOURS>60&HOURS<998),c('HOURS','JOBS','OCCUP')]
+## Cross tabulation Hours (>60) and occupation
+table(psf$HOURS,psf$OCCUP)
+# Save as csv file
+write.csv(table(psf$HOURS,psf$OCCUP),file="occup.csv")
+
+## Cross tabulation Hours and number of jobs
+table(psf$HOURS,psf$JOBS)
+write.csv(table(psf$HOURS,psf$JOBS),file="job.csv")
+```
+
+
+
+#### WSCHED: Flexible work schedule (1 to 3;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## WSCHED
+head(WSCHED,10)
+summary(WSCHED[WSCHED<8])
+sd(WSCHED,na.rm=T)
+boxplot(WSCHED,xlab=c("WSCHED"))
+hist(WSCHED,xlab=c("Hours work per week"),ylim=c(0,25000),col=c("blue"))
+sum(is.na(WSCHED)& EMPLY==1,na.rm=T)
+```
+
+
+
+#### COMPR: Flexible programs offered (1=yes;2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## COMPR
+head(COMPR,10)
+summary(COMPR[COMPR<8])
+sd(COMPR,na.rm=T)
+boxplot(COMPR,xlab=c("COMPR"))
+sum(is.na(COMPR)& EMPLY==1&WSCHED<4,na.rm=T)
+```
+
+
+
+#### WMODE: Work mode (1 to 20;99=RF)
+
+
+```{r, cache=TRUE}
+## WMODE
+head(WMODE,10)
+summary(WMODE[WMODE<99])
+sd(WMODE,na.rm=T)
+boxplot(WMODE[WMODE<99],xlab=c("Work mode"),col=c("orange"))
+hist(WMODE[WMODE<99],xlab=c("Work mode"),col=c("blue"))
+sum(is.na(WMODE)& EMPLY==1&WLOC>2,na.rm=T)
+```
+
+
+
+#### INDUS: Industry (11 to 92;97=other;98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## INDUS
+head(INDUS,10)
+summary(INDUS[INDUS<97])
+sd(INDUS,na.rm=T)
+boxplot(INDUS,xlab=c("Industry"),col=c("orange"))
+hist(INDUS,xlab=c("Industry"),col=c("maroon"))
+boxplot(INDUS,xlab=c("INDUS"))
+hist(INDUS[HOURS>99],xlab=c("Industry"),col=c("orange"))
+
+## O_INDUS: Industry,other (11 to 92;97=other;98=DK;99=RF)
+head(O_INDUS,10)
+sum(is.na(O_INDUS)& INDUS==97)
+```
+
+
+
+#### OCCUP: Occupation (11 to 92;97=other;98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+attach(npersondata)
+##OCCUP
+head(OCCUP,10)
+summary(OCCUP[OCCUP<97])
+sd(OCCUP,na.rm=T)
+boxplot(OCCUP,xlab=c("Occupation"),col=c("magenta"))
+hist(OCCUP,xlab=c("Occupation"),col=c("orange"))
+
+```
+
+Here, we are checking the location variables for second work. 
+
+```{r, cache=TRUE}
+## WLOC2: Work location 2 (1=Fixed; 2=Home;3=No fixed;8=DK;9=RF)
+head(WLOC2,10)
+summary(WLOC2[WLOC2<8])
+sd(WLOC2,na.rm=T)
+boxplot(WLOC2,xlab=c("WLOC2"))
+sum(is.na(WLOC2)& JOBS>1&JOBS<6,na.rm=T)
+## WNAME2: Secondary work name
+head(WNAME2,10)
+summary(WNAME2)
+## WCITY2: Secondary work city
+head(WCITY2,10)
+sum(is.na(WCITY2)&WLOC2>2)
+## WZIP2: Secondary work ZIP
+head(WZIP2,10)
+sum(is.na(WZIP2)&WLOC2>2)
+##WXST2_1: Secondary work cross street1
+head(WXST2_1,10)
+##WXST2_2: Secondary work cross street2
+head(WXST2_2,10)
+##WSTAT2: Secondary work state
+head(WSTAT2,10)
+sum(is.na(WSTAT2)&WLOC>2)
+```
+
+
+
+#### WDAYS2: Days a secondary work (RANGE:1-7;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## WDAYS2
+head(WDAYS2,10)
+summary(WDAYS2[WDAYS2<8])
+sd(WDAYS2[WDAYS2<8],na.rm=T)
+boxplot(WDAYS2,xlab=c("WDAYS2"))
+boxplot(WDAYS2,xlab=c("Days at secondary work"),col=c("orange"))
+hist(WDAYS2,xlab=c("Days at secondary work"),col=c("blue"))
+sum(is.na(WDAYS2)&EMPLY==1& JOBS>1&JOBS<6,na.rm=T)
+```
+
+
+
+#### DISAB: Disability status (1=yes;2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+attach(npersondata)
+## DISAB
+head(DISAB,10)
+summary(DISAB[DISAB<8])
+sd(DISAB,na.rm=T)
+boxplot(DISAB,xlab=c("DISAB"))
+## DTYPE1: Disability type 1 (1 to 6; 98=DK;99=RF)
+head(DTYPE1,10)
+summary(DTYPE1[DTYPE1<97])
+sd(DTYPE1,na.rm=T)
+boxplot(DTYPE1,xlab=c("DTYPE1"))
+sum(is.na(DTYPE1)&DISAB==1,na.rm=T)
+SAMPN[is.na(DTYPE1)&DISAB==1]
+PERNO[is.na(DTYPE1)&DISAB==1]
+## DTYPE2: Disability type 2 (1 to 6; 98=DK;99=RF)
+head(DTYPE2,10)
+summary(DTYPE2[DTYPE2<97])
+sd(DTYPE2,na.rm=T)
+boxplot(DTYPE2,xlab=c("DTYPE2"))
+## DTYPE3: Disability type 3 (1 to 6; 98=DK;99=RF)
+head(DTYPE3,10)
+summary(DTYPE3[DTYPE3<97])
+sd(DTYPE3,na.rm=T)
+boxplot(DTYPE3,xlab=c("DTYPE3"))
+## DTYPE4: Disability type 4 (1 to 6; 98=DK;99=RF)
+head(DTYPE4,10)
+summary(DTYPE4[DTYPE4<97])
+sd(DTYPE4,na.rm=T)
+boxplot(DTYPE4,xlab=c("DTYPE4"))
+## DTYPE5: Disability type 5 (1 to 6; 98=DK;99=RF)
+head(DTYPE5,10)
+summary(DTYPE5[DTYPE5<97])
+sd(DTYPE5,na.rm=T)
+boxplot(DTYPE5,xlab=c("DTYPE5"))
+## DTYPE6: Disability type 6 (1 to 6; 98=DK;99=RF)
+head(DTYPE6,10)
+summary(DTYPE6[DTYPE6<97])
+sd(DTYPE6,na.rm=T)
+boxplot(DTYPE6,xlab=c("DTYPE6"))
+## DTYPE7: Disability type 7 (1 to 6; 98=DK;99=RF)
+head(DTYPE7,10)
+summary(DTYPE7)
+## O_DTYPE: Other, Disability type  
+head(O_DTYPE,10)
+sum(is.na(O_DTYPE)&DTYPE1==97)
+```
+
+
+
+#### DSLIC:Disabled license plate (1=yes;2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## DSLIC:Disabled license plate (1=yes;2=no;8=DK;9=RF)
+head(DSLIC,10)
+summary(DSLIC[DSLIC<8])
+sd(DSLIC,na.rm=T)
+boxplot(DSLIC,xlab=c("DSLIC"))
+sum(is.na(DSLIC)&DISAB==1&(AGE>15&AGE<998))
+```
+
+
+
+#### EDIS:Disabled transit registration (1=yes;2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## EDIS
+head(EDIS,10)
+summary(EDIS[EDIS<8])
+sd(EDIS,na.rm=T)
+boxplot(EDIS,xlab=c("DSLIC"))
+sum(is.na(EDIS)&DISAB==1)
+```
+
+
+
+#### TTRIP: Transit trips used in past week (Range:0-50; 98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+##TTRIP
+head(TTRIP,10)
+summary(TTRIP[TTRIP<98])
+sd(TTRIP,na.rm=T)
+boxplot(TTRIP[TTRIP<98],xlab=c("Transit trips in past week"),col=c("orange"))
+hist(TTRIP[TTRIP<98],breaks=20,xlab=c("Transit trips in past week"),col=c("green"))
+boxplot(TTRIP,xlab=c("TTRIP"))
+sum(is.na(TTRIP))
+```
+
+
+
+#### TRNSUB: Transit subsidy (1=yes;2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## TRNSUB
+head(TRNSUB,10)
+summary(TRNSUB[TRNSUB<8])
+sd(TRNSUB,na.rm=T)
+boxplot(TRNSUB,xlab=c("TRNSUB"))
+sum(is.na(TRNSUB)&TTRIP>0)
+```
+
+
+
+#### SUBAMT: Subsidized amount
+
+
+```{r, cache=TRUE}
+##SUBAMT
+head(SUBAMT,10)
+summary(SUBAMT[SUBAMT<999998])
+sd(SUBAMT[SUBAMT<999998],na.rm=T)
+boxplot(SUBAMT,xlab=c("Subsidized amount"),col=c("orange"))
+hist(SUBAMT,xlab=c("Subsidized amount"),col=c("maroon"))
+sum(is.na(SUBAMT)&TRNSUB==1,na.rm=T)
+```
+
+
+
+#### SUBUNT: Fare unit (1 to 7; 8=DK; 9=RF)
+
+
+```{r, cache=TRUE}
+## SUBUNT
+head(SUBUNT,10)
+summary(SUBUNT[SUBUNT<8])
+sd(SUBUNT,na.rm=T)
+boxplot(SUBUNT,xlab=c("Fare unit"),col=c("orange"))
+hist(SUBUNT,xlab=c("Fare unit"),col=c("maroon"))
+```
+
+Here, we are generating a pie chart for fare unit (SUBUNT).
+
+```{r, cache=TRUE}
+###Pie chart
+faretable<-table(SUBUNT)
+pct <- round(faretable/sum(faretable)*100)
+lbls <- paste(pct,"%", sep="")
+pie(faretable,labels = lbls, col=rainbow(length(lbls)),main="Pie Chart of fare unit",cex=0.8)
+legend("topright", c("Per Hour","Per day","Per week","Per month","Per Semester","Per Year","Other","Don't Know","Refused"), cex=0.8, fill=rainbow(length(lbls)))
+```
+
+
+
+#### O_SUBUNT: Other, fair unit 
+
+
+```{r, cache=TRUE}
+## O_SUBUNT
+head(O_SUBUNT,10)
+sum(is.na(O_SUBUNT)&SUBUNT==7)
+```
+
+
+
+#### WTRIP: Walk in the last week (Range:0-50; 98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## WTRIP
+head(WTRIP,10)
+summary(WTRIP[WTRIP<98])
+sd(WTRIP[WTRIP<98],na.rm=T)
+boxplot(WTRIP,xlab=c("Walk in the last week"),col=c("green"))
+hist(WTRIP[WTRIP<98],xlab=c("Walk in the last week"),col=c("gold"))
+sum(is.na(WTRIP))
+```
+
+
+
+#### BTRIP: Bicycle in the last week (Range:0-50; 98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## BTRIP
+head(BTRIP,10)
+summary(BTRIP[BTRIP<98])
+sd(BTRIP,na.rm=T)
+boxplot(BTRIP,xlab=c("Bicycle trips in the last week "),col=c("green"))
+hist(BTRIP[BTRIP<98],xlab=c("Bicycle trips in the last week "),col=c("green"))
+```
+
+
+
+#### STUDE: Student (1=yes-Full time;2=Yes-Part time;3=No;8=DK; 9=RF)
+
+
+```{r, cache=TRUE}
+## STUDE
+head(STUDE,10)
+summary(STUDE[STUDE<8])
+sd(STUDE,na.rm=T)
+boxplot(STUDE,xlab=c("STUDE"))
+sum(is.na(STUDE))
+```
+
+
+
+#### SCHOL: School grade level attends (1 to 8; 97=others;98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## SCHOL
+head(SCHOL,10)
+summary(SCHOL[SCHOL<97])
+sd(SCHOL,na.rm=T)
+boxplot(SCHOL,xlab=c("School grade level attends "),col=c("green"))
+hist(SCHOL[SCHOL<97],xlab=c("School grade level attends "),col=c("gold"))
+sum(is.na(SCHOL)&STUDE<3)
+```
+
+
+The following codes are used to generate a pie chart for SCHOL variable
+
+```{r, cache=TRUE}
+###Pie chart
+sgtable<-table(SCHOL)
+pct <- round(sgtable/sum(sgtable)*100)
+lbls <- paste(pct,"%", sep="")
+pie(sgtable,labels = lbls, col=rainbow(length(lbls)),main="Pie Chart of School attendence",cex=0.8)
+legend("topright",c("Daycare","Pre-school","Kindergarten-Grade 8","Grade 9-12","Technical","Community college","University","Graduate School","Other","Don't Know","Refused"), cex=0.8, fill=rainbow(length(lbls)))
+```
+
+
+
+#### O_SCHOL: School grade level attends, other
+
+
+```{r, cache=TRUE}
+## O_SCHOL
+head(O_SCHOL,10)
+sum(is.na(O_SCHOL)&SCHOL==97)
+```
+
+
+
+#### SLOC: Home School; (1=yes;2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## SLOC
+head(SLOC,10)
+summary(SLOC[SLOC<8])
+sd(SLOC,na.rm=T)
+boxplot(SLOC,xlab=c("SLOC"))
+sum(is.na(SLOC)&SCHOL>1&SCHOL<5,na.rm=T)
+```
+
+
+
+#### SONLN: Online school (1 to 3; 8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## SONLN
+head(SONLN,10)
+summary(SONLN[SONLN<8])
+sd(SONLN,na.rm=T)
+boxplot(SONLN,xlab=c("SONLN"))
+sum(is.na(SONLN)&SCHOL>4&SCHOL<9,na.rm=T)
+```
+
+
+
+#### PRESCH: Pre-school location (1 to 4; 8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+##PRESCH
+head(PRESCH,10)
+summary(PRESCH[PRESCH<8])
+sd(PRESCH,na.rm=T)
+boxplot(PRESCH,xlab=c("PRESCH"))
+sum(is.na(PRESCH)&SCHOL==1,na.rm=T)
+##O_PRESCH: Pre-school location,other 
+head(O_PRESCH,10)
+sum(is.na(O_PRESCH)& PRESCH==7)
+```
+
+
+We use following codes to check all the school location variables.
+
+
+```{r, cache=TRUE}
+##SNAME: School name
+head(SNAME,10)
+##SCITY: School city
+head(SCITY,10)
+##SZIP: School zip
+head(SZIP,10)
+##SXST1: School cross streets
+head(SXST1,10)
+##SXST2: School cross street
+head(SXST2,10)
+## SSTAT: School State
+head(SSTAT,10)
+
+##SXCORD: School X-coordinates
+head(SXCORD,10)
+summary(SXCORD)
+sd(SXCORD,na.rm=T)
+boxplot(SXCORD,xlab=c("School X-coordinates"),col=c("yellow"))
+hist(SXCORD,freq=FALSE,xlab=c("School"),col=c("maroon"))
+
+##SYCORD: School Y-coordinates
+head(SYCORD,10)
+summary(SYCORD)
+sd(SYCORD,na.rm=T)
+```
+
+
+
+#### SMODE: School mode (1 to 29;99=RF)
+
+
+```{r, cache=TRUE}
+## SMODE
+head(SMODE,10)
+summary(SMODE[SMODE<99])
+sd(SMODE,na.rm=T)
+boxplot(SMODE[SMODE<99],xlab=c("School mode"),col=c("yellow"))
+hist(SMODE[SMODE<99],xlab=c("School mode"),col=c("green"))
+```
+
+
+
+#### EDUCA: Level of education completed; (1 to 7;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+##EDUCA
+head(EDUCA,10)
+summary(EDUCA[EDUCA<8])
+sd(EDUCA,na.rm=T)
+boxplot(EDUCA,xlab=c("EDUCA"))
+sum(is.na(EDUCA))
+##O_EDUCA: Level of education completed,other;
+head(O_EDUCA,10)
+sum(is.na(EDUCA)&EDUCA==7)
+```
+
+
+
+#### INTRV: Are you interviewing this person; (1=yes,2=no)
+
+
+```{r, cache=TRUE}
+##INTRV
+head(INTRV,10)
+summary(INTRV)
+sd(INTRV,na.rm=T)
+```
+
+
+
+#### PROXY: Which person served as proxy
+
+
+```{r, cache=TRUE}
+## PROXY
+head(PROXY,10)
+summary(PROXY)
+sd(PROXY,na.rm=T)
+```
+
+
+
+#### CMPLG: Did you complete the log (1 to 3,8=DK,9=RF)
+
+
+```{r, cache=TRUE}
+##CMPLG
+head(CMPLG,10)
+summary(CMPLG[CMPLG<8])
+sd(CMPLG,na.rm=T)
+boxplot(CMPLG,xlab=c("CMPLG"))
+```
+
+
+
+#### HVLOG: Have diary to refer to (1=yes,2=no,9=prefer not to answer)
+
+
+```{r, cache=TRUE}
+##HVLOG
+head(HVLOG,10)
+summary(HVLOG[HVLOG<9])
+sd(HVLOG,na.rm=T)
+boxplot(HVLOG,xlab=c("HVLOG"))
+```
+
+
+
+#### PTRIPS: Person trips
+
+
+```{r, cache=TRUE}
+## PTRIPS
+head(PTRIPS,10)
+summary(PTRIPS)
+sd(PTRIPS,na.rm=T)
+boxplot(PTRIPS,xlab=c("Person trips"),col=c("gold"))
+hist(PTRIPS,xlab=c("Person trips"),col=c("green"))
+```
+
+
+
+#### TOLLF: Did you use a toll (1 to 3, 8=DK, 9=RF)
+
+
+```{r, cache=TRUE}
+## TOLLF
+head(TOLLF,10)
+summary(TOLLF[TOLLF<8])
+sd(TOLLF,na.rm=T)
+boxplot(TOLLF,xlab=c("TOLLF"))
+```
+
+
+There are 10 variables related to toll road. We use following codes to check those variables.
+
+
+```{r, cache=TRUE}
+##TOLLR1: Toll Road (1 to 9, 98=DK, 99=RF)
+head(TOLLR1,10)
+summary(TOLLR1[TOLLR1<98])
+sd(TOLLR1,na.rm=T)
+boxplot(TOLLR1,xlab=c("Toll Road"),col=c("green"))
+hist(TOLLR1,xlab=c("Person trips"),col=c("green"))
+sum(is.na(TOLLR1)& TOLLF==1,na.rm=T)
+
+##TOLLR2: Toll Road (1 to 9, 98=DK, 99=RF)
+head(TOLLR2,10)
+summary(TOLLR2[TOLLR2<98])
+sd(TOLLR2,na.rm=T)
+boxplot(TOLLR2,xlab=c("Toll Road"),col=c("yellow"))
+
+##TOLLR3: Toll Road (1 to 9, 98=DK, 99=RF)
+head(TOLLR3,10)
+summary(TOLLR3[TOLLR3<98])
+sd(TOLLR3,na.rm=T)
+boxplot(TOLLR3,xlab=c("Toll Road"),col=c("yellow"))
+
+##TOLLR4: Toll Road (1 to 9, 98=DK, 99=RF)
+head(TOLLR4,10)
+summary(TOLLR4)
+
+##TOLLR5: Toll Road (1 to 9, 98=DK, 99=RF)
+head(TOLLR5,10)
+summary(TOLLR5)
+
+##TOLLR6: Toll Road (1 to 9, 98=DK, 99=RF)
+head(TOLLR6,10)
+summary(TOLLR6)
+
+##TOLLR7: Toll Road (1 to 9, 98=DK, 99=RF)
+head(TOLLR7,10)
+summary(TOLLR7)
+
+##TOLLR8: Toll Road (1 to 9, 98=DK, 99=RF)
+head(TOLLR8,10)
+summary(TOLLR8)
+
+##TOLLR9: Toll Road (1 to 9, 98=DK, 99=RF)
+head(TOLLR9,10)
+summary(TOLLR9)
+
+##TOLLR10: Toll Road (1 to 9, 98=DK, 99=RF)
+head(TOLLR10,10)
+summary(TOLLR10)
+```
+
+The following codes are used to check the 10 toll bridge related variables.
+
+```{r, cache=TRUE}
+###TOLLB1: Toll Bridge (1 to 7, 98=DK, 99=RF)
+head(TOLLB1,10)
+summary(TOLLB1[TOLLB1<98])
+sd(TOLLB1,na.rm=T)
+boxplot(TOLLB1,xlab=c("Toll Bridge"),col=c("green"))
+sum(is.na(TOLLB1)& TOLLF==2,na.rm=T)
+
+##TOLLB2: Toll bridge(1 to 7, 98=DK, 99=RF)
+head(TOLLB2,10)
+summary(TOLLB2[TOLLB2<98])
+sd(TOLLB2,na.rm=T)
+boxplot(TOLLB2,xlab=c("TOLLB2"))
+
+##TOLLB3: Toll bridge(1 to 7, 98=DK, 99=RF)
+head(TOLLB3,10)
+summary(TOLLB3)
+sd(TOLLB3,na.rm=T)
+boxplot(TOLLB3,xlab=c("TOLLB3"))
+
+##TOLLB4: Toll bridge(1 to 7, 98=DK, 99=RF)
+head(TOLLB4,10)
+summary(TOLLB4)
+
+##TOLLB5: Toll bridge(1 to 7, 98=DK, 99=RF)
+head(TOLLB5,10)
+summary(TOLLB5)
+
+##TOLLB6: Toll bridge(1 to 7, 98=DK, 99=RF)
+head(TOLLB6,10)
+summary(TOLLB6)
+
+##TOLLB7: Toll bridge(1 to 7, 98=DK, 99=RF)
+head(TOLLB7,10)
+summary(TOLLB7)
+
+##TOLLB8: Toll bridge(1 to 7, 98=DK, 99=RF)
+head(TOLLB8,10)
+summary(TOLLB8)
+
+##TOLLB9: Toll bridge(1 to 7, 98=DK, 99=RF)
+head(TOLLB9,10)
+summary(TOLLB9)
+
+##TOLLB10: Toll bridge(1 to 7, 98=DK, 99=RF)
+head(TOLLB10,10)
+summary(TOLLB10)
+```
+
+
+
+#### HOVL: HOV lane used; (1=yes;2=no;98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## HOVL
+head(HOVL,10)
+summary(HOVL[HOVL<98])
+sd(HOVL,na.rm=T)
+boxplot(HOVL,xlab=c("HOVL"))
+```
+
+
+
+#### NOGOWHY: Why no trips on travel day; (1 to 12, 97=other;98=DK, 99=RF)
+
+
+```{r, cache=TRUE}
+## NOGOWHY
+head (NOGOWHY,10)
+summary(NOGOWHY[NOGOWHY<97])
+sd(NOGOWHY,na.rm=T)
+boxplot(NOGOWHY,xlab=c("NOGOWHY"))
+sum(is.na(NOGOWHY)&PTRIPS==0,na.rm=T)
+
+## NOGOWHY_O: Why no trips on travel day, other; 
+head (NOGOWHY_O,10)
+sum(is.na(NOGOWHY_O)&NOGOWHY==97)
+```
+
+
+
+#### InComplete: Person Retrieval Incomplete Flag (1=Did not report travel)
+
+
+```{r, cache=TRUE}
+##InComplete
+head(InComplete,10)
+summary(InComplete)
+```
+
+
+
+#### Moto_trip; (1=yes, 2=no)
+
+
+```{r, cache=TRUE}
+## Moto_trip
+head(Moto_trip,10)
+summary(Moto_trip)
+sd(Moto_trip,na.rm=T)
+boxplot(Moto_trip,xlab=c("Moto_trip"))
+```
+
+
+
+## WCTFIP: Work location county FIP  Code 2010
+
+
+```{r, cache=TRUE}
+## WCTFIP
+head(WCTFIP,10)
+summary(WCTFIP[WCTFIP<999])
+sd(WCTFIP,na.rm=T)
+```
+
+
+
+#### WTRACT: Work location census tract ID 2010
+
+
+```{r, cache=TRUE}
+## WTRACT
+head(WTRACT,10)
+summary(WTRACT)
+sd(WTRACT,na.rm=T)
+```
+
+Here, we check variables related to school location.
+
+```{r, cache=TRUE}
+## CTFIP: School location county FIP  Code 2010
+head(SCTFIP,10)
+summary(SCTFIP[SCTFIP<999])
+sd(SCTFIP,na.rm=T)
+
+## STRACT: School location census tract ID 2010
+head(STRACT,10)
+summary(STRACT)
+sd(STRACT,na.rm=T)
+
+## SPrimaryCity: School location primary city
+head(SPrimaryCity,10)
+
+## SSTFIP: School location state fips
+head(SSTFIP,10)
+summary(SSTFIP[SSTFIP<99])
+sd(SSTFIP,na.rm=T)
+```
+
+And here, we check variables related to work location.
+
+```{r, cache=TRUE}
+##WPrimaryCity: Work location primary city
+head(WPrimaryCity,10)
+
+##WSTFIP: Work location state fips code
+head(WSTFIP,10)
+summary(WSTFIP[WSTFIP<99])
+sd(WSTFIP,na.rm=T)
+
+##W2PrimaryCity: Secondary Work location primary city
+head(W2PrimaryCity,10)
+
+##W2STFIP: Secondary Work location state fips code
+head(W2STFIP,10)
+summary(W2STFIP)
+sd(W2STFIP,na.rm=T)
+```
+
+
+
+#### PERWGT: Final Person weight
+
+
+```{r, cache=TRUE}
+## PERWGT
+head(PERWGT,10)
+summary(PERWGT)
+sd(PERWGT,na.rm=T)
+boxplot(PERWGT,xlab=c("PERWGT"))
+```
+
+
+
+#### EXPPERWGT: Final expanded person weight
+
+
+```{r, cache=TRUE}
+## EXPPERWGT
+head(EXPPERWGT,10)
+summary(EXPPERWGT)
+sd(EXPPERWGT,na.rm=T)
+boxplot(EXPPERWGT,xlab=c("EXPPERWGT"))
+```
+
+We have checked all the variables of person data. Now we need to detach the person data file.
+
+```{r, cache=TRUE}
+detach(npersondata)
+```
+
+
+
+
+### Vehicle Data
+
+
+We check the variables of vehicle data. First we import the vehicle csv file and check it's dimension and see the variable names. 
+
+
+```{r, cache=TRUE}
+# Import the vehicle variables csv file and give a new name
+veh_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/Deliv_VEH.csv", header=TRUE)
+
+# Dimension of the data file
+dim(veh_data)
+
+# show the existing variable names
+names(veh_data)
+```
+
+Now, we attach the vehicle data to check all the variables one by one. 
+
+```{r, cache=TRUE}
+# Attach the file
+attach(veh_data)
+```
+
+
+First we sort the data by sample number.
+
+
+```{r, cache=TRUE}
+# SAMPN: Sample number
+# Sorting data by sample number
+veh_data<-veh_data[order(SAMPN),]
+```
+
+
+Here, we start checking variables. 
+
+
+#### VEHNO:Vehicle Number
+
+
+```{r, cache=TRUE}
+## VEHNO
+### Show the first 10 observations (if you want to see more put that number in place of 10)
+head(VEHNO,10)
+###Summarize of the variable
+summary(VEHNO)
+sd(VEHNO,na.rm=T)
+### Check missing observations
+sum(VEHNO=="")
+sum(is.na(VEHNO))
+### Create boxplot  
+boxplot(VEHNO,xlab=c("VEHNO"))
+```
+
+
+
+#### YEAR: Year of vehicle (Range:1930-2013; 9998=DK;9999=RF)
+
+
+```{r, cache=TRUE}
+## YEAR
+head(YEAR,10)
+summary(YEAR[YEAR<9998])
+sd(YEAR,na.rm=T)
+```
+
+
+Here, we generate boxplot and histogram for YEAR variable where we exclude observations for error codes (9998)
+
+```{r, cache=TRUE}
+boxplot(YEAR[YEAR<9998],xlab=c("Year of vehicle"),col=c("gold"))
+hist(YEAR[YEAR<9998],xlab=c("Year of vehicle"),col=c("green"))
+```
+
+
+We want to count the missing observations and check the number of observations with year less than 1960
+
+
+```{r, cache=TRUE}
+sum(YEAR=="")
+sum(is.na(YEAR))
+sum(YEAR<=1960,na.rm=T)
+```
+
+
+We want to generate cross tabulation for YEAR and MAKE variables.
+
+
+```{r, cache=TRUE}
+## Cross tabulation YEAR<=1960 and Make
+veht<-veh_data[(YEAR<=1960),c('YEAR','MAKE','BODY')]
+table(veht$YEAR,veht$MAKE)
+```
+
+
+Then, we want to generate cross tabultation for YEAR and BODY variables.
+
+
+```{r, cache=TRUE}
+## Cross tabulation YEAR<=1960 and BODY
+table(veht$YEAR,veht$BODY)
+```
+
+
+
+#### MAKE: Vehicle make (11 to 97; 98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## MAKE
+head(MAKE,10)
+summary(MAKE[MAKE<97])
+boxplot(MAKE,xlab=c("Vehicle make"),col=c("green"))
+hist(MAKE,xlab=c("Vehicle make"),col=c("orange"))
+sum(MAKE=="")
+sum(is.na(MAKE))
+
+## O_MAKE: Other,Vehicle make 
+head(O_MAKE,10)
+sum(is.na(O_MAKE)&MAKE==97)
+```
+
+
+
+#### MODEL: Vehicle model
+
+
+```{r, cache=TRUE}
+## MODEL
+head(MODEL,10)
+sum(is.na(MODEL))
+SAMPN[is.na(MODEL)]
+VEHNO[is.na(MODEL)]
+```
+
+
+
+#### SERIES: Series (000000=No series; 999997=other specify;999998=DK;999999=RF)
+
+
+```{r, cache=TRUE}
+## SERIES
+head(SERIES,10)
+summary(SERIES[SERIES<999997])
+boxplot(SERIES,xlab=c("SERIES"))
+hist(SERIES)
+sum(is.na(SERIES))
+SAMPN[is.na(SERIES)]
+VEHNO[is.na(SERIES)]
+
+## O_SERIES: Other, Series 
+head(O_SERIES,10)
+sum(is.na(SERIES)&SERIES==999997,na.rm=T)
+```
+
+
+
+#### BODY: Body type  (1 to 97,98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## BODY
+head(BODY,10)
+summary(BODY[BODY<97])
+boxplot(BODY[BODY<97],xlab=c("Body type"),col=c("yellow"))
+hist(BODY[BODY<97],xlab=c("Body type"),col=c("green"))
+hist
+sum(is.na(BODY))
+```
+
+
+We want to generate a pie chart for BODY variable.
+
+
+```{r, cache=TRUE}
+### Pie chart
+bdtable<-table(BODY)
+pct <- round(bdtable/sum(bdtable)*100)
+lbls <- paste(pct,"%", sep="")
+pie(bdtable,labels = lbls, col=rainbow(length(lbls)),main="Pie Chart of body type",cex=0.8)
+legend("topright",c("1","2","3","4","5","6","7","8","9","10","11","12","13","97","98","99"), cex=0.8, fill=rainbow(length(lbls)))
+```
+
+
+
+#### O_BODY: Other, Body type 
+
+
+```{r, cache=TRUE}
+## O_BODY
+head(O_BODY,10)
+sum(is.na(BODY)&BODY==97)
+```
+
+
+
+#### FUELT1: FUEL type  (1 to 7,8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## FUELT1
+head(FUELT1,10)
+summary(FUELT1[FUELT1<8])
+boxplot(FUELT1,xlab=c("FUELT1"))
+hist(FUELT1,xlab=c("FUEL type"),col=c("maroon"))
+sum(is.na(FUELT1))
+```
+
+
+We want to generate a pie chart for FUELT1 variable.
+
+
+```{r, cache=TRUE}
+###Pie chart
+ftyptable<-table(FUELT1)
+pct <- round(ftyptable/sum(ftyptable)*100)
+lbls <- paste(pct,"%", sep="")
+pie(ftyptable,labels = lbls, col=rainbow(length(lbls)),main="Pie Chart of fuel type",cex=0.8)
+legend("topright",c("1","2","3","4","5","6","7","8","9"), cex=0.8, fill=rainbow(length(lbls)))
+```
+
+
+The following codes are used to check other FUEL variables.
+
+
+```{r, cache=TRUE}
+## FUELT2: FUEL type  (1 to 7,8=DK;9=RF)
+head(FUELT2,10)
+summary(FUELT2[FUELT2<8])
+boxplot(FUELT2,xlab=c("FUELT2"))
+hist(FUELT2,xlab=c("FUEL type "),col=c("green"))
+
+## FUELT3: FUEL type  (1 to 7,8=DK;9=RF)
+head(FUELT3,10)
+summary(FUELT3[FUELT3<8])
+boxplot(FUELT3,xlab=c("FUELT3"))
+
+## FUELT4: FUEL type  (1 to 7,8=DK;9=RF)
+head(FUELT4,10)
+summary(FUELT4)
+
+## FUELT5: FUEL type  (1 to 7,8=DK;9=RF)
+head(FUELT5,10)
+summary(FUELT5)
+
+## FUELT6: FUEL type  (1 to 7,8=DK;9=RF)
+head(FUELT6,10)
+summary(FUELT6)
+
+## O_FUELT: Other, FUEL type  
+head(O_FUELT,10)
+sum(is.na(O_FUELT)&FUELT1==7)
+```
+
+
+
+#### CIGLT: Working power outlet  (1=yes,2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## CIGLT
+head(CIGLT,10)
+summary(CIGLT[CIGLT<8])
+boxplot(CIGLT,xlab=c("CIGLT"))
+hist(CIGLT)
+```
+
+
+
+#### VEHAQ: Vehicle acquired  (1=new,2=used;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## VEHAQ
+head(VEHAQ,10)
+summary(VEHAQ[VEHAQ<8])
+boxplot(VEHAQ,xlab=c("VEHAQ"))
+boxplot(VEHAQ,xlab=c("Vehicle acquired"),col=c("gold"))
+```
+
+
+
+#### VEHOWN: Vehicle ownership  (1 to 4;7=other;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## VEHOWN
+head(VEHOWN,10)
+summary(VEHOWN[VEHOWN<7])
+boxplot(VEHOWN,xlab=c("VEHOWN"))
+boxplot(VEHOWN,xlab=c("Vehicle ownership"),col=c("gold"))
+hist(VEHOWN,xlab=c("Vehicle ownership"),col=c("gold"))
+
+## O_VEHOWN: Other, Vehicle ownership  
+head(O_VEHOWN,10)
+sum(is.na(O_VEHOWN)&VEHOWN==7)
+```
+
+
+
+#### VEHINS: Vehicle insurance  (1=yes,2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## VEHINS
+head(VEHINS,10)
+summary(VEHINS[VEHINS<8])
+boxplot(VEHINS,xlab=c("VEHINS"))
+```
+
+
+
+#### VEHINS: Vehicle insurance  (1=yes,2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## VEHINS
+head(VEHOBD,10)
+summary(VEHOBD[VEHOBD<8])
+boxplot(VEHOBD,xlab=c("VEHOBD"))
+sum(is.na(VEHOBD)&!VEHINS==2,na.rm=T)
+```
+
+
+
+#### VEHTRN: Vehicle transmission  (1 to 3;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## VEHTRN
+head(VEHTRN,10)
+summary(VEHTRN[VEHTRN<8])
+boxplot(VEHTRN,xlab=c("VEHTRN"))
+sum(is.na(VEHTRN)&BODY<12)
+SAMPN[is.na(VEHTRN)&BODY<12]
+```
+
+
+
+#### VEHDRT: Power train  (1 to 7;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## VEHDRT
+head(VEHDRT,10)
+summary(VEHDRT[VEHDRT<8])
+boxplot(VEHDRT,xlab=c("VEHDRT"))
+hist(VEHDRT,xlab=c("Power train "),col=c("blue"))
+sum(is.na(VEHDRT)&BODY<12)
+SAMPN[is.na(VEHDRT)&BODY<12]
+```
+
+
+Now, we generate a pie chart for VEHDRT variable.
+
+
+```{r, cache=TRUE}
+### Pie chart
+vptable<-table(VEHDRT)
+pct <- round(vptable/sum(vptable)*100)
+lbls <- paste(pct,"%", sep="")
+pie(vptable,labels = lbls, col=rainbow(length(lbls)),main="Pie Chart of power train",cex=0.8)
+legend("right",c("1","2","3","7","8","9"), cex=0.8, fill=rainbow(length(lbls)))
+```
+
+
+
+#### O_VEHDRT: Power train, other
+
+
+```{r, cache=TRUE}
+## O_VEHDRT
+head(O_VEHDRT,10)
+sum(is.na(O_VEHDRT)&VEHDRT==7)
+```
+
+
+
+#### VEHCYL: Cylinders  (1 to 7;97=other; 98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## VEHCYL: Cylinders  (1 to 7;97=other; 98=DK;99=RF)
+head(VEHCYL,10)
+summary(VEHCYL[VEHCYL<97])
+boxplot(VEHCYL,xlab=c("Cylinders"),col=c("green"))
+hist(VEHCYL[VEHCYL<97],xlab=c("Cylinders "),col=c("blue"))
+sum(is.na(VEHCYL)&BODY<12)
+SAMPN[is.na(VEHCYL)&BODY<12]
+```
+
+
+Here, we generate a pie chart for VEHCYL variable.
+
+
+```{r, cache=TRUE}
+###Pie chart
+rm(lbls,pct)
+vctable<-table(VEHCYL)
+pct <- round(vctable/sum(vctable)*100)
+lbls <- paste(pct,"%", sep="")
+pie(vctable,labels = lbls, col=rainbow(length(lbls)),main="Pie Chart of power train",cex=0.8)
+legend("topright",c("1","2","3","7","97","98","99"), cex=0.8, fill=rainbow(length(lbls)))
+```
+
+
+
+#### O_VEHCYL: Cylinders, other  
+
+
+```{r, cache=TRUE}
+## O_VEHCYL: Cylinders, other  
+head(O_VEHCYL,10)
+sum(is.na(O_VEHCYL)&VEHCYL==97)
+```
+
+
+
+#### VEHOUT: Electric outlet (Range: 1-8999; 9000=No; 9998=DK;9999=RF)
+
+
+```{r, cache=TRUE}
+## VEHOUT
+head(VEHOUT,10)
+summary(VEHOUT[VEHOUT<9000])
+boxplot(VEHOUT,xlab=c("Electric outlet"))
+hist(VEHOUT,xlab=c("Electric outlets "),col=c("blue"))
+```
+
+
+
+#### VEHVLT: Outlet volts (1=110 volt;2=220 volt; 8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## VEHVLT
+head(VEHVLT,10)
+summary(VEHVLT[VEHVLT<8])
+boxplot(VEHVLT,xlab=c("VEHVLT"))
+sum(is.na(VEHVLT)&VEHOUT<9000&VEHOUT>0,na.rm=T)
+```
+
+
+
+#### VEHT: Vehicle type (1 to 7;9=RF)
+
+
+```{r, cache=TRUE}
+## VEHT
+head(VEHT,10)
+summary(VEHT[VEHT<9])
+boxplot(VEHT,xlab=c("Vehicle type"))
+hist(VEHT,xlab=c("Vehicle type "),col=c("blue"))
+```
+
+
+
+#### CNTV: Vehicle used on travel day (1=used; 2=Not used)
+
+
+```{r, cache=TRUE}
+## CNTV
+head(CNTV,10)
+summary(CNTV)
+boxplot(CNTV,xlab=c("CNTV"))
+hist(CNTV,xlab=c("Vehicle type "),col=c("blue"))
+sum(is.na(CNTV))
+```
+
+
+
+#### WYCNTV: Reason why not (1 to 12; 97=other;98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## WYCNTV
+head(WYCNTV,10)
+summary(WYCNTV[WYCNTV<97])
+boxplot(WYCNTV[WYCNTV<97],xlab=c("Reason why not"),col=c("green"))
+hist(WYCNTV[WYCNTV<97],xlab=c("Reason why not "),col=c("blue"))
+sum(is.na(WYCNTV)& !CNTV==1)
+```
+
+
+
+#### HHWGT: Final household weight
+
+
+```{r, cache=TRUE}
+## HHWGT
+head(HHWGT,10)
+summary(HHWGT)
+boxplot(HHWGT,xlab=c("Final household weight"),col=c("gold"))
+sum(is.na(HHWGT))
+SAMPN[is.na(HHWGT)]
+VEHNO[is.na(HHWGT)]
+```
+
+
+
+#### EXPHHWGT: Final expanded household weight
+
+
+```{r, cache=TRUE}
+## EXPHHWGT
+head(EXPHHWGT,10)
+summary(EXPHHWGT)
+boxplot(EXPHHWGT,xlab=c("EXPHHWGT"))
+sum(is.na(EXPHHWGT))
+SAMPN[is.na(EXPHHWGT)]
+VEHNO[is.na(EXPHHWGT)]
+```
+
+
+We have finished checking all the variables of vehicle data. Now we need to detach the vehicle data file.
+
+
+```{r, cache=TRUE}
+## Detach the file
+detach(veh_data)
+```
+
+
+
+
+### Place Data
+
+
+We follow the same steps we followed for other two data set: first we need to save the place and look up file manually as 'csv' format and keep them in our desired location. We import those files from that location and merge them.
+
+
+```{r, cache=TRUE}
+#Import the place level variables csv file and give a new name
+place_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_place.csv", header=TRUE)
+#Import the lookup variable csv file and give a new name (containing x, y coordinate data)
+lookup_place <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_place.csv", header=TRUE)
+# Check the dimension and names of the variables
+dim(place_data)
+dim(lookup_place)
+names(place_data)
+names(lookup_place)
+# Merging two data set
+place_data1<-merge(place_data,lookup_place, by =c("SAMPN","PERNO","PLANO"), all = TRUE)
+# Dimension and names of the variables
+dim(place_data)
+dim(lookup_per)
+dim(place_data1)
+
+# Names of the variables in the new dataset
+names(place_data1)
+
+```
+
+
+We have the merged data now. But there are somd duplicate variables and we need to delete them.
+
+
+```{r, cache=TRUE}
+# Subset the dataset (excluding the duplicate variables)
+nplace_data<-subset(place_data1,select=-c(35,36,38:40,44:46))
+
+# Dimension of the data file
+dim(nplace_data)
+
+# show the existing variable names
+names(nplace_data)
+
+#rename the added variables
+names(nplace_data) [c(46,47,48,51,52,54)]<-c("PNAME","CITY","ZIP","CTFIP","TRACT","PPrimaryCity")
+
+#names
+names(nplace_data)
+```
+
+
+Now we have new place level file which contains location variables from lookup file (contain x-y coordinates). We use this file for checking all the place level variables. To do this first we need to attach the file. 
+
+
+```{r, cache=TRUE}
+# Attach the file
+attach(nplace_data)
+```
+
+Here, we sort the data by sample number.
+
+```{r, cache=TRUE}
+# SAMPN: Sample number
+# Sorting data by sample number
+nplace_data<-nplace_data[order(SAMPN),]
+```
+
+We check all the place level variables one by one by using following codes.
+
+
+#### PERNO:Person Number
+
+
+```{r, cache=TRUE}
+## PERNO
+### Show the first 10 observations (if you want to see more put that number in place of 10)
+head(PERNO,10)
+###Summarize of the variable
+summary(PERNO)
+###Check missing observations
+sum(PERNO=="")
+sum(is.na(PERNO))
+```
+
+We create a boxplot for person no variable.
+
+```{r, cache=TRUE}
+### Create boxplot  
+boxplot(PERNO,xlab=c("PERNO"))
+```
+
+We follow the same procedure to check rest of the variables.
+
+
+#### PLANO: Place number
+
+
+```{r, cache=TRUE}
+## PLANO: Place number
+head(PLANO,10)
+summary(PLANO)
+boxplot(PLANO,xlab=c("PLANO"))
+sum(PLANO=="")
+sum(is.na(PLANO))
+```
+
+
+
+#### TOTTR: Total people traveling on trip
+
+
+```{r, cache=TRUE}
+## TOTTR
+head(TOTTR,10)
+summary(TOTTR)
+```
+
+We generate a boxplot and histogram for TOTTR variable.
+
+```{r, cache=TRUE}
+boxplot(TOTTR,xlab=c("Total people traveling on trip"),col=c("green"))
+hist(TOTTR,xlab=c("Total people traveling on trip"),col=c("purple"))
+```
+
+
+
+#### HHMEM: Number of household members on trip
+
+
+```{r, cache=TRUE}
+## HHMEM
+head(HHMEM,10)
+summary(HHMEM)
+boxplot(HHMEM,xlab=c("Number of household members on trip"),col=c("gold"))
+hist(HHMEM,xlab=c("Number of household members on trip"),col=c("maroon"))
+```
+
+
+
+#### PER: Person number on trip
+
+
+There are five variables for person number on trip variable. We use following codes to check these variables.
+
+```{r, cache=TRUE}
+## PER1
+head(PER1,10)
+summary(PER1)
+boxplot(PER1,xlab=c("Person number on trip"),col=c("red"))
+hist(PER1,xlab=c("Person number on trip"),col=c("orange"))
+
+## PER2: Person number on trip
+head(PER2,10)
+summary(PER2)
+boxplot(PER2,xlab=c("Person number on trip"),col=c("purple"))
+hist(PER2,xlab=c("Person number on trip"),col=c("blue"))
+
+## PER3: Person number on trip
+head(PER3,10)
+summary(PER3)
+boxplot(PER3,xlab=c("Person number on trip"),col=c("yellow"))
+hist(PER3,xlab=c("Person number on trip"),col=c("blue"))
+
+## PER4: Person number on trip
+head(PER4,10)
+summary(PER4)
+boxplot(PER4,xlab=c("Person number on trip"),col=c("green"))
+hist(PER4,xlab=c("Person number on trip"),col=c("maroon"))
+
+## PER5: Person number on trip
+head(PER5,10)
+summary(PER5)
+boxplot(PER5,xlab=c("Person number on trip"),col=c("gold"))
+hist(PER5,xlab=c("Person number on trip"),col=c("gold"))
+```
+
+
+
+#### NONHH: Number of non-household members on trip
+
+
+```{r, cache=TRUE}
+## NONHH
+head(NONHH,10)
+summary(NONHH)
+boxplot(NONHH,xlab=c("Number of non-household members on trip"),col=c("orange"))
+hist(NONHH,xlab=c("Number of non-household members on trip"),col=c("red"))
+```
+
+
+
+#### MODE: Mode of trip; (1 to 29)
+
+
+```{r, cache=TRUE}
+## MODE
+head(MODE,10)
+summary(MODE)
+boxplot(MODE,xlab=c("Mode of trip"),col=c("green"))
+hist(MODE,xlab=c("Mode of trip"),col=c("orange"))
+```
+
+
+
+#### VEHNO: Household vehicle number used on trip; (Range:1-8; 97=other)
+
+
+```{r, cache=TRUE}
+## VEHNO
+head(VEHNO,10)
+summary(VEHNO[VEHNO<97])
+boxplot( VEHNO,xlab=c("Household vehicle number used on trip"),col=c("yellow"))
+hist(VEHNO[VEHNO<97],xlab=c("Household vehicle number used on trip"),col=c("blue"))
+```
+
+
+
+#### DYGOV: Get out of vehicle; (1=yes;2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## DYGOV
+head(DYGOV,10)
+summary(DYGOV[DYGOV<8])
+boxplot(DYGOV,xlab=c("DYGOV"))
+```
+
+
+
+#### PRKTY: Parking location type; (1 to 7;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## PRKTY
+head(PRKTY,10)
+summary(PRKTY[PRKTY<8])
+boxplot(PRKTY,xlab=c("PRKTY"))
+
+## O_PRKTY: Parking location type, other
+head(O_PRKTY,10)
+sum(is.na(O_PRKTY)&PRKTY==7)
+
+## PXSTR: Parking location address
+head(PXSTR,10)
+```
+
+
+
+#### PRKMIN: Time walking from parking to dest; (Range:0-60; 98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## PRKMIN
+head(PRKMIN,10)
+summary(PRKMIN[PRKMIN<98])
+sd(PRKMIN[PRKMIN<98],na.rm=T)
+boxplot(PRKMIN[PRKMIN<98],xlab=c("Time walking from parking to destination"),col=c("green"))
+hist(PRKMIN[PRKMIN<98],xlab=c("Time walking from parking to destination"),col=c("orange"))
+```
+
+
+
+#### PAYPK: Pay to park; (1=yes;2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## PAYPK
+head(PAYPK,10)
+summary(PAYPK[PAYPK<8])
+boxplot(PAYPK,xlab=c("PAYPK"))
+```
+
+
+
+
+#### PKAMT: Parking amount
+
+
+```{r, cache=TRUE}
+## PKAMT
+head(PKAMT,10)
+summary(PKAMT[PKAMT<999])
+sd(PKAMT[PKAMT<9998],na.rm=T)
+boxplot(PKAMT,xlab=c("Parking amount"),col=c("gold"))
+hist(PKAMT,xlab=c("Parking amount"),col=c("orange"))
+```
+
+
+
+
+#### PKUNT: Parking Unit; (1 to 7;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## PKUNT
+head(PKUNT,10)
+summary(PKUNT[PKUNT<8])
+boxplot(PKUNT,xlab=c("PKUNT"))
+sum(is.na(PKUNT)&PAYPK==1,na.rm=T)
+```
+
+
+
+
+#### PRKHW: How did you pay for parking; (1 to 3;7=other;8=DK;9=RF)
+
+
+
+```{r, cache=TRUE}
+## PRKHW
+head(PRKHW,10)
+summary(PRKHW[PRKHW<7])
+boxplot(PRKHW,xlab=c("PRKHW"))
+sum(is.na(PRKHW)&PAYPK==1,na.rm=T)
+## O_PRKHW: How did you pay for parking, other
+head(O_PRKHW,10)
+sum(is.na(O_PRKHW)&PRKHW==7)
+```
+
+
+
+
+#### EMPARK: Parking cost not reimbursed by employer
+
+
+```{r, cache=TRUE}
+## EMPARK
+head(EMPARK,10)
+summary(EMPARK[EMPARK<998])
+boxplot(EMPARK,xlab=c("EMPARK"))
+```
+
+
+
+
+#### TRANSYS: Transit system; (1 to 136;997=other;998=DK;999=RF)
+
+
+```{r, cache=TRUE}
+## TRANSYS
+head(TRANSYS,10)
+summary(TRANSYS[TRANSYS<997])
+boxplot(TRANSYS[TRANSYS<997],xlab=c("Transit system"),col=c("gold"))
+hist(TRANSYS[TRANSYS<997],xlab=c("Transit system"),col=c("maroon"))
+sum(is.na(TRANSYS)&MODE>15&MODE<28&!MODE==18,na.rm=T)
+
+## O_TRANSYS: Transit system,other;
+head(O_TRANSYS,10)
+sum(is.na(O_TRANSYS)&TRANSYS==997)
+```
+
+
+
+#### ROUTE: Transit route
+
+
+```{r, cache=TRUE}
+## ROUTE
+head(ROUTE,10)
+sum(is.na(ROUTE)&MODE>15&MODE<28&!MODE==18,na.rm=T)
+SAMPN[is.na(ROUTE)&MODE>15&MODE<28&!MODE==18]
+```
+
+
+
+#### ACTCNT: Number of activities
+
+
+```{r, cache=TRUE}
+## ACTCNT
+head(ACTCNT,10)
+summary(ACTCNT)
+boxplot(ACTCNT,xlab=c("Number of activities"))
+```
+
+
+
+#### ARR_HR: Arrival time-hour
+
+
+```{r, cache=TRUE}
+## ARR_HR
+head(ARR_HR,10)
+summary(ARR_HR)
+boxplot(ARR_HR,xlab=c("Arrival time-hour"),col=c("green"))
+hist(ARR_HR,xlab=c("Arrival time-hour"),col=c("purple"))
+```
+
+
+
+#### ARR_MIN: Arrival time-minute
+
+
+```{r, cache=TRUE}
+## ARR_MIN
+head(ARR_MIN,10)
+summary(ARR_MIN)
+boxplot(ARR_MIN,xlab=c("ARR_MIN"))
+boxplot(ARR_MIN,xlab=c("Arrival time-minute"),col=c("gold"))
+hist(ARR_MIN,xlab=c("Arrival time-minute"),col=c("maroon"))
+```
+
+
+
+
+#### DEP_HR: Departure time-hour
+
+
+
+```{r, cache=TRUE}
+## DEP_HR
+head(DEP_HR,10)
+summary(DEP_HR)
+boxplot(DEP_HR,xlab=c("Departure time-hour"),col=c("brown"))
+hist(DEP_HR,xlab=c("Departure time-hour"),col=c("gold"))
+```
+
+
+
+#### DEP_MIN: Departure time-minute
+
+
+```{r, cache=TRUE}
+## DEP_MIN
+head(DEP_MIN,10)
+summary(DEP_MIN)
+boxplot(DEP_MIN,xlab=c("Departure time-minute"),col=c("green"))
+hist(DEP_MIN,xlab=c("Departure time-minute"),col=c("purple"))
+```
+
+
+
+#### TRIPDUR: Travel time to place in minutes
+
+
+```{r, cache=TRUE}
+## TRIPDUR
+head(TRIPDUR,10)
+summary(TRIPDUR)
+sum(is.na(TRIPDUR)&PLANO>1)
+boxplot(TRIPDUR,xlab=c("Travel time to place in minutes by walking"),col=c("yellow"))
+```
+
+We generate boxplots of trip duration for different trip distances
+
+```{r, cache=TRUE}
+boxplot(TRIPDUR,TRIPDUR[TripDistance<=50],TRIPDUR[TripDistance<=100],col=c("yellow"))
+```
+
+Here, we are generating boxplots of trip duration for different modes.
+
+```{r, cache=TRUE}
+boxplot(TRIPDUR[MODE==1],TRIPDUR[MODE==2],TRIPDUR[MODE==c(5,6)],TRIPDUR[MODE==c(12,15,19,22,23,24,25,26)],TRIPDUR[MODE==13],col=c("yellow"))
+```
+
+We also generate histogram of trip duration for trip distance less than 100 mile.
+
+```{r, cache=TRUE}
+hist(TRIPDUR[TripDistance<=100],xlab=c("Travel time to place in minutes"),col=c("green"))
+```
+
+
+
+#### ACTDUR: Activity duration at place in minutes
+
+
+```{r, cache=TRUE}
+## ACTDUR
+head(ACTDUR,10)
+summary(ACTDUR)
+boxplot(ACTDUR[ACTDUR<10000],xlab=c("Activity duration at place in minutes"),col=c("green"))
+hist(ACTDUR[ACTDUR<10000],xlab=c("Activity duration at place in minutes"),col=c("gold"))
+boxplot(ACTDUR,xlab=c("ACTDUR"))
+SAMPN[ACTDUR>15000]
+```
+
+We use following codes to check the origin and destination location variables.
+
+```{r, cache=TRUE}
+## PNAME: Place Name 
+head(PNAME,10)
+sum(is.na(PNAME))
+SAMPN[is.na(PNAME)]
+
+## CITY: City 
+head(CITY,10)
+sum(is.na(CITY))
+SAMPN[is.na(CITY)]
+
+## STATE: State
+head(STATE,10)
+sum(is.na(STATE))
+SAMPN[is.na(STATE)]
+
+## ZIP: Zip
+summary(ZIP)
+sum(is.na(ZIP))
+SAMPN[is.na(ZIP)]
+
+## oXCORD: Origin X-coordinate
+head(oXCORD,10)
+summary(oXCORD)
+boxplot(oXCORD,xlab=c("oXCORD"))
+
+## oYCORD: Origin Y-coordinate
+head(oYCORD,10)
+summary(oYCORD)
+boxplot(oYCORD,xlab=c("oYCORD"))
+
+## dXCORD: Destination X-coordinate
+head(dXCORD,10)
+summary(dXCORD)
+boxplot(dXCORD,xlab=c("dXCORD"))
+
+## dYCORD: Destination Y-coordinate
+head(dYCORD,10)
+summary(dYCORD)
+boxplot(dYCORD,xlab=c("dYCORD"))
+```
+
+
+
+#### TripDistance: Trip distance
+
+
+```{r, cache=TRUE}
+## TripDistance
+head(TripDistance,10)
+summary(TripDistance)
+boxplot(TripDistance,xlab=c("TripDistance"),col=("green"))
+hist(TripDistance,xlab=c("TripDistance"),col=("green"))
+```
+
+
+
+#### AirTripDistance: Air Trip distance
+
+
+```{r, cache=TRUE}
+## AirTripDistance
+head(AirTripDistance,10)
+summary(AirTripDistance)
+boxplot(AirTripDistance,xlab=c("AirTripDistance"))
+```
+
+The following codes are used to check trip location variables
+
+```{r, cache=TRUE}
+## CTFIP: Trip location county FIP  Code 2010
+head(CTFIP,10)
+summary(CTFIP[CTFIP<999])
+
+##TRACT: Trip location census tract ID 2010
+head(TRACT,10)
+summary(TRACT[TRACT<999999])
+
+##PPrimaryCity: Trip location primary city
+head(PPrimaryCity,10)
+
+####PSTFIP: Trip location state fips code
+head(PSTFIP,10)
+summary(PSTFIP[PSTFIP<99])
+```
+
+
+
+#### PERWGT: Final Person weight
+
+
+```{r, cache=TRUE}
+## PERWGT
+head(PERWGT,10)
+summary(PERWGT)
+boxplot(PERWGT,xlab=c("Final Person weight"),col=c("green"))
+```
+
+
+
+#### EXPPERWGT: Final expanded person weight
+
+
+```{r, cache=TRUE}
+## EXPPERWGT
+head(EXPPERWGT,10)
+summary(EXPPERWGT)
+boxplot(EXPPERWGT,xlab=c("Final expanded person weight"),col=c("gold"))
+```
+
+
+
+#### TRIPNO: Unlinked Trip id
+
+
+```{r, cache=TRUE}
+## TRIPNO
+head(TRIPNO,10)
+summary(TRIPNO)
+boxplot(TRIPNO,xlab=c("TRIPNO"))
+```
+
+
+
+#### TCF: Trip correction factor
+
+
+```{r, cache=TRUE}
+## TCF
+head(TCF,10)
+summary(TCF)
+boxplot(TCF,xlab=c("Trip correction factor"),col=c("gold"))
+```
+
+
+
+#### TCFPERWGT: Final trip weight
+
+
+```{r, cache=TRUE}
+## TCFPERWGT
+head(TCFPERWGT,10)
+summary(TCFPERWGT)
+boxplot(TCFPERWGT,xlab=c("Final trip weight"),col=c("yellow"))
+```
+
+
+
+#### EXPTCFPERWGT: Expanded final trip weight
+
+
+```{r, cache=TRUE}
+## EXPTCFPERWGT
+head(EXPTCFPERWGT,10)
+summary(EXPTCFPERWGT)
+boxplot(EXPTCFPERWGT,xlab=c("EXPTCFPERWGT"))
+```
+
+We have finished checking all the place level variables. Now we need to detach the place level file.
+
+```{r, cache=TRUE}
+## Detach the file
+detach(nplace_data)
+```
+
+
+
+### Activity Data
+
+Here we check the variables of activity data. First we import the activity csv file and check it's dimension and see the variable names. 
+
+
+```{r, cache=TRUE}
+#Import the activity level variables csv file and give a new name
+activity_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_activity.csv", header=TRUE)
+
+# Dimension of the data file
+dim(activity_data)
+
+# show the existing variable names
+names(activity_data)
+```
+
+Before start checking variables, we need to attach the file.
+
+```{r, cache=TRUE}
+# Attach the file
+attach(activity_data)
+```
+
+We sort the data based no sample number.
+
+```{r, cache=TRUE}
+# SAMPN: Sample number
+# Sorting data by sample number
+activity_data<-activity_data[order(SAMPN),]
+summary(SAMPN)
+```
+
+Now we start checking variables one by one. 
+
+
+#### PERNO:Person Number
+
+
+```{r, cache=TRUE}
+## PERNO
+### Show the first 10 observations (if you want to see more put that number in place of 10)
+head(PERNO,10)
+###Summarize of the variable
+summary(PERNO)
+### Check missing observations
+sum(PERNO=="")
+sum(is.na(PERNO))
+### Create boxplot  
+boxplot(PERNO,xlab=c("PERNO"))
+```
+
+
+
+#### PLANO: Place number
+
+
+```{r, cache=TRUE}
+## PLANO
+head(PLANO,10)
+summary(PLANO)
+boxplot(PLANO,xlab=c("PLANO"))
+sum(PLANO=="")
+sum(is.na(PLANO))
+```
+
+
+
+#### ACTNO: Activity number
+
+
+```{r, cache=TRUE}
+## ACTNO
+head(ACTNO,10)
+summary(ACTNO)
+boxplot(ACTNO,xlab=c("ACTNO"))
+sum(ACTNO=="")
+sum(is.na(ACTNO))
+```
+
+
+
+#### ACTOTH: Did anyone else participate with you? (1=yes;2=no;8=DK;9=RF)
+
+
+```{r, cache=TRUE}
+## ACTOTH
+head(ACTOTH,10)
+summary(ACTOTH[ACTOTH<8])
+boxplot(ACTOTH,xlab=c("ACTOTH"))
+```
+
+
+
+#### ACTHH: Number of HH/family members
+
+
+```{r, cache=TRUE}
+## ACTHH
+head(ACTHH,10)
+summary(ACTHH)
+boxplot(ACTHH,xlab=c(" Number of HH/family members in this activity"),col=c("green"))
+hist(ACTHH,xlab=c(" Number of HH/family members in this activity"),col=c("orange"))
+sum(is.na(ACTHH)&ACTOTH==1,na.rm=T)
+sum(ACTHH>20,na.rm=T)
+```
+
+
+
+#### ACTOR: Number of other relatives
+
+
+```{r, cache=TRUE}
+## ACTOR
+head(ACTOR,10)
+summary(ACTOR)
+boxplot(ACTOR,xlab=c(" Number of other relatives in this activity"),col=c("yellow"))
+hist(ACTOR,xlab=c(" Number of other relatives in this activity"),col=c("maroon"))
+sum(!is.na(ACTOR)&!ACTOTH==1)
+```
+
+
+
+#### ACTWK: Number of people from your work
+
+
+```{r, cache=TRUE}
+## ACTWK
+head(ACTWK,10)
+summary(ACTWK)
+boxplot(ACTWK,xlab=c("ACTWK"))
+boxplot(ACTWK,xlab=c(" Number of people from your work in this activity"),col=c("yellow"))
+hist(ACTWK,xlab=c(" Number of people from your work in this activity"),col=c("green"))
+sum(!is.na(ACTWK)&!ACTOTH==1)
+```
+
+
+
+#### ACTSC: Number of people from your school
+
+
+```{r, cache=TRUE}
+## ACTSC
+head(ACTSC,10)
+summary(ACTSC)
+boxplot(ACTSC,xlab=c("ACTSC"))
+boxplot(ACTSC,xlab=c(" Number of people from your school in this activity"),col=c("red"))
+hist(ACTSC,xlab=c("Number of people from your school in this activity"),col=c("blue"))
+sum(!is.na(ACTSC)&!ACTOTH==1)
+```
+
+
+
+#### ACTRG: Number of people from same rel/social org
+
+
+```{r, cache=TRUE}
+## ACTRG
+head(ACTRG,10)
+summary(ACTRG)
+boxplot(ACTRG,xlab=c(" Number of people from same rel/social org in this activity"),col=c("red"))
+hist(ACTRG,xlab=c("Number of people from same rel/social org in this activity"),col=c("gold"))
+boxplot(ACTRG,xlab=c("ACTRG"))
+sum(!is.na(ACTRG)&!ACTOTH==1)
+```
+
+
+
+#### ACTFR: Number of friends
+
+
+```{r, cache=TRUE}
+## ACTFR
+head(ACTFR,10)
+summary(ACTFR)
+boxplot(ACTFR,xlab=c(" Number of friends in this activity"),col=c("red"))
+hist(ACTFR,xlab=c("Number of friends in this activity"),col=c("green"))
+sum(!is.na(ACTFR)&!ACTOTH==1)
+```
+
+
+
+#### ACTOT: Number of other relations
+
+
+```{r, cache=TRUE}
+## ACTOT
+head(ACTOT,10)
+summary(ACTOT)
+boxplot(ACTOT,xlab=c("Number of other relations in this activity"),col=c("red"))
+hist(ACTOT,xlab=c("Number of other relations in this activity"),col=c("magenta"))
+boxplot(ACTOT,xlab=c("ACTOT"))
+sum(!is.na(ACTOT)&!ACTOTH==1)
+```
+
+
+
+#### APURP: Purpose; (1 to 39; 99=DK/RF)
+
+
+```{r, cache=TRUE}
+## APURP
+head(APURP,10)
+summary(APURP[APURP<99])
+boxplot(APURP,xlab=c("Activity purpose"),col=c("red"))
+hist(APURP,xlab=c("Activity purpose"),col=c("green"))
+
+## O_APURP: Purpose, other
+head(O_APURP,10)
+sum(is.na(O_APURP)&APURP==38)
+```
+
+Here we check the start and end time of the activities.
+
+```{r, cache=TRUE}
+## STIME: Start time
+head(STIME,10)
+sum(is.na(STIME))
+
+## ETIME: End time
+head(ETIME,10)
+sum(is.na(ETIME))
+```
+
+
+
+#### PERWGT: Final Person weight
+
+
+```{r, cache=TRUE}
+## PERWGT
+head(PERWGT,10)
+summary(PERWGT)
+boxplot(PERWGT,xlab=c("PERWGT"))
+sum(is.na(PERWGT))
+```
+
+
+
+#### EXPPERWGT: Final expanded person weight
+
+
+```{r, cache=TRUE}
+## EXPPERWGT
+head(EXPPERWGT,10)
+summary(EXPPERWGT)
+boxplot(EXPPERWGT,xlab=c("EXPPERWGT"))
+sum(is.na(EXPPERWGT))
+```
+
+
+
+#### TRIPNO: Unlinked Trip id
+
+
+```{r, cache=TRUE}
+## TRIPNO
+head(TRIPNO,10)
+summary(TRIPNO)
+boxplot(TRIPNO,xlab=c("TRIPNO"))
+```
+
+
+
+#### TCF: Trip correction factor
+
+
+```{r, cache=TRUE}
+## TCF
+head(TCF,10)
+summary(TCF)
+boxplot(TCF,xlab=c("TCF"))
+```
+
+
+
+#### TCFPERWGT: Final trip weight
+
+
+```{r, cache=TRUE}
+## TCFPERWGT
+head(TCFPERWGT,10)
+summary(TCFPERWGT)
+boxplot(TCFPERWGT,xlab=c("TCFPERWGT"))
+```
+
+
+
+#### EXPTCFPERWGT: Expanded final trip weight
+
+
+```{r, cache=TRUE}
+## EXPTCFPERWGT
+head(EXPTCFPERWGT,10)
+summary(EXPTCFPERWGT)
+boxplot(EXPTCFPERWGT,xlab=c("EXPTCFPERWGT"))
+```
+
+We have checked all the variables of activity data. Now we need to detach the file. 
+
+```{r, cache=TRUE}
+## Detach the file
+detach(activity_data)
+```
+
+
+
+
+### Long Distance Travel Data
+
+
+Same way as previous, we first need to save long distance file and look up file as csv format manually and then we import those files and merge them.
+
+
+```{r, cache=TRUE}
+#Import the long distance  variables csv file and give a new name
+LD_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/Deliv_LD.csv", header=TRUE)
+
+#Import the lookup variable csv file and give a new name (containing x, y coordinate data)
+lookup_LD <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_LD.csv", header=TRUE)
+
+# Dimension of the data file
+dim(LD_data)
+dim(lookup_LD)
+
+#Check the names of the variables
+names(LD_data)
+names(lookup_LD)
+```
+
+
+Here, we are merging them.
+
+
+```{r, cache=TRUE}
+#Merging two data set
+LD_data1<-merge(LD_data,lookup_LD, by =c("SAMPN", "LDNO"), all = TRUE)
+
+# Dimension of the data file
+dim(LD_data)
+dim(lookup_LD)
+dim(LD_data1)
+
+#Names of the variables in the new dataset
+names(LD_data1)
+
+# Subset the dataset (excluding the duplicate variables)
+nLD_data<-subset(LD_data1,select=-c(6,8,10,11,13,15,17,18,47,48,52,54))
+
+# show the existing variable names and dimension
+dim(nLD_data)
+names(nLD_data)
+
+# rename the added variables
+names(nLD_data) [c(44:52,55,58,59)]<-c("LDOCITY","LDOZIP","LDOXCORD","LDOYCORD","LDDCITY","LDDZIP","LDDXCORD","LDDYCORD","LDOCTFIP","LDDCTFIP","LDOPrimaryCity","LDDPrimaryCity")
+
+# show the existing variable names 
+names(nLD_data)
+```
+
+
+Now we have a new merged file which we need to attach and sort based on sample number.
+
+
+```{r, cache=TRUE}
+# Attach the file
+attach(nLD_data)
+
+# SAMPN: Sample number
+# Sorting data by sample number
+nLD_data<-nLD_data[order(SAMPN),]
+```
+
+
+We check each of the variables one by one using following codes.
+
+
+#### LDNO:Long distance trip Number
+
+
+```{r, cache=TRUE}
+## LDNO
+### Show the first 10 observations (if you want to see more put that number in place of 10)
+head(LDNO,10)
+###Summarize of the variable
+summary(LDNO)
+### Create boxplot  
+boxplot(LDNO,xlab=c("LDNO"))
+### Check missing observations
+sum(LDNO=="")
+sum(is.na(LDNO))
+```
+
+
+#### LDDAT: LD date
+
+
+```{r, cache=TRUE}
+## LDDAT
+head(LDDAT,10)
+summary(LDDAT)
+sum(is.na(LDDAT))
+```
+
+
+The following variables are related with long distance trip origin location. We check them by using following codes. 
+
+
+```{r, cache=TRUE}
+attach(nLD_data)
+## LDORG: Origin;(1 to 4;7=other;8=DK;9=RF)
+head(LDORG)
+summary(LDORG[LDORG<7])
+boxplot(LDORG,xlab=c("LDORG"))
+sum(LDORG=="")
+sum(is.na(LDORG))
+## LDOPNM: Origin place name
+head(LDOPNM,10)
+sum(is.na(LDOPNM)&(LDORG==1|LDORG==2|LDORG==3|LDORG==4|LDORG==7))
+SAMPN[is.na(LDOPNM)&(LDORG==1|LDORG==2|LDORG==3|LDORG==4|LDORG==7)]
+## LDOCITY: Origin city
+head(LDOCITY,10)
+sum(is.na(LDOCITY)&(LDORG==1|LDORG==2|LDORG==3|LDORG==4|LDORG==7))
+SAMPN[is.na(LDOCITY)&(LDORG==1|LDORG==2|LDORG==3|LDORG==4|LDORG==7)]
+## LDOZIP: Origin zip code
+head(LDOZIP,10)
+sum(is.na(LDOZIP)&(LDORG==1|LDORG==2|LDORG==3|LDORG==4|LDORG==7))
+SAMPN[is.na(LDOZIP)&(LDORG==1|LDORG==2|LDORG==3|LDORG==4|LDORG==7)]
+## LDOST: Origin state
+head(LDOST,10)
+sum(is.na(LDOST)&(LDORG==1|LDORG==2|LDORG==3|LDORG==4|LDORG==7))
+SAMPN[is.na(LDOST)&(LDORG==1|LDORG==2|LDORG==3|LDORG==4|LDORG==7)]
+## LDOCNTR: Origin country
+head(LDOCNTR,10)
+sum(is.na(LDOCNTR)&(LDORG==1|LDORG==2|LDORG==3|LDORG==4|LDORG==7))
+SAMPN[is.na(LDOCNTR)&(LDORG==1|LDORG==2|LDORG==3|LDORG==4|LDORG==7)]
+## LDOXCORD: Origin x-coordinates
+head(LDOXCORD,10)
+summary(LDOXCORD)
+boxplot(LDOXCORD,xlab=c("LDOXCORD"))
+## LDOYCORD: Origin y-coordinates
+head(LDOYCORD,10)
+summary(LDOYCORD)
+boxplot(LDOYCORD,xlab=c("LDOYCORD"))
+```
+
+
+We use following codes to check the variables related to destination location
+
+
+
+```{r, cache=TRUE}
+## LDDPNM: Destination place name
+head(LDDPNM,10)
+sum(is.na(LDDPNM))
+
+## LDDCITY: Destination city
+head(LDDCITY,10)
+sum(is.na(LDDCITY))
+
+## LDDZIP: Destination zip code
+summary(LDDZIP,na.rm=T)
+sum(is.na(LDDZIP))
+
+## LDDST: Destination state
+head(LDDST,10)
+sum(is.na(LDDST))
+
+## LDDCNTR: Destination country
+head(LDDCNTR,10)
+sum(is.na(LDDCNTR))
+
+## LDDXCORD: Destination x-coordinates
+head(LDDXCORD,10)
+summary(LDDXCORD)
+boxplot(LDDXCORD,xlab=c("LDDXCORD"))
+
+## LDDYCORD: Destination y-coordinates
+head(LDDYCORD,10)
+summary(LDDYCORD)
+boxplot(LDDYCORD,xlab=c("LDDYCORD"))
+```
+
+
+
+#### LDTPURP: LD Trip Purpose;(1 to 12;97=other;98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## LDTPURP
+head(LDTPURP,10)
+summary(LDTPURP[LDTPURP<97])
+boxplot(LDTPURP,xlab=c("Long distance trip purpose"),col=c("green"))
+hist(LDTPURP,xlab=c("Long distance trip purpose"),col=c("gold"))
+sum(LDTPURP=="")
+sum(is.na(LDTPURP))
+
+## O_LDTPUPR: LD Trip Purpose,other
+head(O_LDTPUPR,10)
+sum(is.na(O_LDTPUPR)&LDTPURP==97)
+```
+
+
+
+#### LDWHO: People on trip;(Rang:0-25;98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## LDWHO
+head(LDWHO,10)
+summary(LDWHO[LDWHO<98])
+sd(LDWHO[LDWHO<98],na.rm=T)
+boxplot(LDWHO[LDWHO<98],xlab=c("People on trip"),col=c("yellow"))
+hist(LDWHO[LDWHO<98],xlab=c("People on trip"),col=c("green"))
+sum(LDWHO=="")
+sum(is.na(LDWHO))
+```
+
+
+
+#### LDMHH: Household members on trip;(Rang:0-8;98=DK;99=RF)
+
+
+```{r, cache=TRUE}
+## LDMHH
+head(LDMHH,10)
+summary(LDMHH[LDMHH<98])
+boxplot(LDMHH[LDMHH<98],xlab=c("LDMHH"))
+boxplot(LDMHH[LDMHH<98],xlab=c("Household members on trip"),col=c("green"))
+hist(LDMHH[LDMHH<98],xlab=c("Household members on trip"),col=c("gold"))
+sum(is.na(LDMHH)&(LDWHO>0&LDWHO<98))
+```
+
+
+There are eight variables related with person who made long distance trip. We use following codes to check these variables.
+
+
+```{r, cache=TRUE}
+## LDINI1: Person who made trip1
+head(LDINI1,10)
+summary(LDINI1[LDINI1<97])
+boxplot(LDINI1,xlab=c("LDINI1"))
+## LDINI2: Person who made trip2
+head(LDINI2,10)
+summary(LDINI2)
+## LDINI3: Person who made trip3
+head(LDINI3,10)
+summary(LDINI3)
+## LDINI4: Person who made trip4
+head(LDINI4,10)
+summary(LDINI4)
+## LDINI5: Person who made trip5
+head(LDINI5,10)
+summary(LDINI5)
+## LDINI6: Person who made trip6
+head(LDINI6,10)
+summary(LDINI6)
+## LDINI7: Person who made trip7
+head(LDINI7,10)
+summary(LDINI7)
+## LDINI8: Person who made trip8
+head(LDINI8,10)
+summary(LDINI8)
+```
+
+
+
+#### LDMODE1: Long distance mode;(1 to 29;99=DK/RF)
+
+
+```{r, cache=TRUE}
+## LDMODE1
+head(LDMODE1,10)
+summary(LDMODE1[LDMODE1<99])
+boxplot(LDMODE1,xlab=c("Long distance mode"),col=c("green"))
+hist(LDMODE1[LDMODE1<98],xlab=c("Long distance mode"),col=c("gold"))
+```
+
+
+
+#### LDMODE2: Long distance mode;(1 to 29;99=DK/RF)
+
+
+```{r, cache=TRUE}
+## LDMODE2
+head(LDMODE2,10)
+summary(LDMODE2[LDMODE2<99])
+boxplot(LDMODE2,xlab=c("Long distance mode"),col=c("maroon"))
+hist(LDMODE2,xlab=c("Long distance mode"),col=c("green"))
+```
+
+
+
+#### LDMODE3: Long distance mode;(1 to 29;99=DK/RF)
+
+
+```{r, cache=TRUE}
+## LDMODE3
+head(LDMODE3,10)
+summary(LDMODE3)
+```
+
+
+
+#### LDMODE4: Long distance mode;(1 to 29;99=DK/RF)
+
+
+```{r, cache=TRUE}
+## LDMODE4
+head(LDMODE4,10)
+summary(LDMODE4)
+```
+
+
+
+#### MAXDATE: Latest LD Trip flag;(1=yes, 0=NO)
+
+
+```{r, cache=TRUE}
+## MAXDATE
+head(MAXDATE,10)
+summary(MAXDATE)
+boxplot(MAXDATE,xlab=c("MAXDATE"))
+```
+
+
+
+#### LDTIM: Time start
+
+
+```{r, cache=TRUE}
+## LDTIM
+head(LDTIM,10)
+sum(is.na(LDTIM)&MAXDATE==1)
+```
+
+Here, we are checking variables related with departure place and modes
+
+```{r, cache=TRUE}
+## LDDPPNM: Departure place name
+head(LDDPPNM,10)
+
+## LDDPMODE1: Departure mode;(1 to 29;99=DK/RF)
+head(LDDPMODE1,10)
+summary(LDDPMODE1[LDDPMODE1<99])
+boxplot(LDDPMODE1,xlab=c("Departure mode"),col=c("orange"))
+hist(LDDPMODE1,xlab=c("Departure mode"),col=c("brown"))
+```
+
+
+
+#### LDDPMODE2: Departure mode;(1 to 29;99=DK/RF)
+
+
+```{r, cache=TRUE}
+## LDDPMODE2
+head(LDDPMODE2,10)
+summary(LDDPMODE2)
+boxplot(LDDPMODE2,xlab=c("LDDPMODE2"))
+
+## LDDPMODE3: Departure mode;(1 to 29;99=DK/RF)
+head(LDDPMODE3,10)
+summary(LDDPMODE3)
+
+## LDDPMODE4: Departure mode;(1 to 29;99=DK/RF)
+head(LDDPMODE4,10)
+summary(LDDPMODE4)
+```
+
+
+The following codes are used to check the arrival place and arrival modes variables.
+
+
+```{r, cache=TRUE}
+## LDARPNM: Arrival place name
+head(LDARPNM,10)
+
+## LDARMODE1: Arrival mode;(1 to 29;99=DK/RF)
+head(LDARMODE1,10)
+summary(LDARMODE1[LDARMODE1<99])
+boxplot(LDARMODE1,xlab=c("Arrival mode"),col=c("yellow"))
+hist(LDARMODE1,xlab=c("Arrival mode"),col=c("blue"))
+```
+
+
+
+#### LDARMODE2: Arrival  mode;(1 to 29;99=DK/RF)
+
+
+```{r, cache=TRUE}
+## LDARMODE2
+head(LDARMODE2,10)
+summary(LDARMODE2[LDARMODE2<97])
+boxplot(LDARMODE2,xlab=c("LDARMODE2"))
+
+## LDARMODE3: Arrival  mode;(1 to 29;99=DK/RF)
+head(LDARMODE3,10)
+summary(LDARMODE3)
+
+## LDARMODE4: Arrival  mode;(1 to 29;99=DK/RF)
+head(LDARMODE4,10)
+summary(LDARMODE4)
+```
+
+
+We use following codes to check long distance origin and destination location variables.
+
+
+#### LDOCTFIP: LD trip origin location county FIP  Code 2010
+
+
+```{r, cache=TRUE}
+## LDOCTFIP
+head(LDOCTFIP,10)
+summary(LDOCTFIP)
+boxplot(LDOCTFIP,xlab=c("LDARMODE2"))
+boxplot(LDOCTFIP,xlab=c("LDARMODE2"))
+sum(is.na(LDOCTFIP))
+
+## LDOCTRACT: LD trip origin location census tract ID 2010
+head(LDOCTRACT,10)
+summary(LDOCTRACT[LDOCTRACT<999999])
+sum(is.na(LDOCTRACT))
+```
+
+
+
+#### LDDCTFIP: LD trip destination location county FID  Code 2010
+
+
+```{r, cache=TRUE}
+## LDDCTFIP
+head(LDOCTFIP,10)
+summary(LDDCTFIP[LDDCTFIP<99])
+sum(is.na(LDDCTFIP))
+
+## LDDCTRACT: LD trip destination location census tract ID 2010
+head(LDDCTRACT,10)
+summary(LDDCTRACT[LDDCTRACT<999999])
+sum(is.na(LDDCTRACT))
+```
+
+
+
+#### ReturnHomeTripFlag: Return home trip flag (1=Return home trip)
+
+
+```{r, cache=TRUE}
+## ReturnHomeTripFlag
+head(ReturnHomeTripFlag,10)
+summary(ReturnHomeTripFlag)
+```
+
+
+We have finished checking long distance variables. Now, we need to detach the file.
+
+
+```{r, cache=TRUE}
+## Detach the file
+detach(nLD_data)
+```
+

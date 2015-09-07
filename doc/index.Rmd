@@ -1,0 +1,8 @@
+---
+title: "index"
+author: "Craig Rindt"
+date: "09/07/2015"
+output: html_document
+---
+```{r child='3.Diagnostic.Rmd'}
+```
