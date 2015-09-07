@@ -1,11 +1,10 @@
-<!--
 ---
 title: "3.Diagnostics Checks of the CHTS"
 author: "Suman Mitra"
 date: "August 31, 2015"
 output: html_document
 ---
--->
+
 ## Summary and Methodology
 
 This section presents summary statistics for the 2010-2012 California Household Travel Survey (2012 CHTS) compared with common variables from the 2000-2001 California Household Travel Survey (2001 CHTS), when possible. The 2012 CHTS is comprised of six main datasets and four additional datasets with location data (x-y coordinates); the latter were merged with the corresponding main datasets to check for compatibility. Merging did not create any problem, and resulted only in two minor discrepancies. First, when we merged the person-level dataset with the corresponding x-y coordinates dataset, one observation did not match in the person dataset. Second, 5 observations did not match when we merged the place dataset with the corresponding x-y coordinates dataset. We checked each variable from all datasets. We generated simple summary statistics for all variables and also generate boxplots and histograms for selected variables.

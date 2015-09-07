@@ -31,12 +31,19 @@ The following commands are used to generate county wide weights for long distanc
 First we need to import the person data file and corresponding lookup file (containing location information) and then we merge them.
 
 ```{r,cache=TRUE}
+rd <- "/home/crindt/chts-book"
+p <- function(ps) { return(paste(rd,ps,sep="/")) }
+
 # Set the working directory
-setwd("~/Suman_research/Caltrans Project/Weight/PersonWeight_County")
+setwd(p("Weight/PersonWeight_County"))
 # Import the person level variables csv file and give a new name
-persondata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_per.csv", header=TRUE)
+#persondata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_per.csv", header=TRUE)
+library(chts2011)
+persondata <- chts_per
 # Import the lookup variable csv file and give a new name (containing x, y coordinate data)
-lookup_hh <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_hh.csv", header=TRUE)
+#lookup_hh <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_hh.csv", header=TRUE)
+library(chts2011pvt)
+lookup_hh <- chts_lu_hh
 # Merging two data sets to get the county information
 perdata2<-merge(persondata,lookup_hh, by ="SAMPN", all = TRUE)
 # Names of the new merged file
@@ -101,7 +108,7 @@ We need county wide total population data which we collect from census and save 
 ```{r,cache=TRUE}
 # Assign county wide total population into perdata2 file
 # Import the countywise total population csv file and give a new name
-tot.pop <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/Total/county_totpop2.csv", header=TRUE)
+tot.pop <- read.csv(p("Weight/Data_County/Total/county_totpop2.csv"), header=TRUE)
 head(tot.pop)
 
 # Merging two data set
@@ -114,12 +121,14 @@ So, now we have a new file named perdata3 which contains all the raking variable
 Now, We need to import the Long distance file  and corresponding look up file (containing location information) and merge them.
 
 ```{r,cache=TRUE}
-setwd("~/Suman_research/Caltrans Project/Weight/LD_Weight2")
+setwd(p("Weight/LD_Weight2"))
 #Import the long distance variables csv file and give a new name
-LD_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/Deliv_LD.csv", header=TRUE)
+#LD_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/Deliv_LD.csv", header=TRUE)
+LD_data <- chts_ld
 
 #Import the lookup variable csv file and give a new name (containing x, y coordinate data)
-lookup_LD <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_LD.csv", header=TRUE)
+#lookup_LD <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_LD.csv", header=TRUE)
+lookup_LD <- chts_lu_ld
 
 # Dimension of the data file
 dim(LD_data)
@@ -176,7 +185,7 @@ dim(nLD_data)
 We want to save the file as csv.
 
 ```{r,cache=TRUE}
-setwd("~/Suman_research/Caltrans Project/Weight/LD_Weight2")
+setwd(p("Weight/LD_Weight2"))
 write.csv(LD_dataw1, file="nLD_dataw1.csv", row.names=FALSE)
 ```
 
@@ -195,7 +204,7 @@ First, we do it for hispanic data.
 
 ```{r,cache=TRUE}
 # Hispanic data
-hisp.county <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/Hispanic/Hisp_county.csv", header=TRUE)
+hisp.county <- read.csv(p("Weight/Data_County/Hispanic/Hisp_county.csv"), header=TRUE)
 head(hisp.county)
 
 # Generate a list of seperate datafrmaes containing hispanic data for each county
@@ -211,7 +220,7 @@ Here, we import the race data.
 
 ```{r,cache=TRUE}
 # Race
-race.county <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/Race/Race_county.csv", header=TRUE)
+race.county <- read.csv(p("Weight/Data_County/Race/Race_county.csv"), header=TRUE)
 race.county$id <- 1:nrow(race.county)
 race.data <- lapply(split(race.county, race.county$id), function(x){data.frame(RACEn = c(1:4),  Freq  = c(x$White, x$African.American,x$Asian,x$Others))                                                             
 }
@@ -223,7 +232,7 @@ Then, we repeat the process for employment data.
 
 ```{r,cache=TRUE}
 ## Employment data
-emply.county <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/Employment/Employment_county.csv", header=TRUE)
+emply.county <- read.csv(p("Weight/Data_County/Employment/Employment_county.csv"), header=TRUE)
 emply.county$id <- 1:nrow(emply.county)
 emply.data <- lapply(split(emply.county, emply.county$id), function(x){data.frame(EMPLYn = c(1,2),  Freq  = c(x$Employed, x$Unemployed))                                                             
 }
@@ -235,7 +244,7 @@ Finally, we import gender and age data.
 
 ```{r,cache=TRUE}
 #Gender
-gend.county <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/Gender/Gender_county.csv", header=TRUE)
+gend.county <- read.csv(p("Weight/Data_County/Gender/Gender_county.csv"), header=TRUE)
 gend.county$id <- 1:nrow(gend.county)
 gend.data <- lapply(split(gend.county, gend.county$id), function(x){data.frame(GENDn = c(1,2),  Freq  = c(x$Male, x$Female))                                                             
 }
@@ -243,7 +252,7 @@ gend.data <- lapply(split(gend.county, gend.county$id), function(x){data.frame(G
 head(gend.data[1])
 
 # Age
-age.county <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/Total/age_county.csv", header=TRUE)
+age.county <- read.csv(p("Weight/Data_County/Age/Age_county.csv"), header=TRUE)
 head(age.county)
 age.county$id <- 1:nrow(age.county)
 age.data <- lapply(split(age.county, age.county$id), function(x){data.frame(AGEn = c(1:6),  Freq  = c(x$x1, x$x2,x$x3,x$x4,x$x5,x$x6))                                                             
@@ -257,7 +266,7 @@ Here we want to set the directory where we want to save our output.
 
 ```{r,cache=TRUE}
 # Set directory where we want to save
-setwd("~/Suman_research/Caltrans Project/Weight/LD_Weight2")
+setwd(p("Weight/LD_Weight2"))
 ```
 
 
@@ -314,8 +323,8 @@ There is no error now. So, we have expanded person weights for long distance tri
 
 ```{r,cache=TRUE}
 # Import multiple csv file of new expanded weight and combine into one file
-setwd("~/Suman_research/Caltrans Project/Weight/LD_Weight")
-filenames <- list.files(path = "~/Suman_research/Caltrans Project/Weight/LD_Weight") # import the files
+setwd(p("Weight/LD_Weight"))
+filenames <- list.files(path = p("Weight/LD_Weight")) # import the files
 nldweight2<-do.call("rbind", lapply(filenames, read.csv, header = TRUE)) # combined the files into one
 head(nldweight2)
 dim(nldweight2)
@@ -324,7 +333,7 @@ dim(nldweight2)
 Now, we save the new file as csv format.
 
 ```{r,cache=TRUE}
-setwd("~/Suman_research/Caltrans Project/Weight/LD_Weight2")
+setwd(p("Weight/LD_Weight2"))
 write.csv(nldweight2, file="nldweight922015.csv",row.names = FALSE) # save as csv
 ```
 

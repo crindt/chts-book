@@ -1,0 +1,1271 @@
+---
+title: "How to create the linked trip table"
+author: "Craig Rindt"
+date: "07/20/2015"
+output: html_document
+---
+
+### Introduction
+
+This document describes the method used to determine the linked trip
+table.  The 2001 CHTS included a linked trip table with the following
+fields, for which we summarize how we anticipate computing comparable
+information from the CHTS 2011 data.
+
+CHTS 2001         CHTS 2011
+---------------   ------------------------------------------------------------------------------------
+`Sampn`           `SAMPN`
+`PerNo`           `PERNO`
+`DayNo`           N/A
+`Source_Act`      To be computed from `ACTNO`
+`Dest_Act`        To be computed from `ACTNO`
+`Source_PlaNo`    To be computed from `PLANO`
+`Dest_PlaNo`      To be computed from `PLANO`
+`Source_LocNo`    N/A
+`Dest_LocNo`      N/A
+`DType`           Unknown values in `{1,2}`
+`MODE`            Interpreted as mode of longest distance trip in set of linked trips
+`MAPPED_MODE`     Definition unclear.  Values: in `{S,W,L,D,I,B,P,T,A,O}`
+`TripType`        Mapping between conventional 4-step model trip ends: `{HW,HS,OO,WO,HO}
+`Dep_Hr`          Departure hour: `DEP_HR`
+`Dep_Min`         Departure minute: `DEP_MIN`
+`Arr_Hr`          Arrival hour: `ARR_HR`
+`Arr_Min`         Arrival minute: `ARR_MIN`
+`TrpDur`          Total duration of all linked trips combined
+`IgnoredActDur`   Duration of all ignored activities (those with `APURP=c(21,22)`)
+`VehAvail`        Whether a vehicle we available for this trip.  It's unclear if we can compute this
+`VehNo`           Household vehicle used for trip (if any)
+`Party`           Number of people on the linked trip.  We will assume this refers to the primary trip
+`DOM_WDWGT`       Day of month weekday weight?  Unclear whether there is a 2011 analogue
+`DOM_WEWGT`       Day of month weekend weight?  Unclear whether there is a 2011 analogue
+`DOM_SDWGT`       Day of month ? weight?  Unclear whether there is a 2011 analogue
+`DOM_AWDWGT`      Day of month ? weight?  Unclear whether there is a 2011 analogue
+`DOM_ASDWGT`      Day of month ? weight?  Unclear whether there is a 2011 analogue
+`Orig_DOM_AWDWGT` Original(?) Day of month ? weight?  Unclear whether there is a 2011 analogue
+`Orig_DOM_WEWGT`  Original(?) Day of month ? weight?  Unclear whether there is a 2011 analogue
+`PHASE`           ?
+
+
+### Methodological Overview
+
+In the 2001 CHTS, linked trips were defined as follows:
+
+> For the purposes of the 2000-2001 California Statewide Travel Survey
+> the definition of a "linked" trip is when a person changes travel
+> mode to reach the "real" destination, or when a driver makes a stop
+> to serve a passenger (drop off or pick up) on the way to the actual
+> or ultimate destination. In a linked trip, the trip to the location
+> where the travel mode change or serve passenger occurs is combined
+> (or linked) with the trip continuing from this location to the
+> ultimate destination. A linked trip may include more than one stop
+> to change travel mode or serve a passenger.
+
+To recreate a table of linked trips for the 2010 CHTS dataset, we
+performed a number of steps.  Before summarizing these steps below, we
+will clarify some definitions.
+
+First, for the purposes of this discussion, a non-linked trip
+describes a single person's movement from one place to another.  In
+the 2010 CHTS dataset, every non-linked trip has a single record (`place`) in
+the PLACE table.
+
+Second, for the purposes of this discussion, a non-linked trip purpose
+is characterized by the purposes of the activities performed at the
+`place` to which the trip takes the individual.  A person will have
+one or more activities associated with each `place`.  Each `activity`
+is characterized by a record (`activity`) in the ACTIVITY table.
+Thus, there is potential for a trip to have multiple trip purposes
+depending on the number and purposes of the activities performed at
+the destination place.
+
+#### Identifying linked trips
+
+By the definitions above, any trip whose purpose is a linkable purpose
+(either a mode switch or a pick-up/drop off activity) should be
+"linked" to the trip following it.  Though there may be more than one
+`activity` at a given `place`, we assume that if any of those
+activities have a linkable purpose then the trip trip should be linked
+to the following trip.
+
+Our method for creating linked trips creates a unique index (linked
+trip number: `LTNO`) for each group of trips.  Very generally, we
+order the activities reported for each person and increment a the
+`LTNO` every time a linked-trip without a linkable purpose is
+observed.  This defines a mapping between unlinked trips (i.e. places)
+and linked trips.
+
+#### Linked trip MODE (Identifying the principal trip)
+
+For a linked trip, we need some heuristic to determine which mode is
+most important and should be called the mode for that trip.  Our
+assumption is that that trip with the longest distance from the set of
+trips in a linked trip should be the one whose mode is associated with
+the linked trip.  To compute this, we rank (order) the unlinked trips
+that make up each linked trip and select the longest one as the
+principal trip.
+
+We use the MODE of this trip, as well as various other trip-related
+characteristics, to describe the corresponding attribute of the linked
+trip.
+
+
+#### Linked trip origin and destination
+
+In the 2001 linked trip table, there are records of the origin place
+and activity for every linked trip.  We also compute this for the 2011
+dataset by selecting the last `place` and `activity` of the prior
+linked trip grouping as the origin `place` and `activity` for a given
+linked trip.
+
+There are also linked trip destinations to produce.  We defined the
+linked trip destination as the *first* `activity` at the last `place`
+traveled to in the linked trip.
+
+As an illustration consider this trip/activity sequence:
+
+1. Start at home
+   1. Perform personal activities
+2. Drive to child's school
+   1. Drop off child
+3. Drive to work
+   1. Perform work activity
+   2. Eat lunch
+   3. Perform work activity
+4. Drive to soccer field
+   1. Pick up child
+5. Drive home
+   1. Prepare dinner
+   2. Eat dinner
+
+This will be converted into two linked trips:
+
+1. LTNO=1, From [1,1] (home, personal activities) to [3,1] (work, work activity)
+2. LTNO=2, From [3,3] (work, work activity) to [5,1] (home, prepare dinner)
+
+Places 2 and 4 will be attached to LTNO = 2 and 4 respectively.
+
+#### Trip type (or purpose)
+
+The trip purposes reported for linked trips in 2001 are designed to
+map the activity-based reporting of the CHTS onto more conventional
+trip purpose definitions typical in transportation planning:
+
+* **HO:** Home-based other trips
+* **HS:** Home-based shopping trips
+* **HW:** Home-based work trips
+* **OO:** Other-other trips
+* **WO:** Work-based other trips
+
+Recall that trips in the `place` table do not have purposes assigned
+and, instead, trip purposes must be inferred from the activities
+performed at the destination.  Thus, our first step was to define a
+mapping between `place`,`activity` purpose combinations at the linked
+trip ends and the four-step trip purpose defintions above (Home, Shop,
+Work, and Other).
+
+We approached this using a hierarchy of factors.  The first is that
+since we know the home location of every person, then if a trip-end
+(origin or destination) occurs at that location, then that trip-end is
+`HOME` by definition.
+
+The second hierarchy is used to determine `WORK`, `SHOP`, and `OTHER`
+purposes.  In this case, we defined a mapping between activity
+purposes and four-step trip purposes.  However, when there is more
+than one `activity` reported at a `place`, we need to select the most
+important activity at that location as the purpose.  Following
+convention in transportation planning, we rank trip purposes in the
+following order of importance:
+
+1. Home
+2. Work
+3. Shop
+4. Other
+
+Thus, if a given place has activities with both `WORK` and `SHOP`
+purposes (according to our activity-purpose to trip-purpose mapping),
+we characterize that trip-end as being a `WORK` purpose.
+Similarly, if a given place has activities with both `SHOP` and
+`OTHER` purposes, we assign it a `SHOP` purpose.
+
+Once we characterize the trip-end purpose for each PLACE in the
+dataset, we can construct the purpose for every linked trip by simply
+combining the trip-ends and mapping them to four-step trip types using
+the following hierarchy:
+
+1. Any trip with a `HOME` trip-end is a home-based trip regardless of
+   origin and destination (HS, HW, HO)
+
+2. Any trip without a `HOME` trip-end but with a `WORK` trip-end is a
+   work-based other trip (WO)
+
+3. Any trip without a `HOME` or `WORK` trip-end is an other-other trip
+   (OO)
+
+There are some edge cases involving looping trips from home to home
+(HH) or work to work (WW) that are made possible by the linked-trip
+definition.  For example, it is perfectly reasonable that someone
+drives from home, drops a child at school, and returns home.  This is
+a linked trip from home to home with the same origin and destination.
+We chose to leave these in the linked trip table as they may have
+relevance for policy analysis even though by conventional definitions
+they are a trip from and to the same location.  An analyst may choose
+to explode these specific linked trips back into their constituent
+un-linked trips to capture travel demand that would otherwise go
+unanalyzed.
+
+
+#### Linked Trip Statistics
+
+In the last step of our linked-trip computation, we compute various
+linked-trip statistics by selecting the relevant value from the
+principal (longest leg) of the linked-trip, or by aggregating across
+all trips making up the linked trip.  The relevant values are as follows:
+
+* `ltmode`: The mode of the principal trip
+* `ltTCF`: The trip correction factor of the principal trip
+* `dTCF`: The trip correction factor of the last (destination) trip
+* `tripdist`: The distance traveled across all legs of the linked trip
+* `tripdur`: The travel time across all legs of the linked trip (not
+  including activity durations)
+* `ignoredactdur`: The amount of time spent performing ignored
+  pick-up/drop-off or mode change activities during the linked trip
+* `MAXTR`: The maximum number of travelers across all legs of a linked trip
+* `MINTR`: The minimum number of travelers across all legs of a linked trip
+* `DEP_HR`: The departure hour from the origin of this linked trip
+* `DEP_MIN`: The departure minute from the origin of this linked trip
+* `ARR_HR`: The arrival hour to the destination of this linked trip
+* `ARR_MIN`: The arrival minute to the destination of this linked trip
+
+
+### Generating Linked Trip Tables Using R
+
+The following sections describe how we implemented the methods described 
+above using `R`.  
+
+#### Setup
+
+The following sets up the R environment for generating the linked trip
+table as described above.  This section is somewhat dependent on the
+your local setup.  However, it should be fairly portable.
+
+```{r setup,cache=FALSE,echo=TRUE}
+# Set the working directory so we can access libraries
+#rd <- gsub("(.*?chts2011).*","\\1",getwd())
+rd <- "/home/crindt/chts-book"
+write(paste("Setting working directory to",rd,"\n"),stderr())
+setwd(rd)
+
+# Load common setup
+suppressMessages(require(knitr))    # knitr creates documentation from this file
+suppressMessages(require(pander))   # pander is a package for generating tables
+suppressMessages(require(testit))   # testit is a testing library
+
+# set some knitr defaults for producing documentation outputs
+opts_chunk$set(eval=TRUE,echo=TRUE,messages=FALSE,
+               warnings=TRUE,errors=TRUE,cache=TRUE,dpi=300,
+               size='tiny',collapse=TRUE,my.relfontsize=-1,
+               fig.height=4)
+```
+
+Next, we load the `dplyr` library, which simplifies manipulating the
+data with complex queries.  We also define some sample numbers (the
+`testhh` variables) that we'll use to consider our results.
+
+```{r setup2,cache=FALSE}
+# Load some packages we'll use
+suppressMessages(library(dplyr))
+
+# Set up some test households for processing
+testhh <- 1032036
+testhh2 <- 1033944
+testhh3 <- 1052523
+testhh4 <- 1121358  # serve passenger as first activity of day
+testhh5 <- 1041305  # PERNO 1 has chain that starts and ends in the same location
+
+```
+
+#### Accessing the data
+
+For simplicity, we'll use the `chts2011` and `chts2011pvt` R packages.
+You'll need to obtain this from UC Irvine and install it per their
+instructions.  We'll work with the raw data and not bother converting
+variables to factors.
+
+```{r load-chts-data,echo=TRUE}
+library(chts2011)
+#load(paste(rd,'data','chts_act.rda',sep="/"))
+#load(paste(rd,'data','chts_pla.rda',sep="/"))
+library(chts2011pvt)
+```
+
+The activity dataset is now available via the `chts_act` data frame.
+Let's reorder it.
+
+```{r read-activities,echo=TRUE}
+dfa <- chts_act %>% arrange(SAMPN,PERNO,PLANO,ACTNO)
+print(dim(dfa))
+```
+
+So there are `r dim(dfa)[1]` activity records with `r dim(dfa)[2]`
+variables.
+
+NOTE: `dplyr` defines the `%>%` operator used above.  This operator
+basically says:
+
+> *take the output of the expression on the left and use it as the first argument
+> to the expression on the right*
+
+Thus, the statement above is equivalent to the following.
+
+```{r read-acts-discussion,echo=TRUE,eval=FALSE}
+dfa <- arrange(chts_act,SAMPN,PERNO,PLANO,ACTNO)
+```
+
+The `%>%` operator allows use of a common unix idiom that encourages
+the chaining of simple operations together in order to perform complex
+operations.  We will use it extensively below.
+
+Next, we perform a similar manipulation to read in the place data.
+
+```{r read-places,echo=TRUE}
+dfp <- chts_pla %>% arrange(SAMPN,PERNO,PLANO)
+print(dim(dfp))
+```
+
+#### Identifying linked trips
+
+With the data loaded in, we can turn to computing the unique linked
+trips using the trip purpose from the associated activity to identify
+mode switch (`APURP==21`) and pick-up/drop off (`APURP==22`) trips.
+This is possible because the activity table includes the TRIPNO
+column, identifying the trip in the trip table that served this
+activity.
+
+```{r tag-linkable-trips}
+# define the activity types we'll merge into linked trips
+ignored_acts <- c(21,22)  
+
+dfa <- mutate(dfa,
+       newtrip = ifelse(is.na(TRIPNO),
+                        NA,
+                        ifelse(lag(APURP) %in% ignored_acts,
+                               0,
+                               ifelse(is.na(lag(TRIPNO)),
+                                      1,
+                                      ifelse(TRIPNO==lag(TRIPNO),
+                                             NA,
+                                             1))))
+       ) 
+
+dfa <- 
+  mutate(dfa,
+         # store the activity's TRIPNO to compare with place's   
+         ATRIPNO = TRIPNO,  
+         LTNO = cumsum(ifelse(is.na(newtrip),0,newtrip))) %>%
+  # now compute person-specific linked trip no
+  ungroup() %>%
+  group_by(SAMPN,PERNO) %>%
+  mutate(LTNO.per=cumsum(ifelse(is.na(lag(LTNO)) | lag(LTNO)!=LTNO,1,0)))
+```
+
+Now, every activity has an associated linked trip number.  Let's save this in a data
+frame as it could be useful for later lookups
+```{r tag-save-expanded-lt}
+chts_lu_lt <- dfa %>% select(SAMPN,PERNO,PLANO,ACTNO,LTNO,LTNO.per)
+```
+
+Next, we want to
+create a merged dataframe that holds the unique trip and activity
+data.  `dplyr` offers some helpful functions to achieve this.  First,
+we merge the activity and place tables by `SAMPN`, `PERNO`, and
+`PLANO`.  Then we order (arrange) them and remove any records with NA
+as the LTNO (which will be the person's first place of the day
+(and thus not involve a trip).
+
+```{r merge-activity-and-places}
+ltt <- dfa %>%
+  # remove some columns so we don't get duplicates
+  select(-PERWGT,-EXPPERWGT,-TRIPNO,-TCF,-TCFPERWGT,-EXPTCFPERWGT) %>%
+  left_join(dfp,by=c("SAMPN","PERNO","PLANO")) %>%
+  arrange(SAMPN,PERNO,PLANO,ACTNO) %>% 
+  filter(!is.na(LTNO))
+```
+
+Next, we need to group rows by `(SAMPN,PERNO,LTNO)`, and
+aggregate the trip-related fields "as appropriate" for the linked trip
+definition.  We do this using `dplyr`'s group by function.
+
+
+```{r group-linked-trips}
+#lt <- filter(ltt,SAMPN==1032036) %>% group_by(SAMPN,PERNO,LTNO) %>% 
+lt <- filter(ltt,SAMPN>0) %>% 
+  group_by(SAMPN,PERNO,LTNO)
+```
+```{r group-linked-trips-test,cache=FALSE}
+# a version of the linked trips that includes first household activities of the day
+library(chts2011)
+lttest <- chts_act %>% select(SAMPN,PERNO,PLANO,ACTNO,APURP) %>%
+  left_join(lt %>% select(-APURP),by=c('SAMPN','PERNO','PLANO','ACTNO'))
+```
+
+At this point `lt` contains the basic linked trip table, though it's not properly 
+grouped yet.  Let's look at a sample household.
+
+```{r show-linked-trip-numbering,echo=TRUE,cache=FALSE}
+testhhrows <- lttest %>%
+  filter(SAMPN==testhh) 
+print.data.frame(
+        testhhrows %>% 
+        select(SAMPN,PERNO,PLANO,ACTNO,APURP,ATRIPNO,LTNO,LTNO.per)
+        )
+```
+```{r expl-calcs,echo=FALSE,cache=FALSE}
+per <- 1
+pla <- 2
+rows <- which(testhhrows$PERNO==per&testhhrows$PLANO==pla,arr.ind=TRUE)
+stopifnot(length(rows)==3)
+per2 <- 2
+pla5 <- 5
+pdop <- filter(testhhrows,PERNO==per2&PLANO==pla5)
+stopifnot(length(pdop$SAMPN)==1)
+stopifnot(pdop$APURP==21) 
+pdoprow <- which(testhhrows$PERNO==per2&testhhrows$PLANO==pla5,arr.ind=TRUE)
+stopifnot(length(pdoprow)==1 && pdoprow[1]==14)
+stopifnot(pdop$ATRIPNO==4 && pdop$LTNO==13)
+pdopn <- testhhrows[pdoprow+1,]
+stopifnot(pdopn$ATRIPNO==5)
+stopifnot(pdopn$LTNO==13)
+stopifnot(pdopn$APURP==31)
+```
+
+Here we can see a few things.  First, person `r per` performs three
+activities at place `r pla` (rows `r first(rows)`--`r last(rows)`).
+Note that these are all given the same `LTNO` as well as the
+same `ATRIPNO`.  However, note that person `r per2` performs a
+pickup/dropoff activity (`r paste('APURP=',pdop$APURP,sep="")`) at
+place `r pla5` (row `r pdoprow`) with
+<!-- --> `r paste('ATRIPNO=',pdop$ATRIPNO,sep="")` and
+<!-- --> `r paste('LTNO=',pdop$LTNO,sep="")`.  The
+subsequent record (row `r pdoprow+1`), at place `r pdopn$PLANO`, shows
+`r paste('ATRIPNO=',pdopn$ATRIPNO,sep="")`, but the `LTNO`
+remains at `r pdopn$LTNO`.  This is what we want since we want
+the pickup trip in row `r pdoprow` to be linked with the trip in row
+`r pdoprow+1` that serves `r paste('APURP=',pdopn$APURP,sep="")`.
+
+The next step is to aggregate the trip-specific details for the linked
+trips.  For instance, a linked trip might involve multiple modes, but
+we need to associate a single mode with that linked trip for analysis
+purposes.  We'll tackle that first.
+
+
+#### Linked trip MODE (and Trip Correction Factor [TCF])
+
+For a linked trip, we need some heuristic to determine which mode is
+most important and should be called the mode for that trip.  Our
+assumption will be that that trip with the longest distance from the
+set of trips in a linked trip should be the one whose mode is
+associated with the linked trip.  To do that, we will use a little
+`dplyr` magic.  The following computes `mmrank` (mode rank) by ranking
+individual records according to descending TripDistance (longest to
+shortest) within
+each distinct `(SAMPN, PERNO, LTNO)` group.  
+
+```{r rank-act-pla-modes,echo=TRUE}
+ltr <- lt %>%
+  # the nuanced mode score here uses TripDistance as the first
+  # ranking, then orders by PLANO and ACTNO in the opposite direction.
+  mutate(mscore=100000*TripDistance-1000*PLANO-ACTNO) %>%  
+  # thus, the descending ranking here puts longest trips first, then
+  # orders by ascending PLANO and ACTNO
+  mutate(mmrank=min_rank(desc(mscore)))
+```
+Let's look at `r paste("SAMPN=",testhh)`:
+```{r show-mode-ranks-1,echo=TRUE}
+print.data.frame(filter(ltr,SAMPN==testhh) %>% 
+                   select(PERNO,PLANO,ACTNO,APURP,MODE,LTNO,
+                          TripDistance,mscore,mmrank))
+```
+
+For our test household, we see that the components of the linked trip
+in rows 14 and 15 now have an `mmrank` in which the row with the
+longer trip is ranked higher (closer to 1) than shorter trips.  Here's
+another household with a linked trip with many components.  Let's look
+at another, `r paste("SAMPN=",testhh2)`:
+
+```{r show-mode-ranks,echo=TRUE}
+testhh2data = filter(ltr,SAMPN==testhh2) %>% 
+                   select(SAMPN,PERNO,PLANO,ACTNO,APURP,MODE,LTNO,
+                          TripDistance,mmrank)
+print.data.frame(testhh2data)
+```
+
+```{r show-mode-ranks-test-calcs,echo=FALSE,results=FALSE}
+moderow<-which(testhh2data$LTNO==85 & testhh2data$mmrank==1,arr.ind=TRUE)
+stopifnot(length(moderow)==1 & moderow[1]==3)
+```
+See how `LTNO=85` has
+<!-- --> `r length(filter(testhh2data,LTNO==85)$SAMPN)`
+records and the `mmrank=1` is associated with the component with the
+longest trip distance (`r testhh2data[moderow,'TripDistance']`).  This shows
+our logic is working.
+
+The next step is to associate the highest ranked mode with each of the
+components of the linked trip.  We do this by filtering for only the
+records with `mmrank==1`, saving the associated mode as ltmode and the
+place (trip) number so we can reference it later, and
+then joining those data back onto the working linked trip table `lt`
+by `SAMPN, PERNO, LTNO`.
+
+```{r set-lt-mode,echo=TRUE}
+ltrm1 <- ltr %>%
+  filter(mmrank==1) %>%
+  mutate(ltmode=MODE,
+         ltmodeplano=PLANO,
+         ltTCF=TCF) %>%
+  select(SAMPN,PERNO,LTNO,mmrank,ltmode,ltmodeplano,ltTCF)
+ltrm2 <- left_join(lt, ltrm1, by=c('SAMPN','PERNO','LTNO')) %>%
+  select(SAMPN,PERNO,PLANO,ACTNO,APURP,MODE,TCF,TripDistance,LTNO,
+         mmrank,ltmode,ltmodeplano,ltTCF)
+```
+
+Looking at the second sample household, we can see that the `ltmode`
+associated with `LTNO==85` is 26, which is the value of `MODE`
+for the record with the longest trip distance.  Similarly, the value of 
+`ltTCF` is also selected as the `TCF` of the longest trip. Note that this is true
+for `LTNO==86` as well.
+
+```{r show-lt-mode,echo=TRUE}
+print.data.frame(filter(ltrm2,SAMPN==testhh2) %>% 
+                   select(SAMPN,PERNO,PLANO,ACTNO,APURP,MODE,TCF,TripDistance,
+                          LTNO,ltmode,ltmodeplano,ltTCF))
+ltrm <- select(ltrm2,SAMPN,PERNO,PLANO,ACTNO,LTNO,mmrank,ltmode,ltmodeplano,ltTCF)
+```
+
+
+#### Linked trip origin
+
+Next, we'll perform a similar manipulation to compute the origin
+(place and activity) of a linked trip.  The gist of this is that the
+origin of a linked trip-end should be the last `(place,activity)` pair
+visited prior to embarking on the set of trips that were linked.
+There are a variety of ways to determine this, but we'll using `dplyr`
+again to computing a ranking column that we will use to select the
+origin record.  In a nutshell, an origin should be the last
+place/activity of the prior linked trip grouping.  Since in our
+calculations, linked trips can combine both places (APURP=21||22) and
+activities, we need a ranking metric that combines both.  We want to
+sort by `PLANO` first and then `ACTNO`.  We can be pretty sure that
+the number of activities at a given place will be less than 1000, so
+we define the ranking as `rank=1000*PLANO+ACTNO`.  This way,
+`rank(PLANO==1,ACTNO==1) = 1001`, `rank(PLANO==3,ACTNO==2) = 3002`,
+`rank(PLANO==3,ACTNO==4) = 3004` and so on.  Now, since we want to
+select the *last* PLACE/ACTIVITY for a given linked trip, we'll want
+to rank on the negative of this value.  Here it is:
+
+```{r compute-origin-rank,echo=TRUE}
+ltro1 <- filter(lt,SAMPN>0) %>%
+  mutate(originrank=min_rank(-(1000*PLANO+ACTNO)))
+```
+
+And here is the result for `r paste('SAMPN==',testhh2,sep="")`:
+
+```{r show-origin-rank}
+print.data.frame(filter(ltro1,SAMPN==testhh2) %>% 
+                   select(SAMPN,PERNO,PLANO,ACTNO,APURP,ATRIPNO,MODE,
+                          LTNO,originrank))
+ltro <- select(ltro1,SAMPN,PERNO,PLANO,ACTNO,LTNO,originrank)
+```
+
+Loooking above, we can see that the originrank for `LTNO==85`
+ranks row 7 with `originrank==1`, thus selecting the last activity
+associated with 85.  Similarly, it selects row 13 as `originrank==1`
+for `LTNO==87`, again the last activity at the last place
+associated with that linked trip.  However, the *origin* of a given
+linked trip needs to be the last place/activity of the *prior* linked
+trip.  To capture that, we use `dplyr`'s `filter` and `lag` functions
+to store the place/activity with `originrank==1` from the prior linked
+trip (using `mutate` to create a new column):
+
+```{r set-lt-origin, echo=TRUE}
+ltro1<-
+  group_by(ltro,SAMPN,PERNO) %>%
+  filter(originrank==1) %>%
+  mutate(oact=lag(ACTNO)) %>% # need separate mutates to avoid segfault...R bug!
+  mutate(opla=lag(PLANO)) %>%  
+  select(SAMPN,PERNO,LTNO,oact,opla)
+ltro2 <-
+  left_join(lt, ltro1, by=c('SAMPN','PERNO','LTNO')) %>%
+  select(SAMPN,PERNO,PLANO,ACTNO,APURP,ATRIPNO,LTNO,oact,opla)
+rm(ltro1) # clean up memory
+```
+
+Looking again at `r paste("SAMPN=",testhh2,sep="")` we can evaluate
+whther we were successful.
+
+```{r show-lt-origin,echo=TRUE}
+print.data.frame(filter(ltro2,SAMPN==testhh2) %>% 
+                   select(SAMPN,PERNO,PLANO,ACTNO,APURP,ATRIPNO,LTNO,opla,oact))
+ltro2 <- select(ltro2,SAMPN,PERNO,PLANO,ACTNO,LTNO,opla,oact)
+```
+
+For `LTNO==85`, we see that the origin place and activity have
+been set to `opla=1` and `oact=1` and for `LTNO==86`, they've
+been set to `opla=6` and `oact=2`.  This is what we want.  The
+activity in row 8 (`PLANO==7`, `ACTNO=1`) is reached by making a trip
+from `(6,2)` to `(7,1)`.  However, the astute reader might have noted
+that `(7,1)` isn't the end of a linked trip because it is a serve
+passenger trip (`APURP=21`), as is `(8,1)` in row 9.  Thus, we need to
+tag the linked-trip-end destinations too.
+
+
+#### Linked trip destinations
+
+We'll use a similar approach to identify the destinations, with one
+caveat.  The destination of a linked trip should be the *first*
+activity at the last place traveled to in the linked trip.  (Actually,
+we may want to compute the most *signficant* activity at the last
+place reached in a linked trip, but we haven't done that at this
+point.)  In originally computing the linked trips above, we created a
+column called `newtrip`, which flags whether a particular record is a
+new trip or not.  If you look at how this is computed, you'll see that
+`newtrip==NA` if the `TRIPNO==lag(TRIPNO)` (that is, it is NA if the
+TRIPNO didn't change from the prior.  We can therefore use this to
+identify the first activity at each distination by filtering on
+it. Now that we've selected the first arrivals
+at each place, we want to rank them so that the last one is identified
+as the destnation.  We use the same sort as we did with the origins
+(note that this is applied *after* we select the newtrips and is
+therefore slighly different form the origin calculations).  After the
+filter, we create a new column to hold the destination place and
+activity `(dpla,dact)` by copying the filtered `(PLANO,ACTNO)`.
+Finally, we left join these back onto the full set of activities so
+that all records for a given `LTNO` will have the same
+`(dpla,dact)`.  Note that we also include the trip correction factor 
+`(TCF)` computed for this trip.  This is based upon statewide 
+sampling so must be used with care at lower levels of aggregation.
+
+```{r compute-dest-rank1, echo=TRUE}
+ltrd1 <- 
+  # filter for to get first activities at each place
+  filter(lt,!is.na(newtrip)) %>%                  
+
+  # assign ranking
+  mutate(triprankasc=min_rank((-1000*PLANO+ACTNO))) %>%  
+
+  # filter for first rank (target destination)
+  filter(triprankasc==1) %>%                             
+
+  # create dpla and dact from first rank
+  mutate(dpla=PLANO,dact=ACTNO) %>%                      
+
+  # choose only the fields we want to join
+  select(SAMPN,PERNO,LTNO,dact,dpla,dTCF=TCF)             
+
+ltrd2 <-lt %>%
+  # join linkedtrip dests back to full set 
+  left_join(ltrd1, by=c('SAMPN','PERNO', 'LTNO')) %>%              
+
+  # select relevant joinable fields
+  select(SAMPN,PERNO,PLANO,ACTNO,APURP,ATRIPNO,LTNO,dpla,dact,dTCF) 
+```
+
+Looking at our handiwork for `r paste("SAMPN=",testhh2,sep="")` we
+have the following.
+
+```{r but,echo=TRUE}
+print.data.frame( filter(ltrd2,SAMPN==testhh2) %>% 
+                   select(SAMPN,PERNO,PLANO,ACTNO,APURP,ATRIPNO,LTNO,dpla,dact))
+ltrd <- select(ltrd2,SAMPN,PERNO,PLANO,ACTNO,LTNO,dpla,dact,dTCF)
+```
+
+Reviewing, we can see that for `LTNO==85`, we've correctly
+selected `(dpla,dact)=(6,1)` (row 5), since that is that first
+activity at the last place that is part of that linked trip (`(6,2)`
+in row 6 is the *second* activity at `PLANO==6` and therefore
+shouldn't be the destnation).  Similarly, for `LTNO==86`, we
+see that we've chosen `(dpla,dact)=(9,1)` (row 9).
+
+#### Determining trip type
+
+The 2001 data were organized slightly differently from the 2010 data.
+In particular, there was not a distinct activity table in the 2001
+data.  Instead, the purposes of the activities performed at the end of
+a given trip were listed in order of importance as columns in the trip
+table.  This meant that it was simple to identify the "purpose" of a
+particular trip by simply selecting the purpose of the primary
+activity, as identified by the respondant.  In contract, the 2010 data
+is organized into distinct place and activity tables.  Mode
+information is attached to the place table, while activity purpose
+information is listed for each distinct activity occuring at a given
+place.  There is no data on what the individual considered to be the
+"primary" purpose of a given trip recorded in the place table.  As
+such, for us to construct a linked-trip table that identifies the
+conventional 4-step "trip purpose" mapping for a given trip, we need
+to do the following:
+
+1. For each place, identify the "primary" activity occuring at that
+   location
+2. For each trip, map the "primary" activity to a conventional
+   trip-end mapping `(H,W,S,O)`
+3. Map the trip ends onto conventional 4-step trip purposes
+
+There is no definitive way to identify what an individual would call
+their "primary" activity from the data available.  As such, we propose
+the following, which is based upon an emphasis in identifying trip end
+types in the following order of priority:
+
+1. "H": Home activities
+2. "W": Work activities
+3. "S": Shop activities
+4. "O": Other activities
+
+Now, to determine whether an activity falls into one of these
+categories also requires a little nuance.  In the 2001 survey,
+activity types and trip purposes were largely merged, such that
+certain activities (e.g., leisure) were specifically defined as
+occuring at home.  In the 2011 survey, we know from the survey details
+provided in the documentation that:
+
+* activity types 1-8 were described in the survey materials as
+  activities occuring "AT MY HOME",
+
+* types 9-16 as activities occuring "AT MY WORK OR VOLUNTEER
+  LOCATION", even though some of these were *not* work activities
+  
+* types 17-20 as activities occuring "AT MY SCHOOL",
+
+* types 21-24 as activities described as "QUICK STOPS/TRIPS",
+
+* types 25-38 as activities occuring "AT OTHER PLACES"
+
+Let's create a frame that has the 4-step trip end type for each
+activity and see how many places have multiple trip-end types per the
+activity definitions.
+
+```{r}
+# activity-type-map.csv contains mappings between activities and trip types per
+# the definitions above
+actmap <- read.csv(paste(rd,'linked-trips/data','activity-type-map-2.csv',sep="/"),header=TRUE) %>% 
+  # we want both the codes and the labels, so we create a DESCR col
+  # we also rename the CODE column to APURP, so we can join it to lt above
+  transmute(
+    # replace "blank" trip-end types with NAs (blanks are associated with refused to respond)
+    TYPE=as.factor(ifelse(TYPE=="",NA,as.character(TYPE))),
+    GROUP=GROUP,APURP=CODE,DESCR=CODE)
+
+# assign the labels to the DESCR column using the metadata
+actmap$DESCR <- assign_factors(actmap$DESCR, 'activity', 'APURP')
+```
+
+With the activity->trip-end mapping, we can join a trip end type on
+every activity, and generate a frame with distinct trip-end types for
+each person/place.
+
+```{r}
+lte <- left_join(lt,actmap,by=c('APURP')) %>% 
+  select(SAMPN,PERNO,PLANO,ACTNO,LTNO,APURP,TYPE)
+# now, create distinct_types_by_place by grouping on PLACE+TYPE, we get distinct PLACE+TYPE combos.
+distinct_types_by_ltno <- lte %>% group_by(SAMPN,PERNO,LTNO,TYPE) %>% summarize()
+```
+
+So, `distinct_types_by_ltno` holds every distinct
+`SAMPN,PERNO,LTNO,TYPE` combination.  Ideally, we'd only have one type
+per person/place and we can check that by grouping this result on
+`SAMPN,PERNO,LTNO` and counting the number of entries per group (`n`).
+If `n` is greater than zero, we have to make a choice of the trip-end
+type to apply to that place.
+
+```{r}
+# do the grouping, summarize, and then filter for any places with n > 1
+distinct_ltno <- distinct_types_by_ltno %>% 
+  group_by(SAMPN,PERNO,LTNO) %>% 
+  summarize(n=n(),
+            # types contains a string with all trip-end types for the location
+            types=paste(TYPE,sep=",",collapse=","))
+need_to_decide <- distinct_ltno %>% filter(n>1)
+res <- dim(need_to_decide)
+```
+
+Oops.  There are `r res[[1]]` places in the data set with more than one trip-end type.
+Here are the first 20:
+```{r}
+head(need_to_decide,20)
+```
+
+Given that, we need some way to choose between activities.  One way
+would be to use the longest duration activity to determine the
+trip-end type.  However, the 4-step process was built around a
+hierarchy of trip types with the following order of importance: `H, W,
+S, O`.  As such, we can simply apply this ordering to define a
+trip-end type for each person/place:
+
+```{r}
+# this is a little lazy (and slow), but it works
+four_step_types <- distinct_ltno %>% 
+  mutate(FSTYPE=
+    ifelse(grepl("H",types),"H",
+           ifelse(grepl("W",types),"W",
+                  ifelse(grepl("S",types),"S","O"))))
+```
+
+Now we can join these trip ends for each linked trip to give us the `TripType value`.  
+To do this, we simply lag order the `four_step_types` by `SAMPN, PERNO, PLANO`, and
+create a new TripType column that joins the previous trip-end type to the target type.
+
+```{r}
+four_step_types <- four_step_types %>% arrange(SAMPN,PERNO,LTNO) %>%
+  group_by(SAMPN,PERNO) %>%
+  mutate(TripType=paste(lag(FSTYPE),FSTYPE,sep="")) %>%
+  mutate(TripType=ifelse(
+    # anything with NA is blank (probably first activity of the day
+    grepl(".*NA.*",TripType),"",
+    # Reorder OH WH to HW HW, and OW -> WO
+    gsub("^(SO|OS|SS)$","OO",          # S|O -> S|O == OO
+         gsub("^([SO]W|W[SO])$","WO",       # S|O -> W == W->O
+              gsub("^([SOW])(H)$","\\2\\1", # any -> H == H->any
+                   TripType)))))
+```
+
+Let's look at the unique trip types we've created...
+
+```{r}
+four_step_types %>% group_by(TripType) %>% summarize(n=n())
+```
+
+Looking at this result, we notice `108,778` entries for a blank
+TripType, which is OK, because these are simply the first activity of
+the day; there are the same number of activities with `PLANO==1` and
+`ACTNO==1`:
+
+```{r}
+filter(chts_act) %>% filter(PLANO==1,ACTNO==1) %>% dim()
+```
+
+All the others look reasonable except the 8706 `HH` trips and 915 `WW` trips, which don't make 
+any sense on the surface.  However, if we look at an example, we can see that these 
+are the result of imperfect mapping between activity purpose and trip types.  
+Let's find an example:
+
+```{r}
+res <- four_step_types %>% filter(TripType=="HH") %>% head()
+print(res)
+```
+
+So sample `SAMPN`=`r res[1,'SAMPN']`, `PERNO`=`r res[1,'PERNO']` 
+has a HH trip.  Let's dig deeper:
+
+```{r}
+filter(lte,SAMPN==res$SAMPN[[1]],PERNO==res$PERNO[[1]]) %>% 
+  left_join(four_step_types,by=c("SAMPN","PERNO","LTNO")) %>% 
+  select(ACTNO,APURP,TripType,LTNO)
+```
+
+Now we can see that this makes sense.  All of the HH trips involve
+linked trips with APURP=22 (Pick up/Drop off) activities.  Since these
+are collapsed in the linked trip computations, it makes sense these
+would be labeled HH trips if the first and last activities are both
+home.  We will leave these in the dataset because they may be of
+interest to analysts.  For instance, if a non-trival percentage of
+trips are exclusively for chauffeuring people around, policy might be
+targeted to reduce such ferrying.  Further analysis of this fairly
+large number of HH trips is probably warranted.
+
+Now, let's have a peak at the WW trips.
+
+```{r}
+res <- four_step_types %>% filter(TripType=="WW") %>% head()
+print(res)
+```
+
+So sample `SAMPN`=`r res[1,'SAMPN']`, `PERNO`=`r res[1,'PERNO']`
+has a WW trip.  Let's dig deeper:
+
+```{r}
+filter(lte,SAMPN==res$SAMPN[[1]],PERNO==res$PERNO[[1]]) %>% 
+  left_join(four_step_types,by=c("SAMPN","PERNO","LTNO")) %>% 
+  select(ACTNO,APURP,TripType,LTNO)
+```
+
+Now this is interesting.  There are two adjacent linked trips, each
+with APURP=9 (WORK/JOB DUTIES).  Let's look at the raw data for this
+individual to see if we can figure out what's happening.
+
+```{r}
+chts_act %>% 
+  left_join(chts_pla %>% select(SAMPN,PERNO,PLANO,TRIPDUR,MODE), 
+            by=c("SAMPN","PERNO","PLANO") ) %>% 
+  left_join(chts_lu_pla,by=c("SAMPN","PERNO","PLANO")) %>% 
+  filter(SAMPN==1088815,PERNO==2) %>%
+  select(SAMPN,PERNO,PLANO,ACTNO,APURP,TRIPDUR,MODE,STIME,ETIME,PNAME,dXCORD,dYCORD)
+```
+
+So, there is a work activity at the "TRAINING STABLES" from 9:45 to
+12:30, then there is a 45 minute drive alone trip (`MODE=5`) from
+12:30 to 13:15, followed by another work activity from 13:15 to 16:00
+at the "BOARDING STABLE", which is at a different location.  Thus,
+this does appear to be a situation where there is a WW trip.  Again,
+this might have policy relevance, so we leave these trips classified
+in this way in the dataset.  As with the HH trips, more analysis is
+probably warranted depending on the application.
+
+With that, we are ready to continue.  Following the 2001
+documentation, we provide a set of tables showing the trip type
+classification for various combinations of the primary activity
+occuring at each end of a trip.  First we set up a data structure for
+the tables.
+
+```{r}
+# Now create groups of activity types as they relate to four-step trip end classes.
+# We're going to use these in the table
+tmap <- actmap %>% group_by(TYPE,GROUP) %>% 
+  summarise(list=paste(paste(APURP,DESCR,sep=":"),sep='; ',collapse='; '))
+# cross join, combining all activity purpose groups with all purpose groups
+ctmap <- merge(tmap,tmap,by=NULL)
+```
+
+Now we can go ahead and generate the tables.
+
+```{r,results='asis'}
+hbw <- ctmap %>% filter((TYPE.x=='H' & TYPE.y=='W')|(TYPE.x=='W' & TYPE.y=='H')) %>%
+  mutate(dots='......') %>%
+  select("Trip Purpose From"=list.x,"....."=dots,"Trip Purpose To"=list.y)
+pandoc.table(hbw,caption="Home-based Work",
+             split.table=Inf,split.cells=Inf,justify=c('left','left','left'),
+             style='multiline')
+```
+```{r,results='asis'}
+hbs <- ctmap %>% filter((TYPE.x=='H' & TYPE.y=='S')|(TYPE.x=='S' & TYPE.y=='H')) %>%
+  mutate(dots='......') %>%
+  select("Trip Purpose From"=list.x,"....."=dots,"Trip Purpose To"=list.y)
+pandoc.table(hbw,caption="Home-based Shopping",
+             split.table=Inf,split.cells=Inf,justify=c('left','left','left'),
+             style='multiline')
+```
+```{r,results='asis'}
+hbo <- ctmap %>% filter((TYPE.x=='H' & TYPE.y=='O')|(TYPE.x=='O' & TYPE.y=='H')) %>%
+  mutate(dots='......') %>%
+  select("Trip Purpose From"=list.x,"....."=dots,"Trip Purpose To"=list.y)
+pandoc.table(hbo,caption="Home-based Other",
+             split.table=Inf,split.cells=Inf,justify=c('left','left','left'),
+             style='multiline')
+```
+```{r,results='asis'}
+wbo <- ctmap %>% filter((TYPE.x=='W' & TYPE.y=='O')|(TYPE.x=='O' & TYPE.y=='W')) %>%
+  mutate(dots='......') %>%
+  select("Trip Purpose From"=list.x,"....."=dots,"Trip Purpose To"=list.y)
+pandoc.table(wbo,caption="Work-based Other",
+             split.table=Inf,split.cells=Inf,justify=c('left','left','left'),
+             style='multiline')
+```
+```{r,results='asis'}
+oo  <- ctmap %>% filter(TYPE.x=='O' & TYPE.y=='O') %>%
+  mutate(dots='......') %>%
+  select("Trip Purpose From"=list.x,"....."=dots,"Trip Purpose To"=list.y)
+pandoc.table(oo,caption="Other to Other",
+             split.table=Inf,split.cells=Inf,justify=c('left','left','left'),
+             style='multiline')
+```
+
+
+
+
+## Bringing it all together
+
+We how have data frames tagging the linked trips, the linked trip
+modes, origins, and destinations.  The next step is to join them all
+together into a single table.  We do this by sequentially (left)
+joining the various data frames on `(SAMPN, PERNO, PLANO, ACTNO,
+LTNO)`.  We make an adjustment to set the trip distances for any
+(`ACTNO!=1`) to zero.
+
+```{r join-all, echo=TRUE}
+# left join onto lt, which will contain all records
+ttt1 <- left_join(lt, ltrm, by=c('SAMPN','PERNO','PLANO','ACTNO','LTNO'))
+ttt2 <- left_join(ttt1, ltro2, by=c('SAMPN','PERNO','PLANO','ACTNO','LTNO'))
+ttt3 <- left_join(ttt2, ltrd, by=c('SAMPN','PERNO','PLANO','ACTNO','LTNO'))
+ttt  <- left_join(ttt3, four_step_types %>% select(SAMPN,PERNO,LTNO,TripType), 
+                  by=c('SAMPN','PERNO','LTNO'))
+
+# only list trip distance with first activity,
+# important for summation                     
+ttt$TripDistance <- ifelse(ttt$ACTNO==1,ttt$TripDistance,0) 
+                                                            
+ttt$TRIPDUR       <- ifelse(ttt$ACTNO==1,ttt$TRIPDUR,0)
+ttt$IgnoredACTDUR <- ifelse(ttt$APURP %in% ignored_acts, ttt$ACTDUR, 0)
+```
+
+Looking again at `r paste('SAMPN=',testhh2,sep="")`, we have the following
+
+```{r print-join-all, echo=TRUE}
+print.data.frame(filter(ttt,SAMPN==testhh2) %>% 
+                   select(SAMPN,PERNO,PLANO,ACTNO,APURP,ATRIPNO,MODE,LTNO,
+                          TripType,ltmode,opla,oact,dpla,dact))
+```
+
+The last step is to collapse each of the linked trips into a single
+record.  `dpylr`'s `summarize` function provides this capability.  Any
+relevant fields that are collapsed, we put into a colon delimited
+string using the paste function, so that we can analyze the results.
+
+```{r lt-summarize,echo=TRUE}
+ltf <- group_by(ttt,SAMPN,PERNO,LTNO) %>%
+  summarise(num.trips = n(), 
+            ltmode = min(ltmode),      # linked trip (primary) mode 
+            ltmodeplano = min(ltmodeplano), # plano of trip associated with primary mode
+            TripType = min(TripType),    # by definition there is only 1 trip type
+            oplano   = min(opla),      # origin place
+            oactno   = min(oact),      # origin activity
+            dplano   = min(dpla),      # dest place
+            dactno   = min(dact),      # dest activity
+            ltTCF    = min(ltTCF),     # TCF of the leg associated with the primary mode
+            dTCF     = min(dTCF),      # TCF of the leg associated with the linked trip destination
+            tripdist      = sum(TripDistance),  # total trip distance over joined trips
+            tripdur       = sum(TRIPDUR),       # total trip (travel) duration over joined trips
+            ignoredactdur = sum(IgnoredACTDUR), # total duration of ignored activities in linked chain
+            jplano = paste(PLANO,collapse=":"), # ordered joined places
+            jactno = paste(ACTNO,collapse=":"), # ordered joined activities
+            japurp = paste(APURP,collapse=":"), # ordered joined purposes
+            jmode  = paste(MODE,collapse=":"),  # ordered joined modes
+            jtripdist = paste(TripDistance,collapse=":"),  # ordered joined trip distances
+            jTCF   = paste(dTCF), # ordered joined trip correction factors
+            MAXTR = max(TOTTR,na.rm=TRUE),   # the max num of people traveling on any leg of the trip
+            MINTR = min(TOTTR,na.rm=TRUE)
+            )
+```
+
+Here is what the table looks like for
+<!-- --> `r paste("SAMPN=",testhh,"|",testhh2,sep="")`.
+
+```{r print-ltf,echo=TRUE}
+print.data.frame(filter(ltf,SAMPN %in% c(testhh,testhh2)) %>% 
+                   select(PERNO,LTNO,num.trips,oplano,oactno,dplano,dactno,
+                          dTCF,
+                          ltmode,TripType,tripdist,tripdur,ignoredactdur,
+                          jplano,jactno,jmode,jtripdist,jTCF))
+```
+
+To confirm we're getting what we want, we'll join the linked trips
+back onto the fully joined table (`ttt`):
+
+```{r print-joined-testhh,echo=TRUE}
+ttt$TripDistance <- ifelse(ttt$ACTNO==1,ttt$TripDistance,NA) # only list trip distance with first activity 
+ttt$MODE <- ifelse(ttt$ACTNO==1,ttt$MODE,NA) # only list trip distance with first activity 
+jlt <- select(ttt,SAMPN,PERNO,PLANO,ACTNO,APURP,MODE,TripDistance,LTNO) %>% 
+                               left_join(ltf,by=c("SAMPN","PERNO","LTNO"))
+
+print.data.frame(head(filter(jlt,SAMPN %in% c(testhh,testhh2)) %>% 
+                        select(PERNO,PLANO,ACTNO,APURP,MODE,LTNO,TripDistance,num.trips,
+                               jplano,jactno,oplano,oactno,dplano,dactno,ltmode,tripdist),100))
+```
+
+One issue that our logic has introduced is that it is possible to have
+a linked trip that starts and ends at the same location.  Consider
+`PERNO==1` in `r paste("SAMPN=",testhh5,sep="")`:
+
+```{r show-looped-chain}
+print.data.frame(ttt %>% filter(SAMPN==testhh5) %>%
+                   select(SAMPN,PERNO,PLANO,ACTNO,LTNO,APURP,opla,dpla))
+```
+
+We can see that `LTNO==231` involves 4 distinct activities.  The first
+is a serve passenger trip (`APURP==22`) that departs from `PLANO==1`.
+The next is `APURP==7` at `PLANO==3`, and this is followed by two more
+activities (`APURPs==(2,7)`} at that same place.  These are linked
+into a single trip with an origin place at `olpa=1` and destination
+place `dpla=3`.  `PLANO==2` is the location of the serve passenger
+trip.  However, what if places 1 and 3 are actually the same location.
+In this case, we have a trip chain whose sole purpose is to serve a
+passenger.  The trip is not made in order to serve the activity at the
+final destination.  Thus, there is some question whether such trips
+should be included in the linked trip table.  Since this is unclear,
+we will simply flag those linked trips that start and finish at the
+same location.  To do that, we need to load the geocodes for the
+places from the private data.  We use the same technique as above to
+assign the column types from the metadata.  Further, as noted above in
+the TripType discussion, there may be policy relevance to such looping
+trips, so we may want to flag these trips and leave them in the linked
+trip data.
+
+```{r read-lookup-places, echo=TRUE}
+dflp <- chts_lu_pla %>% arrange(SAMPN,PERNO,PLANO)
+print(dim(dflp))
+```
+
+We now join the coordinates for the origin and destination places onto
+the linked trip table we created and then compute the boolean value
+`sameod` to flag any trips in which the origin and destination places
+have the exact same coordinates.
+
+```{r join-lp, echo=TRUE}
+ltf2 <- ltf %>% 
+  left_join(transmute(dflp,SAMPN=SAMPN,PERNO=PERNO,oplano=PLANO,oXCORD=oXCORD,oYCORD=dYCORD)) %>%
+  left_join(transmute(dflp,SAMPN=SAMPN,PERNO=PERNO,dplano=PLANO,dXCORD=dXCORD,dYCORD=dYCORD)) %>%
+  mutate(sameod=(oXCORD==dXCORD & oYCORD==dYCORD))
+```
+
+Let's look at `r paste("SAMPN=",testhh5,sep="")` again to see if that
+linked trip we discussed is actually a loop:
+
+```{r show-sameod,echo=TRUE}
+print.data.frame(ltf2 %>% 
+                   filter(SAMPN==testhh5) %>% 
+                   select(SAMPN,PERNO,LTNO,oplano,oactno,dplano,dactno,
+                          as.numeric(oXCORD),as.numeric(oYCORD),
+                          as.numeric(dXCORD),as.numeric(dYCORD),sameod))
+```
+
+And indeed it is, as we can see that `LTNO==231` (row==2) has
+`sameod==TRUE` as the origin and destination coordinates are
+identical.  We leave it to the analyst to decide whether this is
+important for his or her application of the data.
+
+#### Linked trip departure and arrival times
+
+This one is a little tricky.  Examining the 2001 linked trip table, it
+is clear that the departure times (`DEP_HR`,`DEP_MIN`) precede the
+arrival times (`ARR_HR`,`ARR_MIN`) for a given linked trip.  This
+makes sense because the table refers to trips.
+
+However, in the 2011 place data, (`ARR_HR`,`ARR_MIN`) refers to the
+time when a person arrived at the *place* and (`DEP_HR`,`DEP_MIN`)
+refers to the time when they left that place.  Thus, the `ARR` vars
+will precede the `DEP` vars.
+
+With that caveat, determining the `DEP` and `ARR` values are
+relatively straightforward.  The departure time for the linked trip is
+the departure time from the origin place.  Similarly, the arrival time
+is the arrival time at the destination place.  Since we've already
+computed the origin and destination places for each linked trip, this
+is relatively straightforward
+
+```{r get-dep-time}
+ltf3 <- ltf2 %>% 
+  # add DEP_HR and DEP_MIN by grabbing them from the origin place
+  # for this linked trip (oplano)
+  left_join(
+    chts_pla %>% select(SAMPN,PERNO,PLANO,DEP_HR,DEP_MIN),
+    by=c('SAMPN'='SAMPN','PERNO'='PERNO','oplano'='PLANO')
+    ) %>%
+  # add DEP_HR and DEP_MIN by grabbing them from the destination place
+  # for this linked trip (dplano)
+  left_join(
+    chts_pla %>% select(SAMPN,PERNO,PLANO,ARR_HR,ARR_MIN),
+    by=c('SAMPN'='SAMPN','PERNO'='PERNO','dplano'='PLANO')
+    )
+```
+
+
+```{r get-dep-time-res}
+ltf3 %>% filter(SAMPN==testhh2) %>% as.data.frame() %>%
+  select(ltn=LTNO,tripdur,jplano,jactno,DEP_HR,DEP_MIN,ARR_HR,ARR_MIN) 
+
+```
+
+```{r get-dep-time-res2}
+chts_pla %>% filter(SAMPN==testhh2 & PLANO<7) %>% select(PLANO,ARR_HR,ARR_MIN,DEP_HR,DEP_MIN)
+```
+
+
+#### Write the table
+
+Finally, let's write the table, omitting the private coordinates, but
+keeping the sameod flag.
+
+```{r write-csv-table, echo=TRUE, cache=FALSE}
+chts_lt <- select(ltf3, -oXCORD,-oYCORD,-dXCORD,-dYCORD)
+#save(chts_lt,file=paste(rd,'linked-trips/chts_lt.rda',sep="/"))
+#save(chts_lu_lt,file=paste(rd,'linked-trips/chts_lu_lt.rda',sep="/"))
+write.csv(chts_lt,file=paste(rd,'linked-trips/chts_lt.csv',sep="/"))  # as csv too, for non-R users
+write.csv(chts_lu_lt,file=paste(rd,'linked-trips/chts_lu_lt.csv',sep="/")) # ...
+```
+
+The final table contains the following data:
+
+```{r data-defs,echo=FALSE,results='asis',cache=FALSE}
+suppressMessages(library(pander)) 
+tab <- data.frame(variable=names(chts_lt),description=NA)
+tab[tab$variable=="SAMPN",'description'] <- "Sample number"
+tab[tab$variable=="PERNO",'description'] <- "Person number in the sample"
+tab[tab$variable=="LTNO",'description'] <- "Unique linked trip identifier"
+tab[tab$variable=="num.trips",'description'] <- "Number of activities included in the linked trip"
+tab[tab$variable=="ltmode",'description'] <- "The primary mode of the linked trip (by longest distance)"
+tab[tab$variable=="ltmodeplano",'description'] <- "The PLANO associated with the primary mode of the linked trip (ltmode)"
+tab[tab$variable=='TripType','description'] <- "The \"4-step\" trip type classification of the linked trip"
+tab[tab$variable=="oplano",'description'] <- "The place number (for SAMPN,PERNO) of the linked trip origin"
+tab[tab$variable=="oactno",'description'] <- "The activity number (for SAMPN,PERNO,oplano) of the linked trip origin"
+tab[tab$variable=="dplano",'description'] <- "The place number (for SAMPN,PERNO) of the linked trip destination"
+tab[tab$variable=="dactno",'description'] <- "The activity number (for SAMPN,PERNO,oplano) of the linked trip destination"
+tab[tab$variable=="tripdist",'description'] <- "The total distance of all segments in the linked trip"
+tab[tab$variable=="tripdur",'description'] <- "The total time spent traveling over all segments in the linked trip"
+tab[tab$variable=="ignoredactdur",'description'] <- "The total time spent in activities ignored during the linked trip"
+tab[tab$variable=="jplano",'description'] <- "A string containing the PLANOs of all activities in the linked trip, joined by a colon"
+tab[tab$variable=="jactno",'description'] <- "A string containing the ACTNOs of all activities in the linked trip, joined by a colon"
+tab[tab$variable=="japurp",'description'] <- "A string containing the APURPs of all activities in the linked trip, joined by a colon"
+tab[tab$variable=="jmode",'description'] <- "A string containing the MODEs to all places in the linked trip, joined by a colon"
+tab[tab$variable=="jtripdist",'description'] <- "A string containing the TRIPDISTs of all places in the linked trip, joined by a colon"
+tab[tab$variable=="sameod",'description'] <- "A boolean variable set to TRUE if the linked trip has the same origin and destination"
+tab[tab$variable=="dTCF",'description'] <- "The Trip Correction Factor of the destination trip"
+tab[tab$variable=='ltTCF','description'] <- "The Trip Correction Factor of the primary leg of this trip (by Trip Distance)"
+tab[tab$variable=="jTCF",'description'] <- "A string containing the TCFs of all places in the linked trip, joined by a colon"
+tab[tab$variable=='MAXTR','description'] <- 'The maximum number of travelers on any leg of the linked trip'
+tab[tab$variable=='MINTR','description'] <- 'The minimum number of travelers on any leg of the linked trip'
+tab[tab$variable=='DEP_HR','description'] <- 'The hour of departure for this linked trip'
+tab[tab$variable=='DEP_MIN','description'] <- 'The minute of departure for this linked trip'
+tab[tab$variable=='ARR_HR','description'] <- 'The hour of arrival for this linked trip'
+tab[tab$variable=='ARR_MIN','description'] <- 'The minute of arrival for this linked trip'
+pandoc.table(tab,caption="Definition of all items in the linked trip table",
+             split.table=120,split.cells=c("25%","75%"),justify=c('left','left'))
+```
+
+Note that we've also written out the linked trip lookup table
+(`chts_lu_lt`) that allows the user to relate each activity with a
+particular linked trip.  The columns of this table are as follows:
+
+```{r lookup-data-defs,echo=FALSE,results='asis',cache=FALSE}
+tab <- data.frame(variable=names(chts_lu_lt),description=NA)
+tab[tab$variable=="SAMPN",'description'] <- "Sample number"
+tab[tab$variable=="PERNO",'description'] <- "Person number"
+tab[tab$variable=="PLANO",'description'] <- "Place number"
+tab[tab$variable=="ACTNO",'description'] <- "Activity number"
+tab[tab$variable=="LTNO",'description'] <- "Linked trip number (key into chts_lt)"
+tab[tab$variable=="LTNO.per",'description'] <- "Per-person counter for this trip component.  E.g., LTNO.per=3 means this is the 3rd activity included in linked trip LTNO"
+pandoc.table(tab,caption="Definition of all items in the linked trip lookup table",
+             split.table=120,split.cells=c("25%","75%"),justify=c('left','left'))
+```
+
+This lookup table can be used to join the individual places and/or
+activities to each linked trip, allowing the analyst to compute
+additional linked trip statistics not included in the `chts_lt` table,
+based upon the individual trip components that make up the linked
+trip.  For instance, if you wanted a table showing all places
+associated with each linked trip, you might do something like the
+following in `R`:
+
+```{r}
+joined.table <- 
+  chts_lt %>% 
+  left_join(chts_lu_lt,by=c('SAMPN','PERNO','LTNO')) %>%
+  left_join(chts_pla,by=c('SAMPN','PERNO','PLANO'))
+```
+
+With that, we can ask questions related to the specific trips that
+make up linked trips.
+
+```{r}
+# how many linked trips include at least one leg that involves walking?
+joined.table <- joined.table %>%
+  filter(MODE==1)  %>% # grab only walk mode legs
+  group_by(LTNO)   %>% # now group_by LTNO
+  summarise(n=n())     # create a summary showing the number of walk trips per LTNO 
+                       # (with zeros omitted)
+  
+# Now print out the number of rows of this table, which will be the number of linked trips
+# in the table with 1 or more walk trips
+print(dim(joined.table)[1])
+```
+
+Thus, there are `r dim(joined.table)[1]` linked trips (`r
+round(dim(joined.table)[1]/dim(chts_lt)[1]*100.0,1)`%) in the dataset
+involving at least one walk trip.
+
+

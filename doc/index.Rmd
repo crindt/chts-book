@@ -1,8 +1,68 @@
 ---
-title: "index"
+title: "2012 California Household Travel Survey Data Analysis"
 author: "Craig Rindt"
 date: "09/07/2015"
 output: html_document
 ---
-```{r child='3.Diagnostic.Rmd'}
+
+```{r setup}
+rd <- '/home/crindt/chts-book'
 ```
+
+# Introduction
+
+
+
+# Use of R Program for CHTS Data Analysis
+
+
+```{r child = '3.Diagnostic.Rmd'}
+```
+
+# Calculating Weights
+
+```{r child = '4.1Personweights.Rmd'}
+```
+
+```{r child = '4.2Householdweights.Rmd'}
+```
+
+```{r child = '4.3Other Geographies.Rmd'}
+```
+
+```{r child = '4.4Longdistanceweight.Rmd'}
+```
+
+# Linked Trip Tables
+
+```{r child = 'chts-linked-trips.Rmd'}
+```
+
+# Data Analysis Requests
+
+```{r child = '6.1SantaCruz county.Rmd'}
+```
+
+```{r child = '6.2DelNortecounty.Rmd'}
+```
+
+```{r child = '6.3 Humboldt county.Rmd'}
+```
+
+```{r child = '6.4 Lake County.Rmd'}
+```
+
+```{r child = '6.5 Mendocino County.Rmd'}
+```
+
+```{r child = '6.6 Long Distance Trips questions.Rmd'}
+```
+
+```{r child = '6.7 SR1.Rmd'}
+```
+
+```{r child = '6.8 SR17.Rmd'}
+```
+
+# Conclusions
+
