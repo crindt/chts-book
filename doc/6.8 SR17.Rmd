@@ -2,7 +2,9 @@
 title: "6.8 Travel Statistics along the SR-17 Corridor"
 author: "Suman Mitra"
 date: "September 4, 2015"
-output: pdf_document
+output:
+  pdf_document:
+    highlight: tango
 ---
 
 ## Summary and Methodology
@@ -19,6 +21,7 @@ To answer the questions we need the place file with new county wide person weigh
 ```{r sr17-0,echo=FALSE}
 if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
 p <- function(ps) { return(paste(rd,ps,sep="/")) }
+source(p("R/setup-hooks.R"))
 ```
 
 ```{r sr17-1, }
@@ -28,8 +31,8 @@ nplace<- read.csv(p("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
 
 Next, we  convert the `MODE` codes into text descriptions.
 
-```{r sr17-2, }
-# For recoding Mode
+```{r sr17-2, } 
+# For recoding Mode 
 nplace$Mode<-ifelse(nplace$MODE==1,"Walk",ifelse(nplace$MODE==2,"Bike",ifelse(nplace$MODE==3,"Wheelchair/Mobility Scooter",ifelse(nplace$MODE==4,"Other Non-Motorized",ifelse(nplace$MODE==5,"Auto/Van/Truck Driver",ifelse(nplace$MODE==6,"Auto /Van/Truck Passenger",ifelse(nplace$MODE==7,"Carpool/Vanpool",ifelse(nplace$MODE==8,"Motorcycle",ifelse(nplace$MODE==9,"Taxi/Hired Car/Limo",ifelse(nplace$MODE==10,"Rental Car/Vehicle",ifelse(nplace$MODE==11,"Private shuttle ",ifelse(nplace$MODE==12,"Greyhound Bus",ifelse(nplace$MODE==13,"Plane",ifelse(nplace$MODE==14,"Other Private Transit",ifelse(nplace$MODE==15,"Local Bus,Rapid Bus",ifelse(nplace$MODE==16,"Express Bus",ifelse(nplace$MODE==17,"Premium Bus",ifelse(nplace$MODE==18,"School Bus",ifelse(nplace$MODE==19,"Public Transit Shuttle",ifelse(nplace$MODE==20,"Air BART/LAX Fly Away",ifelse(nplace$MODE==21,"Dial-a-Ride/Paratransit", ifelse(nplace$MODE==22,"Amtrak Bus", ifelse(nplace$MODE==23,"Other Bus ", ifelse(nplace$MODE==24,"BART,Metro",ifelse(nplace$MODE==25,"ACE, Amtrak etc",ifelse(nplace$MODE==26,"Metro",ifelse(nplace$MODE==27,"Street Car",ifelse(nplace$MODE==28,"Other Rail",ifelse(nplace$MODE==29,"Ferry / Boat","Don't Know/Refused")))))))))))))))))))))))))))))
 ```
 

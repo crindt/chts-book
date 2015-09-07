@@ -4,7 +4,7 @@ author: "Craig Rindt"
 date: "09/07/2015"
 output:
   pdf_document:
-    highlight: haddock
+    highlight: tango
     keep_tex: yes
     number_sections: yes
     toc: yes
