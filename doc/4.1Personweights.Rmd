@@ -34,12 +34,19 @@ The following commands are used to generate county wide person weight.
 First we need to import the person data file and corresponding lookup file (containing location information) and then we merge them.
 
 ```{r,cache=TRUE}
+library(chts2011)
+library(dplyr)
 # Set the working directory
-setwd("~/Suman_research/Caltrans Project/Weight/PersonWeight_County")
+rd <- "/home/crindt/chts-book"
+p <- function(ps) { return(paste(rd,ps,sep="/")) }
+setwd(p("Weight/PersonWeight_County"))
 # Import the person level variables csv file and give a new name
-persondata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_per.csv", header=TRUE)
+#persondata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_per.csv", header=TRUE)
+persondata <- chts_per
 # Import the lookup variable csv file and give a new name (containing x, y coordinate data)
-lookup_hh <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_hh.csv", header=TRUE)
+#lookup_hh <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_hh.csv", header=TRUE)
+lookup_hh <- chts_hh %>% mutate(HCTFIPx=CTFIP)
+lookup_hh$HCTFIP <- as.integer(lookup_hh$HCTFIPx) %% 1000
 # Merging two data set to get the county information
 perdata2<-merge(persondata,lookup_hh, by ="SAMPN", all = TRUE)
 # Names of the new merged file
@@ -104,7 +111,7 @@ We need county wide total population data which we collect from census and save 
 ```{r,cache=TRUE}
 # Assgin county wide total population into perdata2 file
 # Import the countywise total population csv file and give a new name
-tot.pop <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/Total/county_totpop2.csv", header=TRUE)
+tot.pop <- read.csv(p("Weight/Data_County/Total/county_totpop2.csv"), header=TRUE)
 head(tot.pop)
 
 # Merging two data set
@@ -129,7 +136,7 @@ First, we do it for hispanic data.
 
 ```{r,cache=TRUE}
 # Hispanic data
-hisp.county <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/Hispanic/Hisp_county.csv", header=TRUE)
+hisp.county <- read.csv(p("Weight/Data_County/Hispanic/Hisp_county.csv"), header=TRUE)
 head(hisp.county)
 
 # Generate a list of seperate datafrmaes containing hispanic data for each county
@@ -145,7 +152,7 @@ Here, we import the race data.
 
 ```{r,cache=TRUE}
 # Race
-race.county <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/Race/Race_county.csv", header=TRUE)
+race.county <- read.csv(p("Weight/Data_County/Race/Race_county.csv"), header=TRUE)
 race.county$id <- 1:nrow(race.county)
 race.data <- lapply(split(race.county, race.county$id), function(x){data.frame(RACEn = c(1:4),  Freq  = c(x$White, x$African.American,x$Asian,x$Others))                                                             
 }
@@ -157,7 +164,7 @@ Then, we repeat the process for employment data.
 
 ```{r,cache=TRUE}
 ## Employment data
-emply.county <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/Employment/Employment_county.csv", header=TRUE)
+emply.county <- read.csv(p("Weight/Data_County/Employment/Employment_county.csv"), header=TRUE)
 
 emply.county$id <- 1:nrow(emply.county)
 emply.data <- lapply(split(emply.county, emply.county$id), function(x){data.frame(EMPLYn = c(1,2),  Freq  = c(x$Employed, x$Unemployed))                                                             
@@ -170,7 +177,7 @@ Finally, we import gender and age data.
 
 ```{r,cache=TRUE}
 #Gender
-gend.county <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/Gender/Gender_county.csv", header=TRUE)
+gend.county <- read.csv(p("Weight/Data_County/Gender/Gender_county.csv"), header=TRUE) 
 
 gend.county$id <- 1:nrow(gend.county)
 gend.data <- lapply(split(gend.county, gend.county$id), function(x){data.frame(GENDn = c(1,2),  Freq  = c(x$Male, x$Female))                                                             
@@ -179,7 +186,7 @@ gend.data <- lapply(split(gend.county, gend.county$id), function(x){data.frame(G
 head(gend.data[1])
 
 # Age
-age.county <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/Total/age_county.csv", header=TRUE)
+age.county <- read.csv(p("Weight/Data_County/Age/Age_county.csv"), header=TRUE)
 head(age.county)
 age.county$id <- 1:nrow(age.county)
 age.data <- lapply(split(age.county, age.county$id), function(x){data.frame(AGEn = c(1:6),  Freq  = c(x$x1, x$x2,x$x3,x$x4,x$x5,x$x6))                                                             
@@ -193,7 +200,7 @@ Here we want to set the directory where we want to save our output.
 
 ```{r,cache=TRUE}
 # Set directory where we want to save
-setwd("~/Suman_research/Caltrans Project/Weight/PersonWeight_County")
+setwd(p("Weight/PersonWeight_County"))
 ```
 
 
@@ -248,9 +255,9 @@ There is no error now. So, we have expanded person weights for all 58 counties a
 
 ```{r,cache=TRUE}
 # Import multiple csv file of new expanded weight and combine into one file
-setwd("~/Suman_research/Caltrans Project/Weight/PersonWeight_County")
+setwd(p("Weight/PersonWeight_County"))
 # Import the files
-filenames <- list.files(path = "~/Suman_research/Caltrans Project/Weight/PersonWeight_County")
+filenames <- list.files(path = p("Weight/PersonWeight_County"))
 # combined the files into one
 nperweight<-do.call("rbind", lapply(filenames, read.csv, header = TRUE)) 
 head(nperweight)
@@ -295,7 +302,7 @@ Now we have a file with new county wide expaned and unexpanded person weights. H
 
 ```{r,cache=TRUE}
 # Save 
-setwd("~/Suman_research/Caltrans Project/Weight/NewWeightData")
+setwd(p("Weight/NewWeightData"))
 write.csv(nperweight2, file="nperweight922015.csv",row.names = FALSE) # save as csv
 ```
 
@@ -314,7 +321,7 @@ As we mentioned earlier we want check whether the new weights represent the tota
 
 ```{r,cache=TRUE}
 # Random Check
-setwd("~/Suman_research/Caltrans Project/Weight/Check")
+setwd(p("Weight/Check"))
 # We do it for Mendocino county (FIP code=45)
 popdata_45<-subset(npersondata,HCTFIP==45)
 head(popdata_45$HCTFIP)
@@ -349,7 +356,8 @@ Now we need to calculate the new final  trip weight using the new county wide pe
 
 ```{r,cache=TRUE}
 #Import the place level data  csv file and give a new name
-place_data1 <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_place.csv", header=TRUE)
+#place_data1 <- read.csv("../Data/deliv_place.csv", header=TRUE)
+place_data1 <- chts_pla
 
 # Merge with new weight
 nplacedata<-merge(place_data1,nperweight2, by =c("SAMPN","PERNO"), all = FALSE)
@@ -371,7 +379,7 @@ If we want to save the new file with new trip weight as csv file, we can do it b
 
 ```{r,cache=TRUE}
 # Set the working directory
-setwd("~/Suman_research/Caltrans Project/Weight/NewWeightData")
+setwd(p("Weight/NewWeightData"))
 
 write.csv(nplacedata, file="nplacedata932015.csv",row.names=FALSE)
 # Now we have new place data file with new weight

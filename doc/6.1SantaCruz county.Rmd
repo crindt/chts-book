@@ -30,12 +30,15 @@ The following commands are used to generate the results.
 To answer the questions we need the place level table (with weights) that we computed in the section 4.
 
 ```{r, }
+rd <- "/home/crindt/chts-book"
+p <- function(ps) { return(paste(rd,ps,sep="/")) }
+
 # Set the working directory
-setwd("~/Suman_research/Caltrans Project/Santa Cruz County")
+setwd(p("Santa Cruz County"))
 
 
 #Import the place level with new weight csv file and give a new name
-nplace<- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/NewWeightData/nplacedata3032015.csv", header=TRUE)
+nplace<- read.csv(p("Weight/NewWeightData/nplacedata932015.csv"), header=TRUE)
 names(nplace)
 head(nplace)# Show first ten observations
 
@@ -536,8 +539,10 @@ Now we need trip purpose breakdown, so we need to import activity level data wit
 appropriate weights.  Here we load and merge them.
 
 ```{r,}
+library(chts2011)
 #Import the activity level variables csv file and give a new name
-act_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_activity.csv", header=TRUE)
+#act_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_activity.csv", header=TRUE)
+act_data <- chts_act
 names(act_data)
 
 # Merge the person weight file with place level data file

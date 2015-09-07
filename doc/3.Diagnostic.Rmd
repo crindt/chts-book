@@ -1,10 +1,11 @@
+<!--
 ---
 title: "3.Diagnostics Checks of the CHTS"
 author: "Suman Mitra"
 date: "August 31, 2015"
 output: html_document
 ---
-
+-->
 ## Summary and Methodology
 
 This section presents summary statistics for the 2010-2012 California Household Travel Survey (2012 CHTS) compared with common variables from the 2000-2001 California Household Travel Survey (2001 CHTS), when possible. The 2012 CHTS is comprised of six main datasets and four additional datasets with location data (x-y coordinates); the latter were merged with the corresponding main datasets to check for compatibility. Merging did not create any problem, and resulted only in two minor discrepancies. First, when we merged the person-level dataset with the corresponding x-y coordinates dataset, one observation did not match in the person dataset. Second, 5 observations did not match when we merged the place dataset with the corresponding x-y coordinates dataset. We checked each variable from all datasets. We generated simple summary statistics for all variables and also generate boxplots and histograms for selected variables.
@@ -35,11 +36,15 @@ The following commands are used for diagnostics checks of the CHTS.
 We first import the household data and corresponding look up data (contain x-y coordinates). Before doing this, we need to save the household and look up file manually as 'csv' format and keep them in our desired location. We import those files from that location and merge them. 
 
 ```{r,cache=TRUE}
+library(chts2011)
+library(chts2011pvt)
 #Import the household level variables csv file and give a new name
-hhdata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_hh.csv", header=TRUE)
+#hhdata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_hh.csv", header=TRUE)
+hhdata <- chts_hh
 
 #Import the lookup variable csv file and give a new name (containing x, y coordinate data)
-lookup_hh <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_hh.csv", header=TRUE)
+#lookup_hh <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_hh.csv", header=TRUE)
+lookup_hh <- chts_lu_hh
 
 #Merging two data set
 hhdata1<-merge(hhdata,lookup_hh, by ="SAMPN", all = TRUE)
@@ -75,11 +80,12 @@ names(nhhdata)
 
 Now we have a new merged file and we use this file for diagnostics checks of household level data. We check variables of household data one by one starting with the sample number.
 
-
-```{r, cache=TRUE}
+```{r, cache=FALSE}
 # Attach the file
 attach(nhhdata)
+```
 
+```{r, cache=TRUE}
 # Sorting data by sample number
 ## SAMPN:Sample Number
 nhhdata<-nhhdata[order(SAMPN),]
@@ -179,7 +185,7 @@ sum(is.na(ILANG))
 head (CTFIP,10)
 summary(CTFIP)
 sd(CTFIP)
-boxplot(CTFIP,xlab=c("Residential county"),col=c("gold"))
+boxplot(as.integer(CTFIP),xlab=c("Residential county"),col=c("gold"))
 ###Check missing values
 sum(CTFIP=="")
 sum(is.na(CTFIP))
@@ -280,9 +286,11 @@ sum(is.na(GFLAG)&GTYPE==1)
 
 #### RIBUS: Transit use at least once per week (1=yes;2=No;8=DK;9=RF)
 
+```{r, cache=FALSE}
+attach(nhhdata)
+```
 
 ```{r, cache=TRUE}
-attach(nhhdata)
 ## RIBUS
 head (RIBUS,10)
 summary (RIBUS[RIBUS<8])
@@ -544,9 +552,11 @@ hist(PHLNS[PHLNS<98],xlab=c("Number of land line phones"),col=c("gold"))
 
 #### INCOM:Household income (1 to 10;98=DK;99=RF)
 
+```{r, cache=FALSE}
+attach(nhhdata)
+```
 
 ```{r, cache=TRUE}
-attach(nhhdata)
 ## INCOM:Household income (1 to 10;98=DK;99=RF)
 head(INCOM,10)
 summary(INCOM[INCOM<98])
@@ -674,7 +684,7 @@ sum(HHLIC>HHSIZ)
 head(RECDate,10)
 summary(RECDate)
 sum(is.na(RECDate))
-sum(RECDate=="")
+#sum(RECDate=="")
 ```
 
 
@@ -1048,10 +1058,12 @@ We first save the person data and corresponding look up data (contain x-y coordi
 
 ```{r, cache=TRUE}
 #Import the person level variables csv file and give a new name
-persondata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_per.csv", header=TRUE)
+#persondata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_per.csv", header=TRUE)
+persondata <- chts_per
 
 #Import the lookup variable csv file and give a new name (containing x, y coordinate data)
-lookup_per <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_per.csv", header=TRUE)
+#lookup_per <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_per.csv", header=TRUE)
+lookup_per <- chts_lu_per
 
 #Check the names of the variables
 names(persondata)
@@ -1085,7 +1097,7 @@ names(npersondata)
 
 Now we have a new merged file and we use this file for diagnostics checks of person level data. First, we need to attach the file.
 
-```{r, cache=TRUE}
+```{r, cache=FALSE}
 # Attach the file
 attach(npersondata)
 ```
@@ -1312,9 +1324,11 @@ sum(is.na(TRANS)&AGE>15&AGE<998,na.rm=T)
 
 Here wer are checking variables for different types of transit pass.
 
+```{r, cache=FALSE}
+attach(npersondata)
+```
 
 ```{r, cache=TRUE}
-attach(npersondata)
 ##TPTYP1: Type of transit pass (1 to 97;98=DK;99=RF)
 head(TPTYP1)
 summary(TPTYP1[TPTYP1<97])
@@ -1485,8 +1499,10 @@ hist(JOBS[HOURS>99&JOBS<98],xlab=c("How many jobs"),col=c("yellow"))
 The following codes are used to check the location variables of pirmary work place
 
 
-```{r, cache=TRUE}
+```{r, cache=FALSE}
 attach(npersondata)
+```
+```{r, cache=TRUE}
 ## WNAME: Primary work name
 head(WNAME,10)
 summary(WNAME)
@@ -1710,8 +1726,10 @@ sum(is.na(O_INDUS)& INDUS==97)
 #### OCCUP: Occupation (11 to 92;97=other;98=DK;99=RF)
 
 
-```{r, cache=TRUE}
+```{r, cache=FALSE}
 attach(npersondata)
+```
+```{r, cache=TRUE}
 ##OCCUP
 head(OCCUP,10)
 summary(OCCUP[OCCUP<97])
@@ -1768,9 +1786,11 @@ sum(is.na(WDAYS2)&EMPLY==1& JOBS>1&JOBS<6,na.rm=T)
 
 #### DISAB: Disability status (1=yes;2=no;8=DK;9=RF)
 
+```{r, cache=FALSE}
+attach(npersondata)
+```
 
 ```{r, cache=TRUE}
-attach(npersondata)
 ## DISAB
 head(DISAB,10)
 summary(DISAB[DISAB<8])
@@ -1882,10 +1902,11 @@ sum(is.na(TRNSUB)&TTRIP>0)
 
 ```{r, cache=TRUE}
 ##SUBAMT
+SUBAMT <- as.integer(SUBAMT)
 head(SUBAMT,10)
 summary(SUBAMT[SUBAMT<999998])
 sd(SUBAMT[SUBAMT<999998],na.rm=T)
-boxplot(SUBAMT,xlab=c("Subsidized amount"),col=c("orange"))
+boxplot(SUBAMT[SUBAMT<999998],xlab=c("Subsidized amount"),col=c("orange"))
 hist(SUBAMT,xlab=c("Subsidized amount"),col=c("maroon"))
 sum(is.na(SUBAMT)&TRNSUB==1,na.rm=T)
 ```
@@ -2460,7 +2481,8 @@ We check the variables of vehicle data. First we import the vehicle csv file and
 
 ```{r, cache=TRUE}
 # Import the vehicle variables csv file and give a new name
-veh_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/Deliv_VEH.csv", header=TRUE)
+#veh_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/Deliv_VEH.csv", header=TRUE)
+veh_data <- chts_veh
 
 # Dimension of the data file
 dim(veh_data)
@@ -2471,7 +2493,7 @@ names(veh_data)
 
 Now, we attach the vehicle data to check all the variables one by one. 
 
-```{r, cache=TRUE}
+```{r, cache=FALSE}
 # Attach the file
 attach(veh_data)
 ```
@@ -2595,6 +2617,7 @@ VEHNO[is.na(MODEL)]
 
 ```{r, cache=TRUE}
 ## SERIES
+SERIES <- as.integer(SERIES)
 head(SERIES,10)
 summary(SERIES[SERIES<999997])
 boxplot(SERIES,xlab=c("SERIES"))
@@ -2986,9 +3009,13 @@ We follow the same steps we followed for other two data set: first we need to sa
 
 ```{r, cache=TRUE}
 #Import the place level variables csv file and give a new name
-place_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_place.csv", header=TRUE)
+#place_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_place.csv", header=TRUE)
+place_data <- chts_pla
+
 #Import the lookup variable csv file and give a new name (containing x, y coordinate data)
-lookup_place <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_place.csv", header=TRUE)
+#lookup_place <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_place.csv", header=TRUE)
+lookup_place <- chts_lu_pla
+
 # Check the dimension and names of the variables
 dim(place_data)
 dim(lookup_place)
@@ -3021,7 +3048,7 @@ dim(nplace_data)
 names(nplace_data)
 
 #rename the added variables
-names(nplace_data) [c(46,47,48,51,52,54)]<-c("PNAME","CITY","ZIP","CTFIP","TRACT","PPrimaryCity")
+names(nplace_data) [c(47,48,49,52,53,55)]<-c("PNAME","CITY","ZIP","CTFIP","TRACT","PPrimaryCity")
 
 #names
 names(nplace_data)
@@ -3031,7 +3058,7 @@ names(nplace_data)
 Now we have new place level file which contains location variables from lookup file (contain x-y coordinates). We use this file for checking all the place level variables. To do this first we need to attach the file. 
 
 
-```{r, cache=TRUE}
+```{r, cache=FALSE}
 # Attach the file
 attach(nplace_data)
 ```
@@ -3041,7 +3068,7 @@ Here, we sort the data by sample number.
 ```{r, cache=TRUE}
 # SAMPN: Sample number
 # Sorting data by sample number
-nplace_data<-nplace_data[order(SAMPN),]
+nplace_data<-nplace_data[order(SAMPN),] 
 ```
 
 We check all the place level variables one by one by using following codes.
@@ -3257,6 +3284,7 @@ boxplot(PAYPK,xlab=c("PAYPK"))
 
 ```{r, cache=TRUE}
 ## PKAMT
+PKAMT <- as.integer(PKAMT)
 head(PKAMT,10)
 summary(PKAMT[PKAMT<999])
 sd(PKAMT[PKAMT<9998],na.rm=T)
@@ -3304,6 +3332,7 @@ sum(is.na(O_PRKHW)&PRKHW==7)
 
 ```{r, cache=TRUE}
 ## EMPARK
+EMPARK <- as.integer(EMPARK)
 head(EMPARK,10)
 summary(EMPARK[EMPARK<998])
 boxplot(EMPARK,xlab=c("EMPARK"))
@@ -3456,8 +3485,8 @@ SAMPN[ACTDUR>15000]
 We use following codes to check the origin and destination location variables.
 
 ```{r, cache=TRUE}
-## PNAME: Place Name 
-head(PNAME,10)
+attach(nplace_data)
+head(PNAME,10) 
 sum(is.na(PNAME))
 SAMPN[is.na(PNAME)]
 
@@ -3629,7 +3658,9 @@ Here we check the variables of activity data. First we import the activity csv f
 
 ```{r, cache=TRUE}
 #Import the activity level variables csv file and give a new name
-activity_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_activity.csv", header=TRUE)
+#activity_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_activity.csv", header=TRUE)
+activity_data <- chts_act
+
 
 # Dimension of the data file
 dim(activity_data)
@@ -3640,7 +3671,7 @@ names(activity_data)
 
 Before start checking variables, we need to attach the file.
 
-```{r, cache=TRUE}
+```{r, cache=FALSE}
 # Attach the file
 attach(activity_data)
 ```
@@ -3937,10 +3968,12 @@ Same way as previous, we first need to save long distance file and look up file 
 
 ```{r, cache=TRUE}
 #Import the long distance  variables csv file and give a new name
-LD_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/Deliv_LD.csv", header=TRUE)
+#LD_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/Deliv_LD.csv", header=TRUE)
+LD_data <- chts_ld
 
 #Import the lookup variable csv file and give a new name (containing x, y coordinate data)
-lookup_LD <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_LD.csv", header=TRUE)
+#lookup_LD <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_LD.csv", header=TRUE)
+lookup_LD <- chts_lu_ld
 
 # Dimension of the data file
 dim(LD_data)
@@ -3985,7 +4018,7 @@ names(nLD_data)
 Now we have a new merged file which we need to attach and sort based on sample number.
 
 
-```{r, cache=TRUE}
+```{r, cache=FALSE}
 # Attach the file
 attach(nLD_data)
 
@@ -4029,7 +4062,7 @@ sum(is.na(LDDAT))
 The following variables are related with long distance trip origin location. We check them by using following codes. 
 
 
-```{r, cache=TRUE}
+```{r, cache=FALSE}
 attach(nLD_data)
 ## LDORG: Origin;(1 to 4;7=other;8=DK;9=RF)
 head(LDORG)
@@ -4334,6 +4367,7 @@ We use following codes to check long distance origin and destination location va
 
 ```{r, cache=TRUE}
 ## LDOCTFIP
+LDOCTFIP <- as.integer(LDOCTFIP)
 head(LDOCTFIP,10)
 summary(LDOCTFIP)
 boxplot(LDOCTFIP,xlab=c("LDARMODE2"))
@@ -4353,7 +4387,8 @@ sum(is.na(LDOCTRACT))
 
 ```{r, cache=TRUE}
 ## LDDCTFIP
-head(LDOCTFIP,10)
+LDDCTFIP <- as.integer(LDDCTFIP)
+head(LDDCTFIP,10)
 summary(LDDCTFIP[LDDCTFIP<99])
 sum(is.na(LDDCTFIP))
 

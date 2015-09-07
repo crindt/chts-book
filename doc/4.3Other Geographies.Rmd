@@ -31,12 +31,19 @@ The following commands are used to generate person weight for City of Los Angele
 First we set the working directory. Then we need to import the person data file and corresponding lookup file (containing location information) and then we merge them.
 
 ```{r,cache=TRUE}
+rd <- "/home/crindt/chts-book"
+p <- function(ps) { return(paste(rd,ps,sep="/")) }
+
 # Set the working directory
-setwd("~/Suman_research/Caltrans Project/Weight/LA_Weight")
+setwd(p("Weight/LA_Weight"))
 # Import the person level variables csv file and give a new name
-persondata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_per.csv", header=TRUE)
+library(chts2011)
+library(chts2011pvt)
+#persondata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_per.csv", header=TRUE)
+persondata <- chts_per
 # Import the lookup variable csv file and give a new name (containing x, y coordinate data)
-lookup_hh <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_hh.csv", header=TRUE)
+#lookup_hh <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_hh.csv", header=TRUE)
+lookup_hh <- chts_lu_hh
 # Merging two data set to get the county information
 perdata2<-merge(persondata,lookup_hh, by ="SAMPN", all = TRUE)
 # Names of the new merged file
@@ -109,31 +116,31 @@ First we import race variable for City of LA.
 
 ```{r,cache=TRUE}
 #Import the LA city population data of raking variables 
-race.data_LA <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/LA_Weight/Raking variables/race_LA.csv", header=TRUE)
+race.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/race_LA.csv"), header=TRUE)
 race.data_LA
 ```
 
 Next, we import hispanic variable for the City of LA.
 
 ```{r,cache=TRUE}
-hisp.data_LA<- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/LA_Weight/Raking variables/hisp_LA.csv", header=TRUE)
+hisp.data_LA<- read.csv(p("Weight/LA_Weight/Raking variables/hisp_LA.csv"), header=TRUE)
 hisp.data_LA
 ```
 
 Then, we import age variable.
 
 ```{r,cache=TRUE}
-age.data_LA <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/LA_Weight/Raking variables/age_LA.csv", header=TRUE)
+age.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/age_LA.csv"), header=TRUE)
 age.data_LA
 ```
 
 Finally, we import geneder and employment status variable.
 
 ```{r,cache=TRUE}
-gend.data_LA <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/LA_Weight/Raking variables/gend_LA.csv", header=TRUE)
+gend.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/gend_LA.csv"), header=TRUE)
 gend.data_LA
 
-emply.data_LA <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/LA_Weight/Raking variables/emply_LA.csv", header=TRUE)
+emply.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/emply_LA.csv"), header=TRUE)
 emply.data_LA
 ```
 
@@ -239,7 +246,7 @@ Now we need to calculate the new final trip weight using the new person weight o
 
 ```{r,cache=TRUE}
 #Import the place level data  csv file and give a new name
-nplacedata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/NewWeightData/nplacedata.csv", header=TRUE)
+nplacedata <- read.csv(p("Weight/NewWeightData/nplacedata932015.csv"), header=TRUE)
 
 # Merge with LA weight
 nplacedata_LA<-merge(nplacedata,perweight_LA, by =c("SAMPN","PERNO"), all = TRUE)

@@ -32,11 +32,18 @@ First we need to import the person data file and corresponding lookup file (cont
 
 ```{r,cache=TRUE}
 # Set the working directory
-setwd("~/Suman_research/Caltrans Project/Weight/HHWeight_County")
+rd <- "/home/crindt/chts-book"
+p <- function(ps) { return(paste(rd,ps,sep="/")) }
+
+setwd(p("Weight/HHWeight_County"))
 #Import the household level variables csv file and give a new name
-hhdata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_hh.csv", header=TRUE)
+library(chts2011)
+library(chts2011pvt)
+#hhdata <- read.csv(p("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_hh.csv", header=TRUE)
+hhdata <- chts_hh
 #Import the lookup variable csv file and give a new name (containing zipcode information)
-lookup_hh <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_hh.csv", header=TRUE)
+#lookup_hh <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_hh.csv", header=TRUE)
+lookup_hh <- chts_lu_hh
 #Merging two data set and giving a new name
 hhdata2<-merge(hhdata,lookup_hh, by ="SAMPN", all = TRUE)
 # Subset the dataset (excluding the duplicate variables)
@@ -44,6 +51,11 @@ nhhdata<-subset(hhdata2,select=-c(HCITY.x,HZIP.x,HXCORD.x,HYCORD.x,HPrimaryCity.
 # Rename the new added variables
 names(nhhdata)[c(76,77,78,79,83)]<-c("HCITY","HZIP","HXCORD","HYCORD","HPrimaryCity")
 names(nhhdata)
+```
+
+Next, we standardize the HCTFIP value to be an integer.
+```{r}
+nhhdata$HCTFIP <- as.integer(nhhdata$HCTFIP) %% 1000
 ```
 
 Now we have new merged file which is used to generate new household weight. We need to recode the raking variables to make them similar to the census data (Here we are using American Community Survey, 2010 five year estimate data). 
@@ -103,7 +115,7 @@ We need county wide total household data which we collect from census and save i
 ```{r,cache=TRUE}
 # Assgin county wide total household into nhhdata file
 #Import the county wide total hosuehold csv file and give a new name
-tot.hh <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/Total/county_tothh2.csv", header=TRUE)
+tot.hh <- read.csv(p("Weight/Data_County/Total/county_tothh2.csv"), header=TRUE)
 # Merging two data set
 hhdata3<-merge(nhhdata,tot.hh, by ="HCTFIP", all = TRUE)
 names(hhdata3)
@@ -127,7 +139,7 @@ First, we do it for Household size variable.
 
 ```{r,cache=TRUE}
 # Household size data
-hhsize.county <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/County_HH/HHsize/hhsize.csv", header=TRUE)
+hhsize.county <- read.csv(p("Weight/Data_County/County_HH/HHSize/hhsize.csv"), header=TRUE)
 head(hhsize.county)
 # Generate a list of seperate datafrmaes containing household size variable for each county
 hhsize.county$id <- 1:nrow(hhsize.county)
@@ -142,7 +154,7 @@ Here, we import the Household income variable.
 
 ```{r,cache=TRUE}
 # Income
-hhincome.county <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/County_HH/Income/hhincome.csv", header=TRUE)
+hhincome.county <- read.csv(p("Weight/Data_County/County_HH/Income/hhincome.csv"), header=TRUE)
 head(hhincome.county)
 hhincome.county$id <- 1:nrow(hhincome.county)
 hhincome.data <- lapply(split(hhincome.county, hhincome.county$id), function(x){data.frame(INCOME = c(1:6),  Freq  = c(x$INC1, x$INC2,x$INC3,x$INC4,x$INC5,x$INC6))                                                             
@@ -155,7 +167,7 @@ Then, we repeat the process for number of household vehicles variable.
 
 ```{r,cache=TRUE}
 ## Number of vehicles data
-hhveh.county <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/County_HH/HHVeh/hhvehicle.csv", header=TRUE)
+hhveh.county <- read.csv(p("Weight/Data_County/County_HH/HHVeh/hhvehicle.csv"), header=TRUE)
 head(hhveh.county)
 hhveh.county$id <- 1:nrow(hhveh.county)
 hhveh.data <- lapply(split(hhveh.county, hhveh.county$id), function(x){data.frame(HHVEHC = c(0:3),  Freq  = c(x$Veh0, x$Veh1,x$Veh2,x$Veh3))                                                             
@@ -168,7 +180,7 @@ Finally, we import nubmer of household number of workers.
 
 ```{r,cache=TRUE}
 ## Number of workers
-hhwrk.county <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Weight/Data_County/County_HH/Worker/hhworkers.csv", header=TRUE)
+hhwrk.county <- read.csv(p("Weight/Data_County/County_HH/Worker/hhworkers.csv"), header=TRUE)
 head(hhwrk.county)
 hhwrk.county$id <- 1:nrow(hhwrk.county)
 hhwrk.data <- lapply(split(hhwrk.county, hhwrk.county$id), function(x){data.frame(HHWRK = c(0:3),  Freq  = c(x$W0, x$W1,x$W2,x$W3))                                                             
@@ -181,7 +193,7 @@ Here we want to set the directory where we want to save our output.
 
 ```{r,cache=TRUE}
 # Set directory where we want to save
-setwd("~/Suman_research/Caltrans Project/Weight/HHWeight_County")
+setwd(p("Weight/HHWeight_County"))
 ```
 
 
@@ -239,9 +251,9 @@ There is no error now. So, we have expanded household weights for all 58 countie
 
 ```{r,cache=TRUE}
 # Import multiple csv file of new weight and combine into one file
-setwd("~/Suman_research/Caltrans Project/Weight/HHWeight_County")
+setwd(p("Weight/HHWeight_County"))
 # Import the files
-filenames <- list.files(path = "~/Suman_research/Caltrans Project/Weight/HHWeight_County")
+filenames <- list.files(path = p("Weight/HHWeight_County"))
 # combined the files into one
 nhhweight<-do.call("rbind", lapply(filenames, read.csv, header = TRUE)) 
 head(nhhweight)
@@ -285,7 +297,7 @@ Now we have a file with new county wide expaned and unexpanded household weights
 
 ```{r,cache=TRUE}
 # Save 
-setwd("~/Suman_research/Caltrans Project/Weight/NewWeightData")
+setwd(p("Weight/NewWeightData"))
 write.csv(nhhweight2, file="nhhweight922015.csv",row.names = FALSE) # save as csv
 ```
 
@@ -304,7 +316,7 @@ As we mentioned earlier we want check whether the new weights represent the tota
 
 ```{r,cache=TRUE}
 # Random Check
-setwd("~/Suman_research/Caltrans Project/Weight/Check")
+setwd(p("Weight/Check"))
 # We do it for Alameda county (FIP code=1)
 hhdata_01<-subset(nhhdataw,HCTFIP==1)
 head(hhdata_01$HCTFIP)
