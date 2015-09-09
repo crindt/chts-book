@@ -9,7 +9,7 @@ output: html_document
 
 ```{r echo=FALSE}
 #rd <- gsub("(.*?chts-analysis).*","\\1",getwd())
-if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
+if ( !exists("rd") ) { rd <- "/Users/crindt/chts-book" }
 ```
 
 ```{r recreating-2001-tables-setup,cache=FALSE,echo=TRUE}
@@ -102,11 +102,14 @@ adat[['Full-Time/Part-Time Employees']] <-
   sum(chts_hh$HHEMP*chts_hh$EXPHHWGT)
 ```
 
+Licensed drivers is computed similarly from the `HHLIC` variable.
 
 ```{r table-a-4}
 adat[['Licensed Drivers']] <-
   sum(chts_hh$HHLIC*chts_hh$EXPHHWGT)
 ```
+
+Occupied housing units is simply the sum of all households.
 
 ```{r table-a-5}
 # Occupied Housing Units (Household) 11,502,866
@@ -156,7 +159,7 @@ within that category range to determine the median.
 
 ```{r table-a-8}
 # Median Household Income $47,865
-require(isotone) # for weighted median function
+suppressMessages(require(isotone)) # for weighted median function
 median.category <- weighted.median(chts_hh$INCOM,chts_hh$EXPHHWGT)
 # Get the upper and lower bound of this range
 catvals <- assign_factors(c(median.category),'hh','INCOM')
@@ -182,6 +185,9 @@ hhmedian <- kappa*(2^(1/theta))
 adat[['Median Household Income']] <- hhmedian
 ```
 
+To determine the persons per household, we compute the weighted mean of household size (`HHSIZ`)
+using statewide expansion weights.
+
 ```{r table-a-9}
 require(Hmisc)
 # Persons Per Household 2.8
@@ -189,17 +195,24 @@ adat[['Persons per Household']] <-
   round(wtd.mean(chts_hh$HHSIZ,weights=chts_hh$EXPHHWGT),1)
 ```
 
+We take a similar approach for vehicles per household, taking the weighted mean of the
+`HHVEH` variable.
+
 ```{r table-a-10}
 # Vehicles Per Household 1.9
 adat[['Vehicles per Household']] <-
   round(wtd.mean(chts_hh$HHVEH,weights=chts_hh$EXPHHWGT),1)
 ```
 
+For employees per household, we find the weighted mean of `HHEMP`.
+
 ```{r table-a-11}
 # Full/Part-Time Employees Per Household 1.2
 adat[['Full/Part-Time Employees Per Household']] <-
   round(wtd.mean(chts_hh$HHEMP,weights=chts_hh$EXPHHWGT),1)
 ```
+
+And, finally, for licensed drivers per household, we compute the weighted mean of `HHLIC`.
 
 ```{r table-a-12}
 # Licensed Drivers Per Household 1.7
@@ -220,9 +233,17 @@ pandoc.table(tab,
              caption="Household Information")
 ```
 
-```{r table-a_2,results='asis',cache=FALSE}
-suppressMessages(require(Hmisc))
+To determine household vehicle availability, we transform the `HHVEH` variable to be 0, 1, 2, and 3+
+
+```{r table-a_2}
 vd <- chts_hh %>% transmute(HHVEHg=ifelse(HHVEH>2,3,HHVEH),EXPHHWGT)
+```
+
+Then, we use the `wtd.table` function from the `Hmisc` package to generate a weighted frequency
+table from that transformed data.
+
+```{r table-a_2b,results='asis',cache=FALSE}
+suppressMessages(require(Hmisc))
 tab <- t(t(wtd.table(vd$HHVEHg,weights=vd$EXPHHWGT)$sum.of.weights))
 tab[,1] <- paste(round(100*tab[,1]/sum(tab[,1]),0),'%',sep='')
 colnames(tab) <- c('Household Vehicle Availability')
@@ -248,7 +269,7 @@ Now we have the necessary weights.  Let's read in the linked trips and join the
 appropriate trips to people sampled on weekdays.
 
 ```{r setup-linked-trips}
-ltf2 <- chts_lt
+ltf2 <- chts_lt %>% filter(!is.na(ltmode))
 lt.wd <- chts_per.wgt.wd %>% filter(WD==1) %>% # grab weekday travelers
   select(SAMPN,PERNO,WD,NEXPPERWDWGT,NPERWDWGT) %>%  # select what we want
   left_join(ltf2,by=c('SAMPN','PERNO')) %>%  # join on the linked trips
@@ -348,7 +369,7 @@ pandoc.table(
               
 
 ```{r table-b-setup,echo=FALSE}
-require(lazyeval)
+suppressMessages(require(lazyeval))
 modetab <- modetab %>% mutate(
   filt=gsub(" & $","",paste(modefilt,otherfilt,sep=" & "))
   )
