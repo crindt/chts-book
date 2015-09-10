@@ -3,6 +3,7 @@ title: "6.8 Travel Statistics along the SR-17 Corridor"
 author: "Suman Mitra"
 date: "September 4, 2015"
 output:
+  html_document: default
   pdf_document:
     highlight: tango
 ---
@@ -19,7 +20,7 @@ The following commands are used to generate the results.
 To answer the questions we need the place file with new county wide person weight that we computed in the section 4.1.
 
 ```{r sr17-0,echo=FALSE}
-if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
+if ( !exists("rd") ) { rd <- "/Users/crindt/chts-book" }
 p <- function(ps) { return(paste(rd,ps,sep="/")) }
 source(p("R/setup-hooks.R"))
 ```

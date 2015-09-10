@@ -2,7 +2,7 @@
 title: "6.7 Travel Statistics along the SR-1 Corridor"
 author: "Suman Mitra"
 date: "September 4, 2015"
-output: html_document
+output: pdf_document
 ---
 
 ## Summary and Methodology
