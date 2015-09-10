@@ -3,6 +3,11 @@ title: "2012 California Household Travel Survey Data Analysis"
 author: "Craig Rindt"
 date: "09/07/2015"
 output:
+  html_document:
+    fig_caption: yes
+    highlight: tango
+    number_sections: yes
+    toc: yes
   pdf_document:
     highlight: tango
     keep_tex: yes
@@ -12,7 +17,7 @@ output:
 ---
 
 ```{r setup,echo=FALSE,cache=FALSE}
-rd <- '/home/crindt/chts-book'
+if ( !exists('rd') ) { rd <- '/Users/crindt/chts-book'}
 source(paste(rd,'R/setup-hooks.R',sep="/"))
 ```
 
