@@ -2,7 +2,13 @@
 title: "How to create the linked trip table"
 author: "Craig Rindt"
 date: "07/20/2015"
-output: html_document
+output: 
+  html_document: 
+    highlight: tango
+    number_sections: yes
+    theme: journal
+    toc: yes
+    toc_depth: 6
 ---
 
 ### Introduction
@@ -969,7 +975,7 @@ pandoc.table(oo,caption="Other to Other",
 
 
 
-## Bringing it all together
+### Bringing it all together
 
 We how have data frames tagging the linked trips, the linked trip
 modes, origins, and destinations.  The next step is to join them all
@@ -1171,7 +1177,7 @@ chts_pla %>% filter(SAMPN==testhh2 & PLANO<7) %>% select(PLANO,ARR_HR,ARR_MIN,DE
 Finally, let's write the table, omitting the private coordinates, but
 keeping the sameod flag.
 
-```{r write-csv-table, echo=TRUE, cache=FALSE}
+```{r write-csv-table, echo=TRUE, cache=TRUE}
 chts_lt <- select(ltf3, -oXCORD,-oYCORD,-dXCORD,-dYCORD)
 #save(chts_lt,file=paste(rd,'linked-trips/chts_lt.rda',sep="/"))
 #save(chts_lu_lt,file=paste(rd,'linked-trips/chts_lu_lt.rda',sep="/"))
