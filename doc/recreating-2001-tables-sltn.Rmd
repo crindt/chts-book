@@ -939,7 +939,7 @@ pandoc.table(res11,
                style='multiline')
 ```
 
-### TABLE 13a: WEEKDAY PERSON AND DRIVER TRIPS PER HOUSEHOLD
+## TABLE 13a: WEEKDAY PERSON AND DRIVER TRIPS PER HOUSEHOLD
 
 ```{r table13a}
 # By Region, Household Size, Housing Unit Type

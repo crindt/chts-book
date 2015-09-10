@@ -7,21 +7,21 @@ output: html_document
 
 ## Summary and Methodology
 
-This section presents summary statistics for the 2010-2012 California Household Travel Survey (2012 CHTS) compared with common variables from the 2000-2001 California Household Travel Survey (2001 CHTS), when possible. The 2012 CHTS is comprised of six main datasets and four additional datasets with location data (x-y coordinates); the latter were merged with the corresponding main datasets to check for compatibility. Merging did not create any problem, and resulted only in two minor discrepancies. First, when we merged the person-level dataset with the corresponding x-y coordinates dataset, one observation did not match in the person dataset. Second, 5 observations did not match when we merged the place dataset with the corresponding x-y coordinates dataset. We checked each variable from all datasets. We generated simple summary statistics for all variables and also generate boxplots and histograms for selected variables.
+This section explains how to generate summary statistics for the 2010-2012 California Household Travel Survey (2012 CHTS) and how to compare them with common variables from the 2000-2001 California Household Travel Survey (2001 CHTS). The 2012 CHTS is comprised of six main datasets and four additional datasets with location data (x-y coordinates); the latter were merged with the corresponding main datasets to check for compatibility. Merging did not create any problem, and resulted only in two minor discrepancies. First, when we merged the person-level dataset with the corresponding x-y coordinates dataset, one observation did not match in the person dataset. Second, 5 observations did not match when we merged the place dataset with the corresponding x-y coordinates dataset. We checked each variable from all datasets. To do so, we generated simple summary statistics for all variables plus boxplots and histograms for selected variables.
 
-Overall, data quality is good.  Key statistics of variables and graphical checks did not reveal any major flaws. We also did not find major departures in the summary statistics compared to 2001 CHTS data.
+Overall, data quality is good.  Key statistics of variables and graphical checks did not reveal any major flaws. We also did not find major departures in the summary statistics compared to the 2001 CHTS data.
 
-The merged household dataset has 42,431 observations and 83 variables; summary statistics and boxplots and histograms for selected variables of household database show a few minor problems. First, the maximum value of HTRIPS ("Number of household trips on travel day") seems high (it is 99 for the 2012 CHTS versus 54 for the 2001 CHTS). Second, the number of observations for HHNOVs ("Reasons for not possessing a vehicle") and for the number observations without a vehicle should be equal but a cross-check shows that there are 649 missing values in HHNOVs. We also found that there are 25 cases for LDPER1 ("HH members who completed their long distance travel log") where long distance logs should have been completed but are not available.
+The merged household dataset for the 2012 CHTS has 42,431 observations and 83 variables. Summary statistics, boxplots and histograms for selected household variables suggest a few minor problems. First, the maximum value of HTRIPS ("Number of household trips on travel day") seems high (it is 99 for the 2012 CHTS versus 54 for the 2001 CHTS). Second, the number of observations for HHNOVs ("Reasons for not possessing a vehicle") and for the number of households without a vehicle should be equal but a cross-check shows that there are 649 missing values in HHNOVs. We also found that there are 25 cases for LDPER1 ("HH members who completed their long distance travel log") where long distance logs should have been completed but are not available.
 
-Then we analyze person variables. The merged person dataset has 149 variables and 109,113 observations.  Two observations were found with data for AGEB ("Age if refused"), which we understand were supposed to be empty.  Moreover, TOLLF ("Did you use a toll?") and SLOC ("Home school") have 221 and 18 missing values respectively. A few other variables have missing values (number of values in parenthesis), including "Relationship to head of household" (1), "Gender" (1), "Hispanic or Latino" (1), "Ethnicity or race" (6), "Nativity" (1), "Toll pass" (1), "Car sharing" (1), "Employed" (1), "Disability type" (4), "Transit trips used in the past week" (1), "Walk in the last week" (1), "Online school" (1), "Pre-school location" (2), and "Level of education completed" (1). Summary statistics are presented in Table 2, which is followed by graphical illustrations of selected variables.
+After the household dataset, we analyze person variables. The merged person dataset has 149 variables and 109,113 observations.  Two observations have data for AGEB ("Age if refused") even though we understand they were not supposed to.  Moreover, TOLLF ("Did you use a toll?") and SLOC ("Home school") have 221 and 18 missing values respectively. A few other variables have missing values (number of values in parenthesis), including "Relationship to head of household" (1), "Gender" (1), "Hispanic or Latino" (1), "Ethnicity or race" (6), "Nativity" (1), "Toll pass" (1), "Car sharing" (1), "Employed" (1), "Disability type" (4), "Transit trips used in the past week" (1), "Walk in the last week" (1), "Online school" (1), "Pre-school location" (2), and "Level of education completed" (1). Summary statistics are presented in Table 2, which is followed by graphical illustrations of selected variables.
 
-We then consider vehicle data. The vehicle dataset has 79,011 observations and 36 variables. Apart from missing values, there is no problem with this dataset: we found 49 missing values in VEHTRN ("Vehicle transmission"), VEHDRT ("Power train, other") and VEHCYL ("Cylinders"). Moreover, FUELT1 ("Fuel type 1") has 15 missing values, and finally "Vehicle model" and "Series" are missing 1 and 2 values respectively. 
+We then consider vehicle data. The vehicle dataset has 79,011 observations and 36 variables. Apart from missing values, there is no problem with this dataset: there are 49 missing values in VEHTRN ("Vehicle transmission"), VEHDRT ("Power train, other") and VEHCYL ("Cylinders"). Moreover, FUELT1 ("Fuel type 1") has 15 missing values, and finally "Vehicle model" and "Series" are missing 1 and 2 values respectively. 
 
 The place level dataset has 460,528 observations and 56 variables. In this dataset, the minimum value for NONHH ("Number of non-household members on trip") is negative, which is not possible. Moreover, oXCORD, oYCORD, dXCORD and dYCORD are not labelled in the original file; we assume that they contain x-y coordinates of origin and destination places, respectively. In this dataset, the "STATE" variable has 728 missing values; moreover, "ROUTE" (Transit route), "PNAME" (Place name) and "CITY" have 1, 1, and 3 missing values, respectively. There is no substantial difference in key statistics between the 2012 CHTS and the 2001 CHTS for common place variables.
 
-The activity level dataset has 604, 711 observations and 22 variables. Activity variables have no missing values. We note, however, that ACTWK ("Number of people for your work in the activity"), ACTSH ("Number of people for your school"), ACTRG ("Number of people from same region/social org"), ACTFR ("Number of friends"), and ACTOT ("Number of other relations") have similar values, which is unexpected. 
+The activity level dataset has 604,711 observations and 22 variables. Activity variables have no missing values. We note, however, that ACTWK ("Number of people for your work in the activity"), ACTSH ("Number of people for your school"), ACTRG ("Number of people from same region/social org"), ACTFR ("Number of friends"), and ACTOT ("Number of other relations") have similar values, which is unexpected. 
 
-Finally,  we analyze long distance travel variables. The merged dataset has 68,193 observations and 59 variables. Since there are no long distance data in the 2001 CHTS, comparison was not possible. We note 625 missing values for LDOST ("Origin State") and 809 missing values for LDDST ("Destination state"). Both LDPNM ("Origin place name") and LDOCTFIP ("Long distance trip origin location county FIP Code 2010") have one missing value. We found no other concern with long distance variables.
+Finally,  we analyze long distance travel variables. The merged dataset has 68,193 observations and 59 variables. Since there are no long distance data in the 2001 CHTS, comparison is not possible. We note 625 missing values for LDOST ("Origin State") and 809 missing values for LDDST ("Destination state"). Both LDPNM ("Origin place name") and LDOCTFIP ("Long distance trip origin location county FIP Code 2010") have one missing value. We find no other concern with long distance variables.
 
 
 
@@ -32,7 +32,7 @@ The following commands are used for diagnostics checks of the CHTS.
 
 ### Household Data
 
-We first import the household data and corresponding look up data (contain x-y coordinates). Before doing this, we need to save the household and look up file manually as 'csv' format and keep them in our desired location. We import those files from that location and merge them.
+We first import the household data and corresponding look up data (that contain x-y coordinates). Before doing this, we need to save the household and look up file manually in 'csv' format and keep them in our desired location. We import those files from that location and merge them.
 
 ```{r,echo=FALSE}
 if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
@@ -45,11 +45,11 @@ library(chts2011pvt)
 #hhdata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_hh.csv", header=TRUE)
 hhdata <- chts_hh
 
-#Import the lookup variable csv file and give a new name (containing x, y coordinate data)
+#Import the lookup variable csv file and rename it (it contains x, y coordinate data)
 #lookup_hh <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_hh.csv", header=TRUE)
 lookup_hh <- chts_lu_hh
 
-#Merging two data set
+#Merge the two data sets
 hhdata1<-merge(hhdata,lookup_hh, by ="SAMPN", all = TRUE)
 
 #Names of the variables in the new dataset
@@ -61,7 +61,7 @@ dim(lookup_hh)
 dim(hhdata1)
 ```
 
-We have a merged file now, but we need to clean it by deleting the duplicate variables. 
+We have a merged file now, but we need to clean it by deleting duplicates
 
 ```{r diag-1, cache=TRUE}
 # Subset the dataset (excluding the duplicate variables)
@@ -81,7 +81,7 @@ names(nhhdata)
 ```
 
 
-Now we have a new merged file and we use this file for diagnostics checks of household level data. We check variables of household data one by one starting with the sample number.
+Now we have a new merged file that we use for diagnostics checks of the household data. We check variables one by one starting with the sample number.
 
 ```{r diag-2, cache=FALSE}
 # Attach the file
@@ -108,9 +108,9 @@ boxplot(SAMPN)
 
 
 ```{r diag-4, cache=TRUE}
-### Show the first 10 observations (if you want to see more put that number in place of 10)
+### Show the first 10 observations
 head (RECMODE,10)
-###Summarize of the variable
+###Summarize the variable
 summary(RECMODE)
 sd(RECMODE)
 ### Create graph
@@ -125,7 +125,7 @@ sum(is.na(RECMODE))
 
 ```
 
-We repeat the same procedure for rest of the variables of household data.
+We repeat the same procedure for the other household variables
 
 
 #### RETMODE: Retrieval mode (1=CATI;2=CAWI;3=Mail back)
@@ -287,7 +287,8 @@ sum(is.na(GFLAG)&GTYPE==1)
 
 
 
-#### RIBUS: Transit use at least once per week (1=yes;2=No;8=DK;9=RF)
+#### RIBUS: Transit use at least once a week (1=yes;2=No;8=DK;9=RF)
+
 
 ```{r diag-15, cache=FALSE}
 attach(nhhdata)
@@ -299,7 +300,7 @@ head (RIBUS,10)
 summary (RIBUS[RIBUS<8])
 sd(RIBUS)
 # Boxplot
-boxplot(RIBUS[RIBUS<8],xlab=c("Transit use at least once per week"),col=c("gold"))
+boxplot(RIBUS[RIBUS<8],xlab=c("Transit use at least once a week"),col=c("gold"))
 # Histogram
 hist(RIBUS[RIBUS<8],breaks=c(0,1,2),xlab=c("1=Yes;2=No;8=DK;9=RF"),xaxt="n",ylim=c(0,35000),col=c("green"))
 axis(1,xaxp=c(1,2,1),las=2)
@@ -347,7 +348,7 @@ sum(is.na(HHBIC))
 sum(HHBIC=="")
 ```
 
-Here, we are checking number of observations with higher number of household vehicles
+Here, we check observations with many household vehicles
 
 ```{r diag-19, cache=TRUE}
 ### Check the number of observations with HHBIC>=10
@@ -374,7 +375,7 @@ sum(VEHNEW=="")
 
 #### BUYER:(1 to 9 and 98=DK;99=RF)
 
-There are 8 BUYER variables. The following codes are used to check all the BUYER varaibles. 
+There are 8 BUYER variables. The following codes are used to check all the BUYER variables. 
 
 ```{r diag-21, cache=TRUE}
 ## BUYER1
@@ -384,7 +385,7 @@ sd(BUYER1,na.rm=T)
 boxplot(BUYER1, xlab=c("BUYER1"))
 ```
 
-We know that there should be no observations for BUYER variables if VEHNEW==2 and we cross check this by using following codes. 
+We know that there should be no observations for BUYER variables if VEHNEW==2 and we cross check this 
  
 ```{r diag-22, cache=TRUE}
 ### Cross check the data 
@@ -469,7 +470,7 @@ head(O_RESTY,10)
 summary(O_RESTY)
 ```
 
-We know from the CHTS report (see appendix) that there should be no observaiton in O_RESTY variable when RESTY is not 97 (others). We check this by using following codes.
+We know from the CHTS report (see appendix) that there should be no observation in O_RESTY when RESTY is not 97 (others). Let us check it:
 
 ```{r diag-25, cache=TRUE}
 ### Check 
@@ -491,7 +492,7 @@ boxplot(OWN,xlab=c("OWN"))
 head(O_OWN,10)
 ```
 
-We also know that there should be no observation in O_own variable when OWN is not 7. The following codes are used to check this.
+We also know that there should be no observation in O_own variable when OWN is not 7. Let us check it:
 
 ```{r diag-27, cache=TRUE}
 ### Check 
@@ -515,7 +516,7 @@ sum(TEN=="")
 ```
 
 
-We know from CHTS data that there should be prvious address information if TEN variable is greater than 6. The following codes are used to check this.
+We know from the CHTS data that there should be previous address information if the TEN variable is greater than 6. Let us check:
 
 ```{r diag-29, cache=TRUE}
 ## PREVCITY
@@ -589,7 +590,7 @@ sum(HHSIZ=="")
 ```
 
 
-We want to check the number of households with household size greater than 5 and mean household size where household trips are more than 30. 
+We check the number of households with a household size greater >5 and the mean household size when household trips >30:
 
 ```{r diag-34, cache=TRUE}
 ### Check HHSIZ>5
@@ -645,10 +646,10 @@ sum(is.na(HHSTU))
 sum(HHSTU=="")
 ```
 
-The household student numbers can't be greater than household size. The following codes are used to check this.
+The number of household students cannot exceed the household size. Let us check it:
 
 ```{r diag-38, cache=TRUE}
-### Check the observations with Number of students>=6 and household size >=6)
+### Check observations with number of students>=6 and household size >=6)
 sum(HHSTU>=6&HHSIZ>=6)
 ###Checke HHSTU>HHSIZ
 sum(HHSTU>HHSIZ)
@@ -670,7 +671,7 @@ sum(is.na(HHLIC))
 sum(HHLIC=="")
 ```
 
-Same as household nubmer of students, HHLIC can't be greater than  household size. We check this in the following codes. 
+As for the nubmer of students in the household, HHLIC can't exceed household size. Let us check it: 
 
 ```{r diag-40, cache=TRUE}
 ###To check whether HHLIC>HHSIZ
@@ -736,7 +737,7 @@ sum(is.na(HTRIPS))
 sum(HTRIPS=="")
 ```
 
-Here, we check the observations with higher number of household trips.
+Here, we check observations with a high number of household trips:
 
 ```{r diag-45, cache=TRUE}
 ###NUmber of household trips>20, >30, >90
@@ -747,7 +748,7 @@ sum(HTRIPS>90)
 SAMPN[HTRIPS>90]
 ```
 
-The following codes are used to check all the home location variables
+Let us now check all the home location variables:
 
 ```{r diag-46, cache=TRUE}
 ## HCITY: Home city
@@ -777,7 +778,7 @@ sum(HXCORD=="")
 ```
 
 
-There are eight variables for HHNOVs variables (reason of no possession of vehicle). The followig codes are used to check all the HHNOVs variables.
+There are eight variables for HHNOVs variables (reason of no possession of vehicle). Let us go through them:
 
 
 ```{r diag-47, cache=TRUE}
@@ -824,35 +825,35 @@ boxplot(HHNOV8,xlab=c("HHNOV8"))
 ```
 
 
-We also check whether there is any missing values for HHNOV variables. The number of observations for HHNOV variables should be equal to the number of households without vehicle. We use following codes to check this. 
+We also check whether there is any missing value in HHNOV variables. The number of observations for HHNOV variables should equal the number of households without vehicles. Let us check: 
 
 
 ```{r diag-48, cache=TRUE}
-### Check the number of husehold without vehicle
+### Check for huseholds without vehicle
 sum(HHVEH==0)
-### Number of observations for HHNOV should be equal to the number of households without vehicle
+### Number of observations for HHNOV should equal the number of households without vehicles
 sum(HHVEH==0&!is.na(HHNOV1)|!is.na(HHNOV2)|!is.na(HHNOV3)|!is.na(HHNOV4)|!is.na(HHNOV5)|!is.na(HHNOV6)|!is.na(HHNOV7)|!is.na(HHNOV8))
 sum(HHVEH==0&is.na(HHNOV1)&is.na(HHNOV2)&is.na(HHNOV3)&is.na(HHNOV4)&is.na(HHNOV5)&is.na(HHNOV6)&is.na(HHNOV7)&is.na(HHNOV8))
-#### Show the missing observations
+#### Show missing observations
 SAMPN[HHVEH==0&is.na(HHNOV1)&is.na(HHNOV2)&is.na(HHNOV3)&is.na(HHNOV4)&is.na(HHNOV5)&is.na(HHNOV6)&is.na(HHNOV7)&is.na(HHNOV8)]
 ```
 
 
-#### VEHOP: Number of operational household vehicle (Range:0-15;98=DK;99=RF)
+#### VEHOP: Number of operational household vehicles (Range:0-15;98=DK;99=RF)
 
 ```{r diag-49, cache=TRUE}
 ## VEHOP
 head(VEHOP,10)
 summary(VEHOP[VEHOP<98])
 sd(VEHOP[VEHOP<98],na.rm=T)
-boxplot(VEHOP[VEHOP<98],xlab=c("Number of operational household vehicle"),col=c("magenta"))
-hist(VEHOP,xlab=c("Number of operational household vehicle"),col=c("sky blue"))
+boxplot(VEHOP[VEHOP<98],xlab=c("Number of operational household vehicles"),col=c("magenta"))
+hist(VEHOP,xlab=c("Number of operational household vehicles"),col=c("sky blue"))
 boxplot(VEHOP,xlab=c("VEHOP"))
 ```
 
 
 
-#### VEHPR: Number of vehicles with power outlet (Range:0-15;98=DK;99=RF)
+#### VEHPR: Number of vehicles with power outlets (Range:0-15;98=DK;99=RF)
 
 
 ```{r diag-50, cache=TRUE}
@@ -860,13 +861,13 @@ boxplot(VEHOP,xlab=c("VEHOP"))
 head(VEHPR,10)
 summary(VEHPR[VEHPR<98])
 sd(VEHPR[VEHPR<98],na.rm=T)
-boxplot(VEHPR[VEHPR<98],xlab=c("Number of vehicles with power outlet"),col=c("lawngreen"))
-hist(VEHPR,xlab=c("Number of vehicles with power outlet"),col=c("lawngreen"))
+boxplot(VEHPR[VEHPR<98],xlab=c("Number of vehicles with power outlets"),col=c("lawngreen"))
+hist(VEHPR,xlab=c("Number of vehicles with power outlets"),col=c("lawngreen"))
 ```
 
 
 
-#### VEDTE:Number of newer vehicles with power outlet (Rangle:0-15)
+#### VEDTE:Number of newer vehicles with power outlets (Rangle:0-15)
 
 
 ```{r diag-51, cache=TRUE}
@@ -874,13 +875,13 @@ hist(VEHPR,xlab=c("Number of vehicles with power outlet"),col=c("lawngreen"))
 head(VEDTE,10)
 summary(VEDTE)
 sd(VEDTE,na.rm=T)
-boxplot(VEDTE,xlab=c("Number of newer vehicles with power outlet"),col=c("lawngreen"))
-hist(VEDTE,xlab=c("Number of newer vehicles with power outlet"),col=c("maroon"))
-### Check whether there is any VEDTE observation without VEHPR>0 and GFLAG=3 (suppose ot be zero))
+boxplot(VEDTE,xlab=c("Number of newer vehicles with power outlets"),col=c("lawngreen"))
+hist(VEDTE,xlab=c("Number of newer vehicles with power outlets"),col=c("maroon"))
+### Check whether there is any VEDTE observation without VEHPR>0 and GFLAG=3 (supposed to be zero))
 sum(!is.na(VEDTE)&!VEHPR>0&!GFLAG==3)
 ```
 
-There are 9 variables related to long distance log completion. We check all these variables using following codes. 
+There are 9 variables related to long distance log completion. Let us check all these variables: 
 
 ```{r diag-52, cache=TRUE}
 ## CMPLD: Complete long distance log (1=yes;2=no;3=did not recieve;8=DK;9=RF)
@@ -958,7 +959,7 @@ summary(LDFlag)
 sd(LDFlag,na.rm=T)
 ```
 
-The long ditance flag should be zero when no trip is reported for long distance. We check this in the following codes. 
+The long distance flag should be zero when no trip is reported for long distance. Let us check it:
 
 ```{r diag-55, cache=TRUE}
 ### Check whether all LD Flag=1 when LDTRP>0
@@ -1043,7 +1044,7 @@ sum(is.na(EXPHHWGT))
 ```
 
 
-We finish diagnostic checks of the household data. Now we need to detach the household file.
+We are done with our diagnostic checks of the household data. Now we need to detach the household file.
 
 
 ```{r diag-62, cache=TRUE}
@@ -1057,14 +1058,14 @@ detach(nhhdata)
 ### Person Data
 
 
-We first save the person data and corresponding look up data (contain x-y coordinates) as 'csv' file. We then import those two files and merge them using following codes. 
+We first save the person data and the corresponding look up data (that contains x-y coordinates) as a 'csv' file. We then import those two files and merge them as follows: 
 
 ```{r diag-63, cache=TRUE}
-#Import the person level variables csv file and give a new name
+#Import the person level variables csv file and rename the file
 #persondata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_per.csv", header=TRUE)
 persondata <- chts_per
 
-#Import the lookup variable csv file and give a new name (containing x, y coordinate data)
+#Import the lookup variable csv file and rename the file (it containing x, y coordinate data)
 #lookup_per <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_per.csv", header=TRUE)
 lookup_per <- chts_lu_per
 
@@ -1072,20 +1073,20 @@ lookup_per <- chts_lu_per
 names(persondata)
 names(lookup_per)
 
-#Merrging two data set
+#Merge the two data sets
 perdata1<-merge(persondata,lookup_per, by =c("SAMPN", "PERNO"), all = TRUE)
 
 #Names of the variables in the new dataset
 names(perdata1)
 ```
 
-There are few duplicate variables and we need to delete those variables from the new data file.
+There are a few duplicate variables that need to be deleted from the new data file.
 
 ```{r diag-64, cache=TRUE}
-# Subset the dataset (excluding the duplicate variables)
+# Subset the dataset (exclude duplicate variables)
 npersondata<-subset(perdata1,select=-c(38,39,41,42,43,44,45,61,63,64,66,67,68,95,96,98, 99,100,101,102,137:146))
 
-#Dimension of new dataset
+#Dimension of the new dataset
 dim(npersondata)
 
 #Names of the variables
@@ -1098,14 +1099,14 @@ names(npersondata)[c(119:146,148,149)]<-c("WNAME","WCITY","WZIP","WXST1","WXST2"
 names(npersondata)
 ```
 
-Now we have a new merged file and we use this file for diagnostics checks of person level data. First, we need to attach the file.
+Now we have a new merged file that we use for diagnostics checks of the person level data. First, we need to attach this file:
 
 ```{r diag-65, cache=FALSE}
 # Attach the file
 attach(npersondata)
 ```
 
-We check the variables of person data one by one starting with the sample number and person number.
+We check the variables one by one starting with sample number and person number:
 
 
 
@@ -1118,20 +1119,20 @@ summary(SAMPN)
 sd(SAMPN)
 #PERNO:Person Number
 head(PERNO,10)
-### Summarize of the variable
+### Summarize the variable
 summary(PERNO)
 sd(PERNO)
 ### Create boxplot  
 boxplot(PERNO,xlab=c("PERNO"))
-### Check missing observations
+### Check for missing observations
 sum(PERNO=="")
 sum(is.na(PERNO))
 ```
 
-We follow the same steps for rest of the variables of person data.
+We follow the same steps for the rest of the person variables:
 
 
-#### RELAT: Relationship to head of house; variable values (1 to 9;99=RF)
+#### RELAT: Relationship to head of household; variable values (1 to 9;99=RF)
 
 
 ```{r diag-67, cache=TRUE}
@@ -1186,7 +1187,7 @@ sd(AGEB,na.rm=T)
 boxplot(AGEB,xlab=c("AGEB"))
 ```
 
-Based on final report and appendix of cHTS there should be no observations where AGE is not equal to 999 or 998. We check this here.
+Based on final report and appendix of CHTS report there should be no observation where AGE is not equal to 999 or 998. Let us check it:
 
 ```{r diag-70, cache=TRUE}
 ### Check for wrong input ( number observations in AGEB = number of observations in AGE=999 and AGE=998)
@@ -1218,7 +1219,7 @@ sum(is.na(HISP))
 #### RACE: Ethnicity or race; (1 to 97;98=DK;99=RF)
 
 
-There are 5 variables for race. The following codes are used to check all of them.
+There are 5 variables for race. Let us check them:
 
 ```{r diag-72, cache=TRUE}
 ##RACE1: Ethnicity or race; (1 to 97;98=DK;99=RF)
@@ -1306,13 +1307,13 @@ sum(is.na(LIC)&AGE>15&AGE<998)
 head(USER,10)
 summary(USER[USER<98])
 sd(USER,na.rm=T)
-boxplot(USER[USER<98],xlab=c("Vehicle driven by respondent "),col=c("gold"))
+boxplot(USER[USER<98],xlab=c("Vehicle driven by respondent"),col=c("gold"))
 hist(USER[USER<98],xlab=c("Vehicle driven by respondent"),ylim=c(0,10000),col=c("green"))
 ```
 
 
 
-#### TRANS: Transit pass;(1=yes;2=no;8=DK;9=RF)
+#### TRANS: Transit pass (1=yes;2=no;8=DK;9=RF)
 
 
 ```{r diag-77, cache=TRUE}
@@ -1325,7 +1326,8 @@ sum(is.na(TRANS)&AGE>15&AGE<998,na.rm=T)
 ```
 
 
-Here wer are checking variables for different types of transit pass.
+Here we check variables for different types of transit pass
+
 
 ```{r diag-78, cache=FALSE}
 attach(npersondata)
@@ -1365,7 +1367,7 @@ head(O_TPTYP)
 sum(is.na(O_TPTYP)&TPTYP1==97)
 ```
 
-Here, we check more transit pass variables.
+Let us now check more transit pass variables:
 
 ```{r diag-80, cache=TRUE}
 ##CLIP1: Type of Clipper Card (1 to 27;98=DK;99=RF)
@@ -1404,7 +1406,7 @@ boxplot(MET,xlab=c("MET"))
 
 
 
-#### PASSTL: Toll Pass; (1=yes;2=no;8=DK;9=RF)
+#### PASSTL: Toll Pass (1=yes;2=no;8=DK;9=RF)
 
 
 ```{r diag-81, cache=TRUE}
@@ -1421,7 +1423,7 @@ PERNO[is.na(PASSTL)&AGE>15&AGE<998]
 
 
 
-#### FLEX: Car Sharing; (1=yes;2=no;8=DK;9=RF)
+#### FLEX: Car Sharing (1=yes;2=no;8=DK;9=RF)
 
 
 ```{r diag-82, cache=TRUE}
@@ -1437,6 +1439,7 @@ PERNO[is.na(FLEX)&AGE>15&AGE<998]
 ```
 
 
+Let us now consider employment status and related variables
 
 #### EMPLY: Employed?(1=yes,2=no,8=DK,9=RF)
 
@@ -1499,7 +1502,7 @@ hist(JOBS[HOURS>99&JOBS<98],xlab=c("How many jobs"),col=c("yellow"))
 ```
 
 
-The following codes are used to check the location variables of pirmary work place
+Let us now check the location variables of the primary work place:
 
 
 ```{r diag-87, cache=FALSE}
@@ -1567,7 +1570,7 @@ hist(WDAY1[WDAY1<98],xlab=c("Work days"),col=c("maroon"))
 ```
 
 
-Now, we generate a pie chart for WDAY1.
+Now, let us generate a pie chart for WDAY1:
 
 
 ```{r diag-91, cache=TRUE}
@@ -1584,7 +1587,7 @@ legend("topright", c("Mon","Tue","Wed","Thu","Fri","Sat","Sun","Mon-Fri","Don't 
 ```
 
 
-The following codes are used to check the rest of the WDAY variables.
+Let us check the rest of the WDAY variables:
 
 ```{r diag-92, cache=TRUE}
 ## WDAY2
@@ -1627,7 +1630,7 @@ hist(WDAY7,xlab=c("WDAY7:Work days"),col=c("gold"))
 
 
 
-#### HOURS: Hours work per week (Range:1-150;998=DK;999=RF)
+#### HOURS: Hours worked per week (Range:1-150;998=DK;999=RF)
 
 
 ```{r diag-93, cache=TRUE}
@@ -1645,7 +1648,7 @@ sum(HOURS>60 & HOURS<998,na.rm=T)
 sum(HOURS>99 & HOURS<998,na.rm=T)
 ```
 
-We generate different cross tables with hours to cross check the data input.
+Let us generate different tables with hours to cross check the employment data:
 
 ```{r diag-94, cache=TRUE}
 table(HOURS,JOBS)
@@ -1742,7 +1745,7 @@ hist(OCCUP,xlab=c("Occupation"),col=c("orange"))
 
 ```
 
-Here, we are checking the location variables for second work. 
+Now let us check the location variables for the second job characteristics:
 
 ```{r diag-101, cache=TRUE}
 ## WLOC2: Work location 2 (1=Fixed; 2=Home;3=No fixed;8=DK;9=RF)
@@ -1771,7 +1774,7 @@ sum(is.na(WSTAT2)&WLOC>2)
 
 
 
-#### WDAYS2: Days a secondary work (RANGE:1-7;8=DK;9=RF)
+#### WDAYS2: Days at secondary work (RANGE:1-7;8=DK;9=RF)
 
 
 ```{r diag-102, cache=TRUE}
@@ -1928,7 +1931,7 @@ boxplot(SUBUNT,xlab=c("Fare unit"),col=c("orange"))
 hist(SUBUNT,xlab=c("Fare unit"),col=c("maroon"))
 ```
 
-Here, we are generating a pie chart for fare unit (SUBUNT).
+Here, we generate a pie chart for fare unit (SUBUNT).
 
 ```{r diag-111, cache=TRUE}
 ###Pie chart
@@ -1980,6 +1983,7 @@ hist(BTRIP[BTRIP<98],xlab=c("Bicycle trips in the last week "),col=c("green"))
 ```
 
 
+Let us now analyze education variables
 
 #### STUDE: Student (1=yes-Full time;2=Yes-Part time;3=No;8=DK; 9=RF)
 
@@ -1995,7 +1999,7 @@ sum(is.na(STUDE))
 
 
 
-#### SCHOL: School grade level attends (1 to 8; 97=others;98=DK;99=RF)
+#### SCHOL: School grade level (1 to 8; 97=others;98=DK;99=RF)
 
 
 ```{r diag-116, cache=TRUE}
@@ -2003,26 +2007,26 @@ sum(is.na(STUDE))
 head(SCHOL,10)
 summary(SCHOL[SCHOL<97])
 sd(SCHOL,na.rm=T)
-boxplot(SCHOL,xlab=c("School grade level attends "),col=c("green"))
-hist(SCHOL[SCHOL<97],xlab=c("School grade level attends "),col=c("gold"))
+boxplot(SCHOL,xlab=c("School grade level"),col=c("green"))
+hist(SCHOL[SCHOL<97],xlab=c("School grade level"),col=c("gold"))
 sum(is.na(SCHOL)&STUDE<3)
 ```
 
 
-The following codes are used to generate a pie chart for SCHOL variable
+Let us now generate a pie chart for the SCHOL variable
 
 ```{r diag-117, cache=TRUE}
 ###Pie chart
 sgtable<-table(SCHOL)
 pct <- round(sgtable/sum(sgtable)*100)
 lbls <- paste(pct,"%", sep="")
-pie(sgtable,labels = lbls, col=rainbow(length(lbls)),main="Pie Chart of School attendence",cex=0.8)
+pie(sgtable,labels = lbls, col=rainbow(length(lbls)),main="Pie Chart of School Attendence",cex=0.8)
 legend("topright",c("Daycare","Pre-school","Kindergarten-Grade 8","Grade 9-12","Technical","Community college","University","Graduate School","Other","Don't Know","Refused"), cex=0.8, fill=rainbow(length(lbls)))
 ```
 
 
 
-#### O_SCHOL: School grade level attends, other
+#### O_SCHOL: School grade level, other
 
 
 ```{r diag-118, cache=TRUE}
@@ -2077,7 +2081,7 @@ sum(is.na(O_PRESCH)& PRESCH==7)
 ```
 
 
-We use following codes to check all the school location variables.
+Now let us examine school location variables:
 
 
 ```{r diag-122, cache=TRUE}
@@ -2094,14 +2098,14 @@ head(SXST2,10)
 ## SSTAT: School State
 head(SSTAT,10)
 
-##SXCORD: School X-coordinates
+##SXCORD: School x-coordinates
 head(SXCORD,10)
 summary(SXCORD)
 sd(SXCORD,na.rm=T)
-boxplot(SXCORD,xlab=c("School X-coordinates"),col=c("yellow"))
+boxplot(SXCORD,xlab=c("School x-coordinates"),col=c("yellow"))
 hist(SXCORD,freq=FALSE,xlab=c("School"),col=c("maroon"))
 
-##SYCORD: School Y-coordinates
+##SYCORD: School y-coordinates
 head(SYCORD,10)
 summary(SYCORD)
 sd(SYCORD,na.rm=T)
@@ -2152,7 +2156,7 @@ sd(INTRV,na.rm=T)
 
 
 
-#### PROXY: Which person served as proxy
+#### PROXY: Which person served as proxy?
 
 
 ```{r diag-126, cache=TRUE}
@@ -2164,7 +2168,7 @@ sd(PROXY,na.rm=T)
 
 
 
-#### CMPLG: Did you complete the log (1 to 3,8=DK,9=RF)
+#### CMPLG: Did you complete the log? (1 to 3,8=DK,9=RF)
 
 
 ```{r diag-127, cache=TRUE}
@@ -2177,7 +2181,7 @@ boxplot(CMPLG,xlab=c("CMPLG"))
 
 
 
-#### HVLOG: Have diary to refer to (1=yes,2=no,9=prefer not to answer)
+#### HVLOG: Have diary to refer to? (1=yes,2=no,9=prefer not to answer)
 
 
 ```{r diag-128, cache=TRUE}
@@ -2188,6 +2192,8 @@ sd(HVLOG,na.rm=T)
 boxplot(HVLOG,xlab=c("HVLOG"))
 ```
 
+
+Let us now analyze person trips
 
 
 #### PTRIPS: Person trips
@@ -2216,7 +2222,7 @@ boxplot(TOLLF,xlab=c("TOLLF"))
 ```
 
 
-There are 10 variables related to toll road. We use following codes to check those variables.
+There are 10 variables related to toll road. Let us check them:
 
 
 ```{r diag-131, cache=TRUE}
@@ -2269,7 +2275,7 @@ head(TOLLR10,10)
 summary(TOLLR10)
 ```
 
-The following codes are used to check the 10 toll bridge related variables.
+Let us now check the 10 toll bridge related variables:
 
 ```{r diag-132, cache=TRUE}
 ###TOLLB1: Toll Bridge (1 to 7, 98=DK, 99=RF)
@@ -2376,6 +2382,7 @@ boxplot(Moto_trip,xlab=c("Moto_trip"))
 ```
 
 
+Let us consider work location variables:
 
 ## WCTFIP: Work location county FIP  Code 2010
 
@@ -2399,7 +2406,7 @@ summary(WTRACT)
 sd(WTRACT,na.rm=T)
 ```
 
-Here, we check variables related to school location.
+Now check variables related to school location:
 
 ```{r diag-139, cache=TRUE}
 ## CTFIP: School location county FIP  Code 2010
@@ -2421,7 +2428,7 @@ summary(SSTFIP[SSTFIP<99])
 sd(SSTFIP,na.rm=T)
 ```
 
-And here, we check variables related to work location.
+And here, we check more variables related to work location:
 
 ```{r diag-140, cache=TRUE}
 ##WPrimaryCity: Work location primary city
@@ -2442,6 +2449,7 @@ sd(W2STFIP,na.rm=T)
 ```
 
 
+Now, consider person weights
 
 #### PERWGT: Final Person weight
 
@@ -2467,7 +2475,7 @@ sd(EXPPERWGT,na.rm=T)
 boxplot(EXPPERWGT,xlab=c("EXPPERWGT"))
 ```
 
-We have checked all the variables of person data. Now we need to detach the person data file.
+We have checked all the variables of the person dataset. Now let us detach the person data file:
 
 ```{r diag-143, cache=TRUE}
 detach(npersondata)
@@ -2479,22 +2487,22 @@ detach(npersondata)
 ### Vehicle Data
 
 
-We check the variables of vehicle data. First we import the vehicle csv file and check it's dimension and see the variable names. 
+We are now ready to check the vehicle data variables. First we import the vehicle file (a csv file), check its dimension, and see the variable names. 
 
 
 ```{r diag-144, cache=TRUE}
-# Import the vehicle variables csv file and give a new name
+# Import the vehicle variables csv file and rename it
 #veh_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/Deliv_VEH.csv", header=TRUE)
 veh_data <- chts_veh
 
-# Dimension of the data file
+# Dimension of the file
 dim(veh_data)
 
-# show the existing variable names
+# Show variable names
 names(veh_data)
 ```
 
-Now, we attach the vehicle data to check all the variables one by one. 
+Now, we attach the vehicle dataset to check its variables one by one. 
 
 ```{r diag-145, cache=FALSE}
 # Attach the file
@@ -2502,7 +2510,7 @@ attach(veh_data)
 ```
 
 
-First we sort the data by sample number.
+First, let us sort the data by sample number.
 
 
 ```{r diag-146, cache=TRUE}
@@ -2512,7 +2520,7 @@ veh_data<-veh_data[order(SAMPN),]
 ```
 
 
-Here, we start checking variables. 
+Now, let us start checking variables. 
 
 
 #### VEHNO:Vehicle Number
@@ -2545,7 +2553,7 @@ sd(YEAR,na.rm=T)
 ```
 
 
-Here, we generate boxplot and histogram for YEAR variable where we exclude observations for error codes (9998)
+Let us generate a boxplot and a histogram for YEAR after excluding observations with error codes (9998)
 
 ```{r diag-149, cache=TRUE}
 boxplot(YEAR[YEAR<9998],xlab=c("Year of vehicle"),col=c("gold"))
@@ -2553,7 +2561,7 @@ hist(YEAR[YEAR<9998],xlab=c("Year of vehicle"),col=c("green"))
 ```
 
 
-We want to count the missing observations and check the number of observations with year less than 1960
+Let us count the missing observations and check the number of observations for year less than 1960
 
 
 ```{r diag-150, cache=TRUE}
@@ -2563,7 +2571,7 @@ sum(YEAR<=1960,na.rm=T)
 ```
 
 
-We want to generate cross tabulation for YEAR and MAKE variables.
+Let us generate cross tabulations for the YEAR and MAKE variables:
 
 
 ```{r diag-151, cache=TRUE}
@@ -2573,7 +2581,7 @@ table(veht$YEAR,veht$MAKE)
 ```
 
 
-Then, we want to generate cross tabultation for YEAR and BODY variables.
+Now generate a cross tabulation for YEAR and BODY:
 
 
 ```{r diag-152, cache=TRUE}
@@ -2582,6 +2590,7 @@ table(veht$YEAR,veht$BODY)
 ```
 
 
+Let us check vehicle characteristics:
 
 #### MAKE: Vehicle make (11 to 97; 98=DK;99=RF)
 
@@ -2601,7 +2610,6 @@ sum(is.na(O_MAKE)&MAKE==97)
 ```
 
 
-
 #### MODEL: Vehicle model
 
 
@@ -2612,7 +2620,6 @@ sum(is.na(MODEL))
 SAMPN[is.na(MODEL)]
 VEHNO[is.na(MODEL)]
 ```
-
 
 
 #### SERIES: Series (000000=No series; 999997=other specify;999998=DK;999999=RF)
@@ -2636,7 +2643,7 @@ sum(is.na(SERIES)&SERIES==999997,na.rm=T)
 
 
 
-#### BODY: Body type  (1 to 97,98=DK;99=RF)
+#### BODY: Body type (1 to 97,98=DK;99=RF)
 
 
 ```{r diag-156, cache=TRUE}
@@ -2650,7 +2657,7 @@ sum(is.na(BODY))
 ```
 
 
-We want to generate a pie chart for BODY variable.
+Let us create a pie chart for the BODY variable:
 
 
 ```{r diag-157, cache=TRUE}
@@ -2688,7 +2695,7 @@ sum(is.na(FUELT1))
 ```
 
 
-We want to generate a pie chart for FUELT1 variable.
+Let us generate a pie chart for the FUELT1 variable:
 
 
 ```{r diag-160, cache=TRUE}
@@ -2701,7 +2708,7 @@ legend("topright",c("1","2","3","4","5","6","7","8","9"), cex=0.8, fill=rainbow(
 ```
 
 
-The following codes are used to check other FUEL variables.
+Let us check the other FUEL variables:
 
 
 ```{r diag-161, cache=TRUE}
@@ -2747,6 +2754,8 @@ hist(CIGLT)
 ```
 
 
+Now, let us look at vehicle ownership variables:
+
 
 #### VEHAQ: Vehicle acquired  (1=new,2=used;8=DK;9=RF)
 
@@ -2758,7 +2767,6 @@ summary(VEHAQ[VEHAQ<8])
 boxplot(VEHAQ,xlab=c("VEHAQ"))
 boxplot(VEHAQ,xlab=c("Vehicle acquired"),col=c("gold"))
 ```
-
 
 
 #### VEHOWN: Vehicle ownership  (1 to 4;7=other;8=DK;9=RF)
@@ -2778,6 +2786,7 @@ sum(is.na(O_VEHOWN)&VEHOWN==7)
 ```
 
 
+Let us consider vehicle insurance:
 
 #### VEHINS: Vehicle insurance  (1=yes,2=no;8=DK;9=RF)
 
@@ -2788,7 +2797,6 @@ head(VEHINS,10)
 summary(VEHINS[VEHINS<8])
 boxplot(VEHINS,xlab=c("VEHINS"))
 ```
-
 
 
 #### VEHINS: Vehicle insurance  (1=yes,2=no;8=DK;9=RF)
@@ -2803,6 +2811,8 @@ sum(is.na(VEHOBD)&!VEHINS==2,na.rm=T)
 ```
 
 
+Other vehicle characteristics:
+
 
 #### VEHTRN: Vehicle transmission  (1 to 3;8=DK;9=RF)
 
@@ -2815,7 +2825,6 @@ boxplot(VEHTRN,xlab=c("VEHTRN"))
 sum(is.na(VEHTRN)&BODY<12)
 SAMPN[is.na(VEHTRN)&BODY<12]
 ```
-
 
 
 #### VEHDRT: Power train  (1 to 7;8=DK;9=RF)
@@ -2832,7 +2841,7 @@ SAMPN[is.na(VEHDRT)&BODY<12]
 ```
 
 
-Now, we generate a pie chart for VEHDRT variable.
+Now generate a pie chart for the VEHDRT variable:
 
 
 ```{r diag-169, cache=TRUE}
@@ -2845,7 +2854,6 @@ legend("right",c("1","2","3","7","8","9"), cex=0.8, fill=rainbow(length(lbls)))
 ```
 
 
-
 #### O_VEHDRT: Power train, other
 
 
@@ -2854,7 +2862,6 @@ legend("right",c("1","2","3","7","8","9"), cex=0.8, fill=rainbow(length(lbls)))
 head(O_VEHDRT,10)
 sum(is.na(O_VEHDRT)&VEHDRT==7)
 ```
-
 
 
 #### VEHCYL: Cylinders  (1 to 7;97=other; 98=DK;99=RF)
@@ -2871,7 +2878,7 @@ SAMPN[is.na(VEHCYL)&BODY<12]
 ```
 
 
-Here, we generate a pie chart for VEHCYL variable.
+Let us create a pie chart for the VEHCYL variable:
 
 
 ```{r diag-172, cache=TRUE}
@@ -2896,7 +2903,6 @@ sum(is.na(O_VEHCYL)&VEHCYL==97)
 ```
 
 
-
 #### VEHOUT: Electric outlet (Range: 1-8999; 9000=No; 9998=DK;9999=RF)
 
 
@@ -2907,7 +2913,6 @@ summary(VEHOUT[VEHOUT<9000])
 boxplot(VEHOUT,xlab=c("Electric outlet"))
 hist(VEHOUT,xlab=c("Electric outlets "),col=c("blue"))
 ```
-
 
 
 #### VEHVLT: Outlet volts (1=110 volt;2=220 volt; 8=DK;9=RF)
@@ -2935,6 +2940,8 @@ hist(VEHT,xlab=c("Vehicle type "),col=c("blue"))
 ```
 
 
+Let us have a look at vehicle use variables.
+
 
 #### CNTV: Vehicle used on travel day (1=used; 2=Not used)
 
@@ -2947,7 +2954,6 @@ boxplot(CNTV,xlab=c("CNTV"))
 hist(CNTV,xlab=c("Vehicle type "),col=c("blue"))
 sum(is.na(CNTV))
 ```
-
 
 
 #### WYCNTV: Reason why not (1 to 12; 97=other;98=DK;99=RF)
@@ -2993,7 +2999,7 @@ VEHNO[is.na(EXPHHWGT)]
 ```
 
 
-We have finished checking all the variables of vehicle data. Now we need to detach the vehicle data file.
+We are done checking all the vehicle data variables. Let us detach the vehicle data file:
 
 
 ```{r diag-181, cache=TRUE}
@@ -3007,7 +3013,7 @@ detach(veh_data)
 ### Place Data
 
 
-We follow the same steps we followed for other two data set: first we need to save the place and look up file manually as 'csv' format and keep them in our desired location. We import those files from that location and merge them.
+We follow the same steps to perform diagnostics for the place data. First we need to merge the place dataset and the dataset that contains location data.
 
 
 ```{r diag-182, cache=TRUE}
@@ -3019,14 +3025,14 @@ place_data <- chts_pla
 #lookup_place <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_place.csv", header=TRUE)
 lookup_place <- chts_lu_pla
 
-# Check the dimension and names of the variables
+# Check the dimension and names of variables
 dim(place_data)
 dim(lookup_place)
 names(place_data)
 names(lookup_place)
-# Merging two data set
+# Merge the two data set
 place_data1<-merge(place_data,lookup_place, by =c("SAMPN","PERNO","PLANO"), all = TRUE)
-# Dimension and names of the variables
+# Dimension and names of variables
 dim(place_data)
 dim(lookup_per)
 dim(place_data1)
@@ -3037,7 +3043,7 @@ names(place_data1)
 ```
 
 
-We have the merged data now. But there are somd duplicate variables and we need to delete them.
+Let us delete duplicate variables:
 
 
 ```{r diag-183, cache=TRUE}
@@ -3058,7 +3064,7 @@ names(nplace_data)
 ```
 
 
-Now we have new place level file which contains location variables from lookup file (contain x-y coordinates). We use this file for checking all the place level variables. To do this first we need to attach the file. 
+Now we have a new place datafile that contains location variables (x-y coordinates). We use this file for checking all the place level variables. Let us first attach this file:
 
 
 ```{r diag-184, cache=FALSE}
@@ -3066,7 +3072,7 @@ Now we have new place level file which contains location variables from lookup f
 attach(nplace_data)
 ```
 
-Here, we sort the data by sample number.
+Now, sort the data by sample number:
 
 ```{r diag-185, cache=TRUE}
 # SAMPN: Sample number
@@ -3074,7 +3080,7 @@ Here, we sort the data by sample number.
 nplace_data<-nplace_data[order(SAMPN),] 
 ```
 
-We check all the place level variables one by one by using following codes.
+Let us check all the place level variables one by one just as for the other datasets.
 
 
 #### PERNO:Person Number
@@ -3082,23 +3088,23 @@ We check all the place level variables one by one by using following codes.
 
 ```{r diag-186, cache=TRUE}
 ## PERNO
-### Show the first 10 observations (if you want to see more put that number in place of 10)
+### Show the first 10 observations 
 head(PERNO,10)
-###Summarize of the variable
+###Summarize the variables
 summary(PERNO)
-###Check missing observations
+###Check for missing observations
 sum(PERNO=="")
 sum(is.na(PERNO))
 ```
 
-We create a boxplot for person no variable.
+Now, create a boxplot for the person number variable:
 
 ```{r diag-187, cache=TRUE}
 ### Create boxplot  
 boxplot(PERNO,xlab=c("PERNO"))
 ```
 
-We follow the same procedure to check rest of the variables.
+We follow the same procedure to check all the other variables.
 
 
 #### PLANO: Place number
@@ -3114,7 +3120,6 @@ sum(is.na(PLANO))
 ```
 
 
-
 #### TOTTR: Total people traveling on trip
 
 
@@ -3124,7 +3129,7 @@ head(TOTTR,10)
 summary(TOTTR)
 ```
 
-We generate a boxplot and histogram for TOTTR variable.
+Generate a boxplot and histogram for the TOTTR variable:
 
 ```{r diag-190,cache=TRUE}
 boxplot(TOTTR,xlab=c("Total people traveling on trip"),col=c("green"))
@@ -3149,7 +3154,7 @@ hist(HHMEM,xlab=c("Number of household members on trip"),col=c("maroon"))
 #### PER: Person number on trip
 
 
-There are five variables for person number on trip variable. We use following codes to check these variables.
+There are five variables for person number on trip. Let us look at them:
 
 ```{r diag-192,cache=TRUE}
 ## PER1
@@ -3184,7 +3189,6 @@ hist(PER5,xlab=c("Person number on trip"),col=c("gold"))
 ```
 
 
-
 #### NONHH: Number of non-household members on trip
 
 
@@ -3197,6 +3201,7 @@ hist(NONHH,xlab=c("Number of non-household members on trip"),col=c("red"))
 ```
 
 
+Now consider the trip mode and parking variables.
 
 #### MODE: Mode of trip; (1 to 29)
 
@@ -3210,8 +3215,7 @@ hist(MODE,xlab=c("Mode of trip"),col=c("orange"))
 ```
 
 
-
-#### VEHNO: Household vehicle number used on trip; (Range:1-8; 97=other)
+#### VEHNO: Household vehicle number used on trip (Range:1-8; 97=other)
 
 
 ```{r diag-195,cache=TRUE}
@@ -3224,10 +3228,10 @@ hist(VEHNO[VEHNO<97],xlab=c("Household vehicle number used on trip"),col=c("blue
 
 
 
-#### DYGOV: Get out of vehicle; (1=yes;2=no;8=DK;9=RF)
+#### DYGOV: Get out of vehicle (1=yes;2=no;8=DK;9=RF)
 
 
-```{r diag-197, diag-196,cache=TRUE}
+```{r diag-197,cache=TRUE}
 ## DYGOV
 head(DYGOV,10)
 summary(DYGOV[DYGOV<8])
@@ -3236,7 +3240,7 @@ boxplot(DYGOV,xlab=c("DYGOV"))
 
 
 
-#### PRKTY: Parking location type; (1 to 7;8=DK;9=RF)
+#### PRKTY: Parking location type (1 to 7;8=DK;9=RF)
 
 
 ```{r diag-198, cache=TRUE}
@@ -3255,7 +3259,7 @@ head(PXSTR,10)
 
 
 
-#### PRKMIN: Time walking from parking to dest; (Range:0-60; 98=DK;99=RF)
+#### PRKMIN: Time walking from parking to destination (Range:0-60; 98=DK;99=RF)
 
 
 ```{r diag-199, cache=TRUE}
@@ -3269,7 +3273,7 @@ hist(PRKMIN[PRKMIN<98],xlab=c("Time walking from parking to destination"),col=c(
 
 
 
-#### PAYPK: Pay to park; (1=yes;2=no;8=DK;9=RF)
+#### PAYPK: Pay to park? (1=yes;2=no;8=DK;9=RF)
 
 
 ```{r diag-200, cache=TRUE}
@@ -3282,7 +3286,7 @@ boxplot(PAYPK,xlab=c("PAYPK"))
 
 
 
-#### PKAMT: Parking amount
+#### PKAMT: Parking amount?
 
 
 ```{r diag-201, cache=TRUE}
@@ -3298,7 +3302,7 @@ hist(PKAMT,xlab=c("Parking amount"),col=c("orange"))
 
 
 
-#### PKUNT: Parking Unit; (1 to 7;8=DK;9=RF)
+#### PKUNT: Parking Unit? (1 to 7;8=DK;9=RF)
 
 
 ```{r diag-202, cache=TRUE}
@@ -3312,7 +3316,7 @@ sum(is.na(PKUNT)&PAYPK==1,na.rm=T)
 
 
 
-#### PRKHW: How did you pay for parking; (1 to 3;7=other;8=DK;9=RF)
+#### PRKHW: How did you pay for parking? (1 to 3;7=other;8=DK;9=RF)
 
 
 
@@ -3330,7 +3334,7 @@ sum(is.na(O_PRKHW)&PRKHW==7)
 
 
 
-#### EMPARK: Parking cost not reimbursed by employer
+#### EMPARK: Parking cost not reimbursed by employer?
 
 
 ```{r diag-204, cache=TRUE}
@@ -3344,7 +3348,7 @@ boxplot(EMPARK,xlab=c("EMPARK"))
 
 
 
-#### TRANSYS: Transit system; (1 to 136;997=other;998=DK;999=RF)
+#### TRANSYS: Transit system (1 to 136;997=other;998=DK;999=RF)
 
 
 ```{r diag-205, cache=TRUE}
@@ -3373,6 +3377,7 @@ SAMPN[is.na(ROUTE)&MODE>15&MODE<28&!MODE==18]
 ```
 
 
+Now consider various activity variables
 
 #### ACTCNT: Number of activities
 
@@ -3452,7 +3457,7 @@ sum(is.na(TRIPDUR)&PLANO>1)
 boxplot(TRIPDUR,xlab=c("Travel time to place in minutes by walking"),col=c("yellow"))
 ```
 
-We generate boxplots of trip duration for different trip distances
+Generate boxplots of trip duration for different trip distances
 
 ```{r diag-213, cache=TRUE}
 boxplot(TRIPDUR,TRIPDUR[TripDistance<=50],TRIPDUR[TripDistance<=100],col=c("yellow"))
@@ -3485,7 +3490,9 @@ boxplot(ACTDUR,xlab=c("ACTDUR"))
 SAMPN[ACTDUR>15000]
 ```
 
-We use following codes to check the origin and destination location variables.
+
+Let us check the origin and destination location variables.
+
 
 ```{r diag-217, cache=TRUE}
 attach(nplace_data)
@@ -3508,27 +3515,26 @@ summary(ZIP)
 sum(is.na(ZIP))
 SAMPN[is.na(ZIP)]
 
-## oXCORD: Origin X-coordinate
+## oXCORD: Origin x-coordinate
 head(oXCORD,10)
 summary(oXCORD)
 boxplot(oXCORD,xlab=c("oXCORD"))
 
-## oYCORD: Origin Y-coordinate
+## oYCORD: Origin y-coordinate
 head(oYCORD,10)
 summary(oYCORD)
 boxplot(oYCORD,xlab=c("oYCORD"))
 
-## dXCORD: Destination X-coordinate
+## dXCORD: Destination x-coordinate
 head(dXCORD,10)
 summary(dXCORD)
 boxplot(dXCORD,xlab=c("dXCORD"))
 
-## dYCORD: Destination Y-coordinate
+## dYCORD: Destination y-coordinate
 head(dYCORD,10)
 summary(dYCORD)
 boxplot(dYCORD,xlab=c("dYCORD"))
 ```
-
 
 
 #### TripDistance: Trip distance
@@ -3554,7 +3560,7 @@ summary(AirTripDistance)
 boxplot(AirTripDistance,xlab=c("AirTripDistance"))
 ```
 
-The following codes are used to check trip location variables
+Let us also check the trip location variables
 
 ```{r diag-220, cache=TRUE}
 ## CTFIP: Trip location county FIP  Code 2010
@@ -3574,6 +3580,7 @@ summary(PSTFIP[PSTFIP<99])
 ```
 
 
+Finally, let us have a look at the person-level weights
 
 #### PERWGT: Final Person weight
 
@@ -3645,7 +3652,7 @@ summary(EXPTCFPERWGT)
 boxplot(EXPTCFPERWGT,xlab=c("EXPTCFPERWGT"))
 ```
 
-We have finished checking all the place level variables. Now we need to detach the place level file.
+We are done checking place level variables so we detach the place level file:
 
 ```{r diag-227, cache=TRUE}
 ## Detach the file
@@ -3656,7 +3663,7 @@ detach(nplace_data)
 
 ### Activity Data
 
-Here we check the variables of activity data. First we import the activity csv file and check it's dimension and see the variable names. 
+Let us now check activity data variables. First we import the activity csv file, check its dimension, and list variable names:
 
 
 ```{r diag-228, cache=TRUE}
@@ -3672,14 +3679,14 @@ dim(activity_data)
 names(activity_data)
 ```
 
-Before start checking variables, we need to attach the file.
+Before starting to check variables, let us attach the file:
 
 ```{r diag-229, cache=FALSE}
 # Attach the file
 attach(activity_data)
 ```
 
-We sort the data based no sample number.
+Sort the data based no sample number:
 
 ```{r diag-230, cache=TRUE}
 # SAMPN: Sample number
@@ -3688,7 +3695,7 @@ activity_data<-activity_data[order(SAMPN),]
 summary(SAMPN)
 ```
 
-Now we start checking variables one by one. 
+Now we are ready to start checking variables one by one. 
 
 
 #### PERNO:Person Number
@@ -3696,14 +3703,14 @@ Now we start checking variables one by one.
 
 ```{r diag-231, cache=TRUE}
 ## PERNO
-### Show the first 10 observations (if you want to see more put that number in place of 10)
+### Show the first 10 observations
 head(PERNO,10)
-###Summarize of the variable
+###Summarize variables
 summary(PERNO)
-### Check missing observations
+### Check for missing observations
 sum(PERNO=="")
 sum(is.na(PERNO))
-### Create boxplot  
+### Create a boxplot  
 boxplot(PERNO,xlab=c("PERNO"))
 ```
 
@@ -3720,7 +3727,6 @@ boxplot(PLANO,xlab=c("PLANO"))
 sum(PLANO=="")
 sum(is.na(PLANO))
 ```
-
 
 
 #### ACTNO: Activity number
@@ -3808,7 +3814,7 @@ sum(!is.na(ACTSC)&!ACTOTH==1)
 
 
 
-#### ACTRG: Number of people from same rel/social org
+#### ACTRG: Number of people from the same religious/social organization
 
 
 ```{r diag-239, cache=TRUE}
@@ -3852,7 +3858,7 @@ sum(!is.na(ACTOT)&!ACTOTH==1)
 
 
 
-#### APURP: Purpose; (1 to 39; 99=DK/RF)
+#### APURP: Purpose (1 to 39; 99=DK/RF)
 
 
 ```{r diag-242, cache=TRUE}
@@ -3867,7 +3873,7 @@ head(O_APURP,10)
 sum(is.na(O_APURP)&APURP==38)
 ```
 
-Here we check the start and end time of the activities.
+Now check the start and end times of activities:
 
 ```{r diag-243, cache=TRUE}
 ## STIME: Start time
@@ -3879,6 +3885,8 @@ head(ETIME,10)
 sum(is.na(ETIME))
 ```
 
+
+And now have a look at weights:
 
 
 #### PERWGT: Final Person weight
@@ -3953,7 +3961,7 @@ summary(EXPTCFPERWGT)
 boxplot(EXPTCFPERWGT,xlab=c("EXPTCFPERWGT"))
 ```
 
-We have checked all the variables of activity data. Now we need to detach the file. 
+We are done with activity data varaibles so let us detach the file:
 
 ```{r diag-250, cache=TRUE}
 ## Detach the file
@@ -3966,15 +3974,15 @@ detach(activity_data)
 ### Long Distance Travel Data
 
 
-Same way as previous, we first need to save long distance file and look up file as csv format manually and then we import those files and merge them.
+Finally, let us process the long distance dataset. As before, we import the long distance csv file, rename it, load the file with location information, and merge them.
 
 
 ```{r diag-251, cache=TRUE}
-#Import the long distance  variables csv file and give a new name
+#Import the long distance  variables csv file and rename it
 #LD_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/Deliv_LD.csv", header=TRUE)
 LD_data <- chts_ld
 
-#Import the lookup variable csv file and give a new name (containing x, y coordinate data)
+#Import the lookup variable csv file and rename it (containing x, y coordinate data)
 #lookup_LD <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_LD.csv", header=TRUE)
 lookup_LD <- chts_lu_ld
 
@@ -3982,13 +3990,13 @@ lookup_LD <- chts_lu_ld
 dim(LD_data)
 dim(lookup_LD)
 
-#Check the names of the variables
+#Check variable names 
 names(LD_data)
 names(lookup_LD)
 ```
 
 
-Here, we are merging them.
+Merge the files:
 
 
 ```{r diag-252, cache=TRUE}
@@ -4003,22 +4011,22 @@ dim(LD_data1)
 #Names of the variables in the new dataset
 names(LD_data1)
 
-# Subset the dataset (excluding the duplicate variables)
+# Subset the dataset to exclude duplicate variables
 nLD_data<-subset(LD_data1,select=-c(6,8,10,11,13,15,17,18,47,48,52,54))
 
-# show the existing variable names and dimension
+# Show variable names and dimension
 dim(nLD_data)
 names(nLD_data)
 
-# rename the added variables
+# Rename added variables
 names(nLD_data) [c(44:52,55,58,59)]<-c("LDOCITY","LDOZIP","LDOXCORD","LDOYCORD","LDDCITY","LDDZIP","LDDXCORD","LDDYCORD","LDOCTFIP","LDDCTFIP","LDOPrimaryCity","LDDPrimaryCity")
 
-# show the existing variable names 
+# Show variable names 
 names(nLD_data)
 ```
 
 
-Now we have a new merged file which we need to attach and sort based on sample number.
+Now attach the file and sort it based on sample number:
 
 
 ```{r diag-253, cache=FALSE}
@@ -4031,7 +4039,7 @@ nLD_data<-nLD_data[order(SAMPN),]
 ```
 
 
-We check each of the variables one by one using following codes.
+Now let us check each variable one by one:
 
 
 #### LDNO:Long distance trip Number
@@ -4039,8 +4047,8 @@ We check each of the variables one by one using following codes.
 
 ```{r diag-254, cache=TRUE}
 ## LDNO
-### Show the first 10 observations (if you want to see more put that number in place of 10)
-head(LDNO,10)
+### Show the first 11 observations 
+head(LDNO,11)
 ###Summarize of the variable
 summary(LDNO)
 ### Create boxplot  
@@ -4062,7 +4070,7 @@ sum(is.na(LDDAT))
 ```
 
 
-The following variables are related with long distance trip origin location. We check them by using following codes. 
+Let us now check variables related to trip origin location:
 
 
 ```{r diag-256, cache=FALSE}
@@ -4104,8 +4112,7 @@ boxplot(LDOYCORD,xlab=c("LDOYCORD"))
 ```
 
 
-We use following codes to check the variables related to destination location
-
+Now consider variables related to destination location:
 
 
 ```{r diag-257, cache=TRUE}
@@ -4140,7 +4147,7 @@ summary(LDDYCORD)
 boxplot(LDDYCORD,xlab=c("LDDYCORD"))
 ```
 
-
+Trip purpose variables:
 
 #### LDTPURP: LD Trip Purpose;(1 to 12;97=other;98=DK;99=RF)
 
@@ -4191,7 +4198,7 @@ sum(is.na(LDMHH)&(LDWHO>0&LDWHO<98))
 ```
 
 
-There are eight variables related with person who made long distance trip. We use following codes to check these variables.
+There are eight variables related with persons on long distance trip. Let us examine them:
 
 
 ```{r diag-261, cache=TRUE}
@@ -4222,7 +4229,7 @@ head(LDINI8,10)
 summary(LDINI8)
 ```
 
-
+Now consider long distance mode:
 
 #### LDMODE1: Long distance mode;(1 to 29;99=DK/RF)
 
@@ -4237,8 +4244,7 @@ hist(LDMODE1[LDMODE1<98],xlab=c("Long distance mode"),col=c("gold"))
 
 
 
-#### LDMODE2: Long distance mode;(1 to 29;99=DK/RF)
-
+#### LDMODE2: Long distance mode (1 to 29;99=DK/RF)
 
 ```{r diag-263, cache=TRUE}
 ## LDMODE2
@@ -4250,8 +4256,7 @@ hist(LDMODE2,xlab=c("Long distance mode"),col=c("green"))
 
 
 
-#### LDMODE3: Long distance mode;(1 to 29;99=DK/RF)
-
+#### LDMODE3: Long distance mode (1 to 29;99=DK/RF)
 
 ```{r diag-264, cache=TRUE}
 ## LDMODE3
@@ -4261,7 +4266,7 @@ summary(LDMODE3)
 
 
 
-#### LDMODE4: Long distance mode;(1 to 29;99=DK/RF)
+#### LDMODE4: Long distance mode(1 to 29;99=DK/RF)
 
 
 ```{r diag-265, cache=TRUE}
@@ -4282,6 +4287,7 @@ summary(MAXDATE)
 boxplot(MAXDATE,xlab=c("MAXDATE"))
 ```
 
+Check variables related to departure time, place, and modes
 
 
 #### LDTIM: Time start
@@ -4307,7 +4313,6 @@ hist(LDDPMODE1,xlab=c("Departure mode"),col=c("brown"))
 ```
 
 
-
 #### LDDPMODE2: Departure mode;(1 to 29;99=DK/RF)
 
 
@@ -4327,7 +4332,7 @@ summary(LDDPMODE4)
 ```
 
 
-The following codes are used to check the arrival place and arrival modes variables.
+Consider variables related to arrival place and modes.
 
 
 ```{r diag-270, cache=TRUE}
@@ -4362,7 +4367,7 @@ summary(LDARMODE4)
 ```
 
 
-We use following codes to check long distance origin and destination location variables.
+Now examine long distance origin and destination location variables:
 
 
 #### LDOCTFIP: LD trip origin location county FIP  Code 2010
@@ -4413,7 +4418,7 @@ summary(ReturnHomeTripFlag)
 ```
 
 
-We have finished checking long distance variables. Now, we need to detach the file.
+We are done checking long distance variables so we can detach the file:
 
 
 ```{r diag-275, cache=TRUE}
