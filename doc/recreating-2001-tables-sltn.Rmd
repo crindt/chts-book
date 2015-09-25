@@ -2,8 +2,11 @@
 title: "Recreating 2001 Tables"
 author: "Craig Rindt"
 date: "03/04/2015"
-output: 
-  pdf_document: 
+output:
+  pdf_document:
+    keep_tex: yes
+    toc: yes
+  html_document:
     toc: yes
 ---
 
@@ -242,6 +245,7 @@ res[['a.1.str']] <- pandoc.table.return(res.a.1,
              split.tables=Inf,split.cells=Inf, 
              justify=c('left','right'),
              big.mark=',',
+             round=Inf,
              caption="TABLE A: Household Information")
 ```
 
@@ -385,7 +389,6 @@ b.0.str <- pandoc.table.return(
 ```
 
 ```{r results-b-0,results='asis',cache=FALSE,echo=FALSE}
-res[['b.0.str']] <- NA
 cat(b.0.str)
 ```
     
@@ -888,7 +891,7 @@ for (var in sort(unique(data$County))) {
                     "Number"=sum(tabtot$Number),
                     "Percent"=sum(tabtot$Percent)))
   tabtot.str <- pandoc.table.return(tabtot,
-               caption=paste("Weekday Trip Type Distribution (",var,")",sep=""),
+               caption=paste("TABLE 9 (cont): Weekday Trip Type Distribution (",var,")",sep=""),
                split.table=Inf,split.cells=Inf,
                big.mark=',',
                round=1,
@@ -983,12 +986,12 @@ for (var in sort(unique(res.10a$County))) {
     mutate(County=ifelse(!is.na(lag(County)) & County==lag(County),"&nbsp;",County),
            HHUT=ifelse(!is.na(lag(HHUT)) & HHUT==lag(HHUT),"&nbsp;",HHUT)
     ) %>%
-    select(County,`Housing Unit Type`=HHUT,`Vehicle Ownership`=VOWN,HH,HO,HS,HW,OO,WO,WW,Total=zTOT)
+    select(`Housing Unit Type`=HHUT,`Vehicle Ownership`=VOWN,HH,HO,HS,HW,OO,WO,WW,Total=zTOT)
 
 
   tab <- pandoc.table.return(
     dat,
-    caption=paste("Weekday Person Trips Per Household (",var,")",sep=""),
+    caption=paste("TABLE 10a: Weekday Person Trips Per Household (",var,")",sep=""),
     split.table=Inf,split.cells=Inf,
     big.mark=',',
     round=1,
@@ -999,7 +1002,7 @@ for (var in sort(unique(res.10a$County))) {
 ```
 
 ```{r t10a-results,results='asis',echo=FALSE,cache=FALSE}
-cat(res[['10a.str']])
+cat(res[['10a.str']]) 
 ```
 
 
@@ -1397,7 +1400,7 @@ for (var in sort(unique(res.15a$County))) {
     split.table=Inf,split.cells=Inf,
     big.mark=',',
     round=1,
-    #               justify=c('left','left','right','right','right'),
+    justify=c('center','right','right'),
     style='multiline')
   res[['15a.str']] <- paste(res[['15a.str']],tab,sep="\n\n")
 }
@@ -1455,7 +1458,7 @@ fftab.ul <- ftab.ul %>%
   transmute(
     MODE.GROUP=MODE.GROUP,
     MODE=as.character(MODE),
-    `Number of Unlinked Trips`=num,
+    `Number of Unlinked Trips`=round(num,0),
     `Percent of Total Unlinked`=round(num/gtots.ul$gtnum[1]*100,1),
     SORT.ORDER=ifelse(MODE.GROUP=='ALL GROUPS',
                       -Inf,
@@ -1486,7 +1489,7 @@ fftab <- ftab %>%
   transmute(
     MODE.GROUP=MODE.GROUP,
     MODE=as.character(ltmode),
-    `Number of Linked Trips`=num,
+    `Number of Linked Trips`=round(num,0),
     `Percent of Total Linked`=round(num/gtots$gtnum[1]*100,1))
  
 fftab.all <- fftab.ul %>% left_join(fftab,by=c('MODE.GROUP','MODE')) %>%
@@ -1512,7 +1515,7 @@ res[['17a.str']] <- pandoc.table.return(res.17a,
              split.table=Inf,split.cells=Inf,
              justify=c('left','left','right','right','right','right'),
              style='multiline',
-             round=0
+             round=Inf
              #,emphasize.strong.rows=which(fftab.all$MODE=='TOTAL',arr.ind=TRUE)
              )
 ```
@@ -1622,7 +1625,7 @@ for (ctyi in sort(unique(fipsctyca$county_ansi))) {
     transmute(
       MODE.GROUP=MODE.GROUP,
       MODE=as.character(ltmode),
-      `Number of Linked Trips`=num,
+      `Number of Linked Trips`=round(num,0),
       `Percent of Total Linked`=round(num/gtots$gtnum[1]*100,1))
   
   fftab.all <- fftab.ul %>% left_join(fftab,by=c('MODE.GROUP','MODE')) %>%
@@ -1649,7 +1652,7 @@ for (ctyi in sort(unique(fipsctyca$county_ansi))) {
                  split.table=Inf,split.cells=Inf,
                  justify=c('left','left','right','right','right','right'),
                  style='multiline',
-                 round=0
+                 round=Inf
                  #,emphasize.strong.rows=which(fftab.all$MODE=='TOTAL',arr.ind=TRUE
                  ),
     sep="\n\n"
@@ -1670,5 +1673,5 @@ cat(res[['17a.cty.str']])
 ### All Tables
 
 ```{r dump-all,echo=FALSE,results='asis',cache=FALSE}
-cat(paste(res,collapse="\n\n")) 
+cat(paste("\\footnotesize\n\n",res,collapse="\n\n\\newpage\n\n")) 
 ```
