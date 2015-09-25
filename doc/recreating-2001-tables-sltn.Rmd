@@ -2,7 +2,9 @@
 title: "Recreating 2001 Tables"
 author: "Craig Rindt"
 date: "03/04/2015"
-output: html_document
+output: 
+  pdf_document: 
+    toc: yes
 ---
 
 ## Setup
@@ -296,7 +298,7 @@ Now let's compute each element of the table.  Total trips will be the weighted
 sum of the linked trips (including the GPS trip correction factor).  The first thing
 we need to do is clarify some definitions.  We follow the definitions of the 2001 report:
 
-```{r mode-defs-setup,echo=FALSE,results='asis'}
+```{r mode-defs-setup,echo=FALSE}
 
 all.modes=sort(unique(ltf2$ltmode))
 
@@ -373,14 +375,18 @@ res.b.0$Modes <- lapply(res.b.0$Modes,function(f) {
         'place','MODE',verbose=FALSE),
       sep="; ")) 
   })
-res[['b.0.str']] <- pandoc.table.return(
+b.0.str <- pandoc.table.return(
   res.b.0,
   style='multiline',
   split.tables=Inf,
   split.cells=Inf,
   justify=c('left','left','left','left')
   )
-cat(res[['b.0.str']])
+```
+
+```{r results-b-0,results='asis',cache=FALSE,echo=FALSE}
+res[['b.0.str']] <- NA
+cat(b.0.str)
 ```
     
               
@@ -1084,7 +1090,7 @@ for (var in sort(unique(res.11$County))) {
 
   tab <- pandoc.table.return(
     dat,
-    caption=paste("Weekday Driver Trips Per Household (",var,")",sep=""),
+    caption=paste("TABLE 11: Weekday Driver Trips Per Household (",var,")",sep=""),
     split.table=Inf,split.cells=Inf,
     big.mark=',',
     round=1,
@@ -1213,7 +1219,7 @@ for (var in sort(unique(res.13$County))) {
 
   tab <- pandoc.table.return(
     dat,
-    caption=paste("Weekday Person and Driver Trips Per Household (",var,")",sep=""),
+    caption=paste("TABLE 13: Weekday Person and Driver Trips Per Household (",var,")",sep=""),
     split.table=Inf,split.cells=Inf,
     big.mark=',',
     round=1,
@@ -1313,7 +1319,7 @@ for (var in sort(unique(res.15$County))) {
 
   tab <- pandoc.table.return(
     dat,
-    caption=paste("Weekday Driver Trips Per Vehicle (",var,")",sep=""),
+    caption=paste("TABLE 15: Weekday Driver Trips Per Vehicle (",var,")",sep=""),
     split.table=Inf,split.cells=Inf,
     big.mark=',',
     round=1,
@@ -1387,7 +1393,7 @@ for (var in sort(unique(res.15a$County))) {
 
   tab <- pandoc.table.return(
     dat,
-    caption=paste("Person and Vehicle Miles Traveled per Household (",var,")",sep=""),
+    caption=paste("TABLE 15a: Person and Vehicle Miles Traveled per Household (",var,")",sep=""),
     split.table=Inf,split.cells=Inf,
     big.mark=',',
     round=1,
@@ -1654,6 +1660,12 @@ for (ctyi in sort(unique(fipsctyca$county_ansi))) {
 ```{r t17a-cty-results,echo=FALSE,results='asis',cache=FALSE}
 cat(res[['17a.cty.str']]) 
 ```
+
+\newpage
+
+# Complete Tables
+
+\newpage
 
 ### All Tables
 
