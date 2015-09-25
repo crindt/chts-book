@@ -229,13 +229,15 @@ adat[['Licensed Drivers Per Household']] <-
 Now, we can plot the table.
 
 ```{r table-a_1,results='asis',cache=FALSE} 
-tab <- t(t(unlist(adat)))
-colnames(tab) <- c("Household Information") 
-pandoc.table(tab,
+res <- list()
+res.a.1 <- t(t(unlist(adat)))
+colnames(res.a.1) <- c("Household Information") 
+res[['a.1.str']] <- pandoc.table.return(res.a.1,
              split.tables=Inf,split.cells=Inf, 
              justify=c('left','right'),
              big.mark=',',
              caption="Household Information")
+cat(res[['a.1.str']])
 ```
 
 To determine household vehicle availability, we transform the `HHVEH` variable to be 0, 1, 2, and 3+
@@ -250,15 +252,16 @@ table from that transformed data.
 ```{r table-a_2b,results='asis',cache=FALSE}
 suppressMessages(require(Hmisc))
 vd <- chts_hh %>% transmute(HHVEHg=ifelse(HHVEH>2,3,HHVEH),EXPHHWGT)
-tab <- t(t(wtd.table(vd$HHVEHg,weights=vd$EXPHHWGT)$sum.of.weights))
-tab[,1] <- paste(round(100*tab[,1]/sum(tab[,1]),0),'%',sep='')
-colnames(tab) <- c('Household Vehicle Availability')
-rownames(tab) <- gsub("3 ","3+ ",paste(rownames(tab),'Vehicles'))
-pandoc.table(tab,
+res.a.2 <- t(t(wtd.table(vd$HHVEHg,weights=vd$EXPHHWGT)$sum.of.weights))
+res.a.2[,1] <- paste(round(100*res.a.2[,1]/sum(res.a.2[,1]),0),'%',sep='')
+colnames(res.a.2) <- c('Household Vehicle Availability')
+rownames(res.a.2) <- gsub("3 ","3+ ",paste(rownames(res.a.2),'Vehicles'))
+res[['a.2.str']] <- pandoc.table.return(res.a.2,
              split.tables=Inf,split.cells=Inf, 
              justify=c('left','right'),
              big.mark=',',
              caption="Household Vehicle Availability")
+cat(res[['a.2.str']])
 ```
 
 ## Table B: Weekday Trip Information
@@ -349,13 +352,13 @@ modetab <- data.frame(
     "","",""
     ),
   stringsAsFactors=FALSE)
-printtab <- modetab %>% transmute(
+res.b.0 <- modetab %>% transmute(
   type = type,
   "2001 Definition"=def2001,
   Modes=modefilt,                
   Notes=paste(notes,otherfilt,sep=". ")
   )
-printtab$Modes <- lapply(printtab$Modes,function(f) { 
+res.b.0$Modes <- lapply(res.b.0$Modes,function(f) { 
   return (
     paste(
       assign_factors(
@@ -363,13 +366,14 @@ printtab$Modes <- lapply(printtab$Modes,function(f) {
         'place','MODE',verbose=FALSE),
       sep="; ")) 
   })
-pandoc.table(
-  printtab,
+res[['b.0.str']] <- pandoc.table.return(
+  res.b.0,
   style='multiline',
   split.tables=Inf,
   split.cells=Inf,
   justify=c('left','left','left','left')
   )
+cat(res[['b.0.str']])
 ```
     
               
@@ -545,14 +549,15 @@ bdat[["&nbsp;&nbsp;Weekday 'Home-Work Trips' Trip Length"]] <-
 
 Now we can print the table.
 ```{r table-b-results,results='asis',cache=FALSE} 
-tab <- t(t(unlist(bdat)))  
-colnames(tab) <- c("Travel Data (Linked Trips)") 
-tabstr<-pandoc.table.return(tab,
+res.b <- t(t(unlist(bdat)))  
+colnames(res.b) <- c("Travel Data (Linked Trips)") 
+res[['b.str']]<-pandoc.table.return(res.b,
              split.tables=Inf,split.cells=Inf, 
              justify=c('left','right'),
              big.mark=',',
              caption="Weekday Trip Information")
-cat(gsub("(\\*\\*\\s*)     0","\\1&nbsp;",tabstr))
+res[['b.str']] <- gsub("(\\*\\*\\s*)     0","\\1&nbsp;",res[['b.str']])
+cat(res[['b.str']])
 ```
 
 ## Table C - TRAVEL SURVEY DATA FOR CALIFORNIA---Travel Mode Distribution
@@ -600,19 +605,20 @@ lt.wd$modesummary <-
     )
             
 tot <- sum(lt.wd$NEXPTCFPERWDWGT,na.rm=TRUE)
-tab<-t(t(as.data.frame(
+res.c<-t(t(as.data.frame(
   wtd.table(lt.wd$modesummary,
                   weights=lt.wd$NEXPTCFPERWDWGT)$sum.of.weights/tot*100
   )))
-colnames(tab)<-c('Weekday.Percent')
-tab<-rbind(tab,data.frame('Weekday.Percent'=c(sum(tab[,'Weekday.Percent']))))
-rownames(tab)<-c(rownames(tab)[1:7],'Total')
-pandoc.table(tab,
+colnames(res.c)<-c('Weekday.Percent')
+res.c<-rbind(res.c,data.frame('Weekday.Percent'=c(sum(res.c[,'Weekday.Percent']))))
+rownames(res.c)<-c(rownames(res.c)[1:7],'Total')
+res[['c.str']]<-pandoc.table.return(res.c,
              split.tables=Inf,split.cells=Inf, 
              justify=c('left','right'),
              big.mark=',',
              round=1,
              caption="Weekday Mode Share Information")
+cat(res[['c.str']])
 ```
 
 ## Table D: TRAVEL SURVEY DATA FOR CALIFORNIA---Weekday Commute Mode Share Information
@@ -683,19 +689,20 @@ colnames(tab2)<-'AM'
 tab2<-rbind(tab2,data.frame('AM'=c(sum(tab2[,'AM']))))
 rownames(tab2)<-c(rownames(tab2)[1:6],'Total')
 
-tabf <- cbind(tab,tab2 %>% select(AM))
-tabf[['Commuter Mode Share---Weekday Trips']] <-
-  rownames(tabf)
-rownames(tabf)<-NULL
-tabf <- tabf[,c(3,1,2)]
+res.d <- cbind(tab,tab2 %>% select(AM))
+res.d[['Commuter Mode Share---Weekday Trips']] <-
+  rownames(res.d)
+rownames(res.d)<-NULL
+res.d <- res.d[,c(3,1,2)]
 
-pandoc.table(tabf,
+res[['d.str']] <- pandoc.table.return(res.d,
              split.tables=Inf,split.cells=Inf, 
              justify=c('left','right','right'),
              big.mark=',',
              round=1,
              caption="Weekday Mode Share Information",
              emphasize.strong.cols = 1) 
+cat(res[['d.str']])
 ```
 
 ## Table 1: PERSONS/VEHICLE PER HOUSEHOLD By County
@@ -714,60 +721,70 @@ by.cty <-
       hh %>% group_by(County) %>% 
         summarise('phhw'=weighted.mean(HHSIZ,NEXPHHWGT),
                   'vhhw'=weighted.mean(HHVEH,NEXPHHWGT))
-tab1 <- rbind(state,by.cty) %>% 
+res.1 <- rbind(state,by.cty) %>% 
   select(County,'Persons per Household'=phhw,'Vehicles per Household'=vhhw) %>% 
   as.data.frame()
-pandoc.table(
-  tab1,
-  justify=c('left','right','right')
+res[['1.str']] <- pandoc.table.return(
+  res.1,
+  justify=c('left','right','right'),
+  emphasize.strong.rows=which(res.1$County=='California',arr.ind=TRUE)
   )
+cat(res[['1.str']])
 ```
 
-## TABLE 5: LICENSED DRIVERS PER HOUSHEOLD
+## TABLE 5: LICENSED DRIVERS PER HOUSEHOLD
 
 Persons 16 years of age or older.
 
 ```{r table-5,results='asis'}
 lic.ca <- chts_hh %>% summarise(
-  AREA='California',  
+  County='California',  
   Licensed=round(wtd.mean(HHLIC,weights=EXPHHWGT),1)
   )
-lic.reg <-  chts_hh %>%
-  left_join(chts_hh.wgt.area %>% select(-AREA),by=c("SAMPN")) %>%
-  group_by(AREA) %>%
+lic.reg <-  chts_hh %>% 
+  mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+  left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>%
+  left_join(chts_hh.wgt.cty %>% select(-CTFIP),by=c("SAMPN")) %>%
+  group_by(County) %>%
   summarise(
-    Licensed=round(wtd.mean(HHLIC,weights=NEXPHHAREAWGT),1)
+    Licensed=round(wtd.mean(HHLIC,weights=NEXPHHWGT),1)
     )
-lic.reg$AREA <- assign_factors(lic.reg$AREA,table = "hh",varname = "AREA")
 
-pandoc.table(
-  rbind(lic.ca,lic.reg),
+res.5 <- rbind(lic.ca,lic.reg)
+
+res[['5.str']] <- pandoc.table.return(
+  res.5,
   justify=c('left','left'),
-  caption="Licensed Drivers Per Household"
+  caption="Licensed Drivers Per Household",
+  emphasize.strong.rows=which(res.5$County=='California',arr.ind=TRUE)
   )
+cat(res[['5.str']])
 ```
 
 ## TABLE 6: EMPLOYEES PER HOUSEHOLD
 
 ```{r table-6,results='asis'}
 emp.ca <- chts_hh %>% summarise(
-  AREA='California',
+  County='California',
   Employed=round(wtd.mean(HHEMP,weights=EXPHHWGT),1)
   )
-emp.reg <- chts_hh %>%
-  left_join(chts_hh.wgt.area %>% select(-AREA),by=c("SAMPN")) %>%
-  group_by(AREA) %>%
+emp.reg <- chts_hh %>% 
+  mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+  left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>%
+  left_join(chts_hh.wgt.cty %>% select(-CTFIP),by=c("SAMPN")) %>%
+  group_by(County) %>%
   summarise(
-    Employed=round(wtd.mean(HHEMP,weights=NEXPHHAREAWGT),1)
+    Employed=round(wtd.mean(HHEMP,weights=NEXPHHWGT),1)
     )
-emp.reg$AREA <- assign_factors(emp.reg$AREA,table = "hh",varname = "AREA")
 
-pandoc.table(
-  rbind(emp.ca,emp.reg),
+res.6 <- rbind(emp.ca,emp.reg)
+res[['6.str']] <- pandoc.table.return(
+  res.6,
   justify=c('left','left'),
-  caption="Employees per Household"
+  caption="Employees per Household",
+  emphasize.strong.rows=which(res.6$County=='California',arr.ind=TRUE)
   )
-  
+cat(res[['6.str']])
 ```
 
 ## TABLE 9: WEEKDAY TRIP-TYPE DISTRIBUTION
@@ -780,26 +797,32 @@ dat<-(ltf2 %>% left_join(chts_per %>% select(SAMPN,PERNO,EXPPERWGT)) %>%
 tt <- t(t(wtd.table(dat$TripType,weights=dat$EXPTCFPERWGT,type='table')))
 ttt <- rownames(tt)
 rownames(tt)<-NULL
-tabtot <- data.frame(
+
+res.9.1 <- data.frame(
   "Trip Type"=ttt,
   "Number"=tt,
   "Percent"=round(tt/sum(tt)*100,2))
-tabtot <- rbind(tabtot,
+res.9.1 <- rbind(res.9.1,
                 data.frame(
-                  "Trip Type"=c("TOTAL"),
-                  "Number"=sum(tabtot$Number),
-                  "Percent"=sum(tabtot$Percent)))
-pandoc.table(tabtot,caption="Weekday Trip Type Distribution",
-             split.table=Inf,split.cells=Inf,
-             justify=c('center','right','right'),
-             style='multiline')
+                  `Trip Type`=c("TOTAL"),
+                  "Number"=sum(res.9.1$Number),
+                  "Percent"=sum(res.9.1$Percent)))
+res[['9.str']] <- 
+  pandoc.table.return(
+    res.9.1,caption="Weekday Trip Type Distribution",
+    split.table=Inf,split.cells=Inf,
+    justify=c('center','right','right'),
+    style='multiline',
+    emphasize.strong.rows=which(res.9.1$Trip.Type=='TOTAL',arr.ind=TRUE)
+  )
+cat(res[['9.str']])
 ```
 
 
 And here are the trip distribution tables by county.
 
 
-```{r trip-dist-by-area,results='asis'}
+```{r trip-dist-by-county,results='asis'}
 data<-ltf2 %>% 
   filter(!is.na(dplano)) %>%
   left_join(chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
@@ -808,6 +831,7 @@ data<-ltf2 %>%
   left_join(chts_per.wgt.cty %>% select(SAMPN,PERNO,NEXPPERWGT)) %>%
   group_by(TripType) %>% filter(TripType!="")
 
+res[['9.2.str']] <- ''
 for (var in sort(unique(data$County))) {
   dat<-data %>% filter(County==var)
   tt <- t(t(wtd.table(dat$TripType,weights=dat$NEXPPERWGT,type='table')))
@@ -822,11 +846,16 @@ for (var in sort(unique(data$County))) {
                     "Trip Type"=c("TOTAL"),
                     "Number"=sum(tabtot$Number),
                     "Percent"=sum(tabtot$Percent)))
-  pandoc.table(tabtot,
+  tabtot.str <- pandoc.table.return(tabtot,
                caption=paste("Weekday Trip Type Distribution (",var,")",sep=""),
                split.table=Inf,split.cells=Inf,
+               big.mark=',',
+               round=1,
                justify=c('center','right','right'),
-               style='multiline')
+               style='multiline',
+    emphasize.strong.rows=which(tabtot$Trip.Type=='TOTAL',arr.ind=TRUE))
+  cat(tabtot.str)
+  res[['9.2.str']] <- paste(res[['9.2.str']],tabtot.str,sep="\n")
 }
 ```
 
@@ -851,10 +880,16 @@ data2 <- data  %>%
               left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
               select(SAMPN,RESTY,HHVEH,County) %>% 
               mutate(HHUT=ifelse(RESTY==1 | RESTY==2,'Single','Multiple'),
-                     VOWN=ifelse(HHVEH<3,as.character(HHVEH),'3+')), by=c('SAMPN'))
+                     VOWN=ifelse(HHVEH<3,as.character(HHVEH),'3+')), 
+            by=c('SAMPN'))
 
 # Now, aggregate the expanded totals by the stratifications
 aggp <- data2 %>% group_by(County,HHUT,VOWN,TripType) %>% summarise(n=sum(n))
+aggp.cty.hhut <- data2 %>% mutate(VOWN='Subtotal') %>% group_by(County,HHUT,VOWN,TripType) %>%
+  summarise(n=sum(n))
+aggp.cty <- data2 %>% mutate(HHUT='Total',VOWN='&nbsp;') %>% group_by(County,HHUT,VOWN,TripType ) %>%
+  summarise(n=sum(n))
+aggp <- rbind(aggp,aggp.cty.hhut,aggp.cty)
 
 # Now, we'll count the total households in each stratifications
 datahh <- chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
@@ -864,24 +899,61 @@ datahh <- chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
          VOWN=ifelse(HHVEH<3,as.character(HHVEH),'3+')) %>%
   left_join(chts_hh.wgt.wd,by=c('SAMPN'))  %>% filter(WD==1) %>%
   group_by(County,HHUT,VOWN) %>% summarise(hhn=sum(NEXPHHWDWGT))
+
+datahh.cty.hhut <- chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+  left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
+  select(SAMPN,RESTY,HHVEH,County) %>% 
+  mutate(HHUT=ifelse(RESTY==1 | RESTY==2,'Single','Multiple'),
+         VOWN='Subtotal') %>%
+  left_join(chts_hh.wgt.wd,by=c('SAMPN'))  %>% filter(WD==1) %>%
+  group_by(County,HHUT,VOWN) %>% summarise(hhn=sum(NEXPHHWDWGT))
+
+datahh.cty <- chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+  left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
+  select(SAMPN,RESTY,HHVEH,County) %>% 
+  mutate(HHUT='Total',
+         VOWN='&nbsp;') %>%
+  left_join(chts_hh.wgt.wd,by=c('SAMPN'))  %>% filter(WD==1) %>%
+  group_by(County,HHUT,VOWN) %>% summarise(hhn=sum(NEXPHHWDWGT))
+
+datahh <- rbind(datahh,datahh.cty.hhut,datahh.cty)
 ```
 
-Now, `data` has the linked trips for each weekday person trip.  We can simply compute the mean for
+Now, `data2` has the linked trips for each weekday person trip.  We can simply compute the mean for
 each combination.
 
 ```{r table-10a-2,results='asis'}
 # take the trip aggs (appg), join the household aggs by stratification, devide totals
 agg1 <- aggp %>% left_join(datahh,by=c('County','HHUT','VOWN')) %>% mutate(nn=n/hhn) %>% select(-n,-hhn) %>% ungroup()
+
 # Sum the totals for each trip type
-agg2<-agg1 %>% group_by(County,HHUT,VOWN) %>% summarise(nn=sum(nn)) %>%
+agg2 <- agg1 %>% group_by(County,HHUT,VOWN) %>% summarise(nn=sum(nn)) %>%
   mutate(TripType="zTOT")
-res10a <- rbind(agg1,agg2)  %>%
-  arrange(County,HHUT,VOWN,TripType)
-pandoc.table(res10a,
-               caption=paste("Weekday Person Trips Per Household",sep=""),
-               split.table=Inf,split.cells=Inf,
-               justify=c('left','left','right','right','right'),
-               style='multiline')
+library(tidyr)
+res.10a <- rbind(agg1,agg2)  %>%
+  arrange(County,HHUT,VOWN,TripType) %>%
+  spread(TripType,nn) # reorganize for table
+
+res[['10a.str']] = ''
+for (var in sort(unique(res.10a$County))) {
+  dat<-res.10a %>% filter(County==var) %>%
+    mutate(County=ifelse(!is.na(lag(County)) & County==lag(County),"&nbsp;",County),
+           HHUT=ifelse(!is.na(lag(HHUT)) & HHUT==lag(HHUT),"&nbsp;",HHUT)
+    ) %>%
+    select(County,`Housing Unit Type`=HHUT,`Vehicle Ownership`=VOWN,HH,HO,HS,HW,OO,WO,WW,Total=zTOT)
+
+
+  tab <- pandoc.table.return(
+    dat,
+    caption=paste("Weekday Person Trips Per Household (",var,")",sep=""),
+    split.table=Inf,split.cells=Inf,
+    big.mark=',',
+    round=1,
+    #               justify=c('left','left','right','right','right'),
+    style='multiline')
+  cat(tab)
+  res[['10a.str']] <- paste(res[['10a.str']],tab,sep="\n\n")
+}
 ```
 
 ## TABLE 11: WEEKDAY DRIVER TRIPS PER HOUSEHOLD
@@ -889,9 +961,10 @@ pandoc.table(res10a,
 Now we're looking for weekday person trips per household broken down by county, housing unit type, vehicle ownership, and trip type.  As with Table 10a, we also want the total across all trip types
 for each category.
 
-```{r table-11}
-# compute person trips per category
-# Filter for weekday person trips and count the expanded total trips per type
+
+```{r table-11a-1}
+# compute driver trips per category
+# Filter for weekday driver trips and count the expanded total trips per type
 data <- chts_lt %>% filter(!is.na(ltmode) & !is.na(oplano)) %>%
   filter(ltmode %in% driver.trip.modes) %>%
   left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>% # join weekday weights (and WD)
@@ -906,10 +979,15 @@ data2 <- data  %>%
               mutate(HHUT=ifelse(RESTY==1 | RESTY==2,'Single','Multiple'),
                      VOWN=ifelse(HHVEH<3,as.character(HHVEH),'3+')), by=c('SAMPN'))
 
-# Now, aggregate the expanded driver trip totals by the stratifications
+# Now, aggregate the expanded totals by the stratifications
 aggp <- data2 %>% group_by(County,HHUT,VOWN,TripType) %>% summarise(n=sum(n))
+aggp.cty.hhut <- data2 %>% mutate(VOWN='Subtotal') %>% group_by(County,HHUT,VOWN,TripType) %>%
+  summarise(n=sum(n))
+aggp.cty <- data2 %>% mutate(HHUT='Total',VOWN='&nbsp;') %>% group_by(County,HHUT,VOWN,TripType ) %>%
+  summarise(n=sum(n))
+aggp <- rbind(aggp,aggp.cty.hhut,aggp.cty)
 
-# Now, we'll count the total expanded households in each stratifications
+# Now, we'll count the total households in each stratifications
 datahh <- chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
   left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
   select(SAMPN,RESTY,HHVEH,County) %>% 
@@ -918,32 +996,69 @@ datahh <- chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
   left_join(chts_hh.wgt.wd,by=c('SAMPN'))  %>% filter(WD==1) %>%
   group_by(County,HHUT,VOWN) %>% summarise(hhn=sum(NEXPHHWDWGT))
 
+datahh.cty.hhut <- chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+  left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
+  select(SAMPN,RESTY,HHVEH,County) %>% 
+  mutate(HHUT=ifelse(RESTY==1 | RESTY==2,'Single','Multiple'),
+         VOWN='Subtotal') %>%
+  left_join(chts_hh.wgt.wd,by=c('SAMPN'))  %>% filter(WD==1) %>%
+  group_by(County,HHUT,VOWN) %>% summarise(hhn=sum(NEXPHHWDWGT))
 
+datahh.cty <- chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+  left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
+  select(SAMPN,RESTY,HHVEH,County) %>% 
+  mutate(HHUT='Total',
+         VOWN='&nbsp;') %>%
+  left_join(chts_hh.wgt.wd,by=c('SAMPN'))  %>% filter(WD==1) %>%
+  group_by(County,HHUT,VOWN) %>% summarise(hhn=sum(NEXPHHWDWGT))
+
+datahh <- rbind(datahh,datahh.cty.hhut,datahh.cty)
 ```
 
-Now, `data` has the linked trips for each weekday person trip.  Once again, we can simply compute
-the mean for each combination.
+Now, `data2` has the linked trips for each weekday person trip.  We can simply compute the mean for
+each combination.
 
-```{r table-11-2,results='asis'}
+```{r table-11a-2,results='asis'}
 # take the trip aggs (appg), join the household aggs by stratification, devide totals
 agg1 <- aggp %>% left_join(datahh,by=c('County','HHUT','VOWN')) %>% mutate(nn=n/hhn) %>% select(-n,-hhn) %>% ungroup()
+
 # Sum the totals for each trip type
-agg2<-agg1 %>% group_by(County,HHUT,VOWN) %>% summarise(nn=sum(nn)) %>%
+agg2 <- agg1 %>% group_by(County,HHUT,VOWN) %>% summarise(nn=sum(nn)) %>%
   mutate(TripType="zTOT")
-res11<-rbind(agg1,agg2)  %>%
-  arrange(County,HHUT,VOWN,TripType)
-pandoc.table(res11,
-               caption=paste("Weekday Driver Trips Per Household",sep=""),
-               split.table=Inf,split.cells=Inf,
-               justify=c('left','left','right','right','right'),
-               style='multiline')
+library(tidyr)
+res.11 <- rbind(agg1,agg2)  %>%
+  arrange(County,HHUT,VOWN,TripType) %>%
+  spread(TripType,nn) # reorganize for table
+
+res[['11.str']] = ''
+for (var in sort(unique(res.11$County))) {
+  dat<-res.11 %>% filter(County==var) %>%
+    mutate(County=ifelse(!is.na(lag(County)) & County==lag(County),"&nbsp;",County),
+           HHUT=ifelse(!is.na(lag(HHUT)) & HHUT==lag(HHUT),"&nbsp;",HHUT)
+    ) %>%
+    select(County,`Housing Unit Type`=HHUT,`Vehicle Ownership`=VOWN,HH,HO,HS,HW,OO,WO,WW,Total=zTOT)
+
+
+  tab <- pandoc.table.return(
+    dat,
+    caption=paste("Weekday Driver Trips Per Household (",var,")",sep=""),
+    split.table=Inf,split.cells=Inf,
+    big.mark=',',
+    round=1,
+    #               justify=c('left','left','right','right','right'),
+    style='multiline')
+  cat(tab)
+  res[['11.str']] <- paste(res[['11.str']],tab,sep="\n\n")
+}
 ```
+
 
 ## TABLE 13a: WEEKDAY PERSON AND DRIVER TRIPS PER HOUSEHOLD
 
 ```{r table13a}
 # By Region, Household Size, Housing Unit Type
-
+```
+```{r}
 # compute person trips per category
 # Filter for weekday person trips and count the expanded total trips per type
 data <- chts_lt %>% filter(!is.na(ltmode) & !is.na(oplano)) %>%
@@ -997,17 +1112,155 @@ agg1 <- aggp %>% left_join(datahh,by=c('County','HHUT','HHSIZx')) %>% mutate(nn=
 # Sum the totals for each trip type
 agg2 <- aggt %>% left_join(datahht,by=c("County","HHSIZx")) %>% group_by(County,HHSIZx) %>% summarise(nn=n/hhn) %>%
   mutate(HHUT='Total') %>% ungroup()
-res13a<-rbind(agg1,agg2)  %>%
+res.13a<-rbind(agg1,agg2)  %>%
   arrange(County,HHSIZx,HHUT) %>%
   select(County,HHSIZx,HHUT,nn)    # reorder columns
 ```
 
 
 ```{r table13a-output,results='asis'}
-pandoc.table(res13a)
+res[['13a.str']] <- pandoc.table.return(res.13a)
 ```
 
 
+## TABLE 15: WEEKDAY DRIVER TRIPS PER VEHICLE BY COUNTY, HH INCOME, AND HOUSING UNIT
+
+```{r table-15}
+# compute person trips per category
+# Filter for weekday person trips and count the expanded total trips per type
+data <- chts_lt %>% filter(!is.na(ltmode) & !is.na(oplano)) %>%
+  filter(ltmode %in% driver.trip.modes) %>%
+  left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>% # join weekday weights (and WD)
+  filter(WD==1) %>% # only weekdays
+  group_by(SAMPN,PERNO) %>% summarise(n=sum(NEXPPERWDWGT*ltTCF))
+
+# next, attach the household characteristics to each trip observation
+data2 <- data  %>% 
+  left_join(chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+              left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
+              select(SAMPN,RESTY,INCOM  ,County) %>% 
+              mutate(HHUT=ifelse(RESTY==1 | RESTY==2,'Single','Multiple')), by=c('SAMPN'))
+
+# Now, aggregate the expanded driver trip totals by the stratifications
+aggp <- data2 %>% group_by(County,HHUT,INCOM) %>% summarise(n=sum(n))
+
+# Now, we'll count the total expanded households in each stratifications
+datahh <- chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+  left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
+  select(SAMPN,RESTY,INCOM,County) %>% 
+  mutate(HHUT=ifelse(RESTY==1 | RESTY==2,'Single','Multiple')) %>%
+  left_join(chts_hh.wgt.wd,by=c('SAMPN'))  %>% filter(WD==1) %>%
+  group_by(County,HHUT,INCOM) %>% summarise(hhn=sum(NEXPHHWDWGT))
+```
+
+
+We also want the totals, without the household type stratification
+
+```{r table-15-2}
+aggt <- data2 %>% group_by(County,INCOM) %>% summarise(n=sum(n))
+
+datahht <- chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+  left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
+  select(SAMPN,INCOM,County) %>%
+  left_join(chts_hh.wgt.wd,by=c('SAMPN'))  %>% filter(WD==1) %>%
+  group_by(County,INCOM) %>% summarise(hhn=sum(NEXPHHWDWGT))
+
+```
+
+
+Now, `data` has the linked trips for each weekday driver trip.  We can simply compute the mean for
+each combination.
+
+```{r table-15-3}
+# take the trip aggs (appg), join the household aggs by stratification, devide totals
+agg1 <- aggp %>% left_join(datahh,by=c('County','HHUT','INCOM')) %>% mutate(nn=n/hhn) %>% select(-n,-hhn) %>% ungroup()
+# Sum the totals for each trip type
+agg2 <- aggt %>% left_join(datahht,by=c("County","INCOM")) %>% group_by(County,INCOM) %>% summarise(nn=n/hhn) %>%
+  mutate(HHUT='Total') %>% ungroup()
+res.15<-rbind(agg1,agg2)  %>%
+  arrange(County,INCOM,HHUT) %>%
+  select(County,INCOM,HHUT,nn) %>%   # reorder columns
+  select(County,INCOM,`Household Type`=HHUT,`Driver Trips`=nn)
+
+res.15$INCOM <- assign_factors(res.15$INCOM,'hh','INCOM')
+```
+
+
+```{r table15-output,results='asis'}
+res[['15.str']]<-pandoc.table.return(res.15)
+cat(res[['15.str']])
+```
+
+
+
+## TABLE 15a: WEEKDAY PERSON AND VEHICLE MILES TRAVELED PER VEHICLE BY COUNTY, HH INCOME, AND HOUSING UNIT
+
+```{r table-15a}
+# compute person trips per category
+# Filter for weekday person trips and count the expanded total trip distance per type
+data <- chts_pla %>%
+  left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>% # join weekday weights (and WD)
+  filter(WD==1 & !is.na(TCF) & !is.na(TripDistance)) %>% # only weekdays
+  group_by(SAMPN,PERNO) %>% summarise(
+    n=sum(NEXPPERWDWGT*TCF*TripDistance),
+    nv=sum(ifelse(MODE %in% driver.trip.modes,NEXPPERWDWGT*TCF*TripDistance,0))
+    )
+
+# next, attach the household characteristics to each trip observation
+data2 <- data  %>% 
+  left_join(chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+              left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
+              select(SAMPN,RESTY,INCOM,County) %>% 
+              mutate(HHUT=ifelse(RESTY==1 | RESTY==2,'Single','Multiple')), by=c('SAMPN'))
+
+# Now, aggregate the expanded driver trip totals by the stratifications
+aggp <- data2 %>% group_by(County,HHUT,INCOM) %>% summarise(n=sum(n),nv=sum(nv))
+
+# Now, we'll count the total expanded households in each stratifications
+datahh <- chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+  left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
+  select(SAMPN,RESTY,INCOM,County) %>% 
+  mutate(HHUT=ifelse(RESTY==1 | RESTY==2,'Single','Multiple')) %>%
+  left_join(chts_hh.wgt.wd,by=c('SAMPN'))  %>% filter(WD==1) %>%
+  group_by(County,HHUT,INCOM) %>% summarise(hhn=sum(NEXPHHWDWGT))
+```
+
+
+We also want the totals, without the household type stratification
+
+```{r table-15a-2}
+aggt <- data2 %>% group_by(County,INCOM) %>% summarise(n=sum(n),nv=sum(nv))
+
+datahht <- chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+  left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
+  select(SAMPN,INCOM,County) %>%
+  left_join(chts_hh.wgt.wd,by=c('SAMPN'))  %>% filter(WD==1) %>%
+  group_by(County,INCOM) %>% summarise(hhn=sum(NEXPHHWDWGT))
+
+```
+
+
+Now, `data` has the linked trips for each weekday driver trip.  We can simply compute the mean for
+each combination.
+
+```{r table-15a-3}
+# take the trip aggs (appg), join the household aggs by stratification, devide totals
+agg1 <- aggp %>% left_join(datahh,by=c('County','HHUT','INCOM')) %>% mutate(nn=n/hhn,nnv=nv/hhn) %>% select(-n,-nv,-hhn) %>% ungroup()
+# Sum the totals for each trip type
+agg2 <- aggt %>% left_join(datahht,by=c("County","INCOM")) %>% group_by(County,INCOM) %>% summarise(nn=n/hhn,nnv=nv/hhn) %>%
+  mutate(HHUT='Total') %>% ungroup()
+res.15a<-rbind(agg1,agg2)  %>%
+  arrange(County,INCOM,HHUT) %>%
+  select(County,INCOM,HHUT,nn,nnv) %>%   # reorder columns 
+  select(County,Income=INCOM,`Household Type`=HHUT,PMT=nn, VMT=nnv)
+res.15a$Income <- assign_factors(res.15a$Income,'hh','INCOM')
+```
+
+
+```{r table15a-output,results='asis'}
+res[['15a.str']]<-pandoc.table.return(res.15a)
+cat(res[['15a.str']])
+```
 
 
 ## TABLE 17a: WEEKDAY UNLINKED AND LINKED TRIPS DISTRIBUTED BY PARTICULAR TRAVEL MODE AND GROUP
@@ -1106,15 +1359,16 @@ fftab.all <- fftab.ul %>% left_join(fftab,by=c('MODE.GROUP','MODE')) %>%
   select(-SORT.ORDER)
 
 
+res.17a <- fftab.all
 
-
-pandoc.table(fftab.all,
+res[['17a.str']] <- pandoc.table.return(res.17a,
              caption=paste("Weekday Trip Modes",sep=""),
              split.table=Inf,split.cells=Inf,
              justify=c('left','left','right','right','right','right'),
              style='multiline',
              emphasize.strong.rows=which(fftab.all$MODE=='TOTAL',arr.ind=TRUE)
              )
+cat(res[['17a.str']])
 ```
 
 Now, by county.
@@ -1160,7 +1414,7 @@ tab.raw <- lt.wd.cty %>%
               by=c("SAMPN"="SAMPN","PERNO"="PERNO",
                    "dplano"="PLANO"))
 
-
+res[['17a.cty.str']] <- ''
 for (ctyi in sort(unique(fipsctyca$county_ansi))) {
   cty <- sprintf("%3.3d",ctyi)
   # unlinked trips
@@ -1239,12 +1493,24 @@ for (ctyi in sort(unique(fipsctyca$county_ansi))) {
   
   cty.name <- (fipsctyca %>% filter(county_ansi==as.integer(cty)))$county_name
   
-  pandoc.table(fftab.all,
-               caption=paste("Weekday Trip Modes for ",cty.name,sep=""),
-               split.table=Inf,split.cells=Inf,
-               justify=c('left','left','right','right','right','right'),
-               style='multiline',
-               emphasize.strong.rows=which(fftab.all$MODE=='TOTAL',arr.ind=TRUE)
-               )
+  res[['17a.cty.str']] <- paste(
+    res[['17a.cty.str']],
+    pandoc.table.return(fftab.all,
+                 caption=paste("Weekday Trip Modes for ",cty.name,sep=""),
+                 split.table=Inf,split.cells=Inf,
+                 justify=c('left','left','right','right','right','right'),
+                 style='multiline',
+                 emphasize.strong.rows=which(fftab.all$MODE=='TOTAL',arr.ind=TRUE)
+    ),
+    sep="\n"
+  )
 }
+cat(res[['17a.cty.str']])
+```
+
+
+### All Tables
+
+```{r dump-all,echo=FALSE,results='asis'}
+cat(paste(res,collapse="\n\n")) 
 ```
