@@ -30,7 +30,9 @@ library(chts2011)
 library(chts2011pvt)
 library(chts2011wgt)
 
-panderOptions(keep.trailing.zeros=TRUE,big.mark=',',round=1)
+panderOptions('keep.trailing.zeros',TRUE)
+panderOptions('big.mark',',')
+panderOptions('round',1)
 
 fipsctyca <- read.csv(paste(rd,"data/fips-county.csv",sep="/"),header=TRUE,
                        stringsAsFactors=FALSE) %>%
@@ -230,7 +232,7 @@ adat[['Licensed Drivers Per Household']] <-
 
 Now, we can plot the table.
 
-```{r table-a_1,results='asis',cache=FALSE} 
+```{r table-a_1} 
 res <- list()
 res.a.1 <- t(t(unlist(adat)))
 colnames(res.a.1) <- c("Household Information") 
@@ -239,6 +241,9 @@ res[['a.1.str']] <- pandoc.table.return(res.a.1,
              justify=c('left','right'),
              big.mark=',',
              caption="TABLE A: Household Information")
+```
+
+```{r table-a_1-results,results='asis',echo=FALSE,cache=FALSE}
 cat(res[['a.1.str']])
 ```
 
@@ -550,7 +555,7 @@ bdat[["&nbsp;&nbsp;Weekday 'Home-Work Trips' Trip Length"]] <-
 ```
 
 Now we can print the table.
-```{r table-b-results,results='asis',cache=FALSE} 
+```{r table-b-results-prep} 
 res.b <- t(t(unlist(bdat)))  
 colnames(res.b) <- c("Travel Data (Linked Trips)") 
 res[['b.str']]<-pandoc.table.return(res.b,
@@ -559,13 +564,16 @@ res[['b.str']]<-pandoc.table.return(res.b,
              big.mark=',',
              caption="TABLE B: Weekday Trip Information")
 res[['b.str']] <- gsub("(\\*\\*\\s*)     0","\\1&nbsp;",res[['b.str']])
+```
+
+```{r table-b-results,results='asis',echo=FALSE,cache=FALSE}
 cat(res[['b.str']])
 ```
 
 ## Table C - TRAVEL SURVEY DATA FOR CALIFORNIA---Travel Mode Distribution
 
 
-```{r table-c,results='asis'}
+```{r table-c}
 #   Weekday Percent
 # Vehicle Driver Trips 69.1%
 # Vehicle Passenger Trips 19.4%
@@ -620,12 +628,15 @@ res[['c.str']]<-pandoc.table.return(res.c,
              big.mark=',',
              round=1,
              caption="TABLE C: Weekday Mode Share Information")
+```
+
+```{r table-c-results,results='asis',echo=FALSE,cache=FALSE}
 cat(res[['c.str']])
 ```
 
 ## Table D: TRAVEL SURVEY DATA FOR CALIFORNIA---Weekday Commute Mode Share Information
 
-```{r table-d,results='asis'}
+```{r table-d}
 # Commuter Mode Share-Weekday Trips
 # Drove Alone
 # 24 Hours
@@ -704,12 +715,15 @@ res[['d.str']] <- pandoc.table.return(res.d,
              round=1,
              caption="TABLE D: Weekday Mode Share Information",
              emphasize.strong.cols = 1) 
+```
+
+```{r table-d-results,results='asis',echo=FALSE,cache=FALSE}
 cat(res[['d.str']])
 ```
 
 ## Table 1: PERSONS/VEHICLE PER HOUSEHOLD By County
 
-```{r table-1,results='asis'}
+```{r table-1}
 hh <- chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
   left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>%
   left_join(chts_hh.wgt.cty %>% select(-CTFIP),by=c("SAMPN"))
@@ -734,6 +748,9 @@ res[['1.str']] <- pandoc.table.return(
   big.mark=',',
   round=1
   )
+```
+
+```{r table-1-results,results='asis',echo=FALSE,cache=FALSE}
 cat(res[['1.str']])
 ```
 
@@ -741,7 +758,7 @@ cat(res[['1.str']])
 
 Persons 16 years of age or older.
 
-```{r table-5,results='asis'}
+```{r table-5}
 lic.ca <- chts_hh %>% summarise(
   County='California',  
   Licensed=round(wtd.mean(HHLIC,weights=EXPHHWGT),1)
@@ -765,12 +782,15 @@ res[['5.str']] <- pandoc.table.return(
   big.mark = ',',
   round = 1
   )
+```
+
+```{r table-5-results,results='asis',echo=FALSE,cache=FALSE}
 cat(res[['5.str']])
 ```
 
 ## TABLE 6: EMPLOYEES PER HOUSEHOLD
 
-```{r table-6,results='asis'}
+```{r table-6}
 emp.ca <- chts_hh %>% summarise(
   County='California',
   Employed=round(wtd.mean(HHEMP,weights=EXPHHWGT),1)
@@ -794,12 +814,15 @@ res[['6.str']] <- pandoc.table.return(
   round=1,
   keep.trailing.zeros = TRUE
   )
+```
+
+```{r table-6-results,results='asis',echo=FALSE,cache=FALSE}
 cat(res[['6.str']])
 ```
 
 ## TABLE 9: WEEKDAY TRIP-TYPE DISTRIBUTION
 
-```{r table-9-1,results='asis'}
+```{r table-9-1}
 suppressMessages(require(Hmisc))
 dat<-(ltf2 %>% left_join(chts_per %>% select(SAMPN,PERNO,EXPPERWGT)) %>% 
              mutate(EXPTCFPERWGT=EXPPERWGT*ltTCF) %>%
@@ -825,6 +848,8 @@ res[['9.str']] <-
     style='multiline',
     emphasize.strong.rows=which(res.9.1$Trip.Type=='TOTAL',arr.ind=TRUE)
   )
+```
+```{r table-9-results,results='asis',echo=FALSE,cache=FALSE}
 cat(res[['9.str']])
 ```
 
@@ -867,7 +892,7 @@ for (var in sort(unique(data$County))) {
   res[['9.2.str']] <- paste(res[['9.2.str']],tabtot.str,sep="\n")
 }
 ```
-```{r t9-2-results,results='asis',echo=FALSE}
+```{r t9-2-results,results='asis',echo=FALSE,cache=FALSE}
 cat(res[['9.2.str']])
 ```
 
@@ -967,7 +992,7 @@ for (var in sort(unique(res.10a$County))) {
 }
 ```
 
-```{r t10a-results,results='asis',echo=FALSE}
+```{r t10a-results,results='asis',echo=FALSE,cache=FALSE}
 cat(res[['10a.str']])
 ```
 
@@ -1069,7 +1094,7 @@ for (var in sort(unique(res.11$County))) {
 }
 ```
 
-```{r t11-results,results='asis',echo=FALSE}
+```{r t11-results,results='asis',echo=FALSE,cache=FALSE}
 cat(res[['11.str']])
 ```
 
@@ -1299,7 +1324,7 @@ for (var in sort(unique(res.15$County))) {
 ```
 
 
-```{r table15-output,results='asis'}
+```{r table15-output,results='asis',cache=FALSE}
 cat(res[['15.str']])
 ```
 
@@ -1373,14 +1398,14 @@ for (var in sort(unique(res.15a$County))) {
 ```
 
 
-```{r table15a-output,results='asis'}
+```{r table15a-output,results='asis',cache=FALSE}
 cat(res[['15a.str']])
 ```
 
 
 ## TABLE 17a: WEEKDAY UNLINKED AND LINKED TRIPS DISTRIBUTED BY PARTICULAR TRAVEL MODE AND GROUP
 
-```{r table-17a,results='asis'}
+```{r table-17a}
 mode.groups <- data.frame( 
   ltmode=c(
     c(5,8,10),
@@ -1477,12 +1502,15 @@ fftab.all <- fftab.ul %>% left_join(fftab,by=c('MODE.GROUP','MODE')) %>%
 res.17a <- fftab.all
 
 res[['17a.str']] <- pandoc.table.return(res.17a,
-             caption=paste("Weekday Trip Modes",sep=""),
+             caption=paste("TABLE 17a: Weekday Linked and Unlinked Trips Distributed by Particular Travel Mode and Group (California)",sep=""),
              split.table=Inf,split.cells=Inf,
              justify=c('left','left','right','right','right','right'),
              style='multiline',
-             emphasize.strong.rows=which(fftab.all$MODE=='TOTAL',arr.ind=TRUE)
+             round=0
+             #,emphasize.strong.rows=which(fftab.all$MODE=='TOTAL',arr.ind=TRUE)
              )
+```
+```{r table-17a-results,results='asis',echo=FALSE,cache=FALSE}
 cat(res[['17a.str']])
 ```
 
@@ -1611,23 +1639,24 @@ for (ctyi in sort(unique(fipsctyca$county_ansi))) {
   res[['17a.cty.str']] <- paste(
     res[['17a.cty.str']],
     pandoc.table.return(fftab.all,
-                 caption=paste("Weekday Trip Modes for ",cty.name,sep=""),
+                 caption=paste("TABLE 17a (cont): Weekday Linked and Unlinked Trips Distributed by Particular Travel Mode and Group (",cty.name,")",sep=""),
                  split.table=Inf,split.cells=Inf,
                  justify=c('left','left','right','right','right','right'),
                  style='multiline',
-                 emphasize.strong.rows=which(fftab.all$MODE=='TOTAL',arr.ind=TRUE)
-    ),
-    sep="\n"
+                 round=0
+                 #,emphasize.strong.rows=which(fftab.all$MODE=='TOTAL',arr.ind=TRUE
+                 ),
+    sep="\n\n"
   )
 }
 ```
 
-```{r t17a-results,echo=FALSE,results='asis'}
-cat(res[['17a.cty.str']])
+```{r t17a-cty-results,echo=FALSE,results='asis',cache=FALSE}
+cat(res[['17a.cty.str']]) 
 ```
 
 ### All Tables
 
-```{r dump-all,echo=FALSE,results='asis'}
-cat(paste(res,collapse="\n\n"))
+```{r dump-all,echo=FALSE,results='asis',cache=FALSE}
+cat(paste(res,collapse="\n\n")) 
 ```
