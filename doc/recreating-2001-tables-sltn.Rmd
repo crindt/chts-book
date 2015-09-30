@@ -1241,8 +1241,11 @@ for (var in sort(unique(res.13$County))) {
 data <- chts_lt %>% filter(!is.na(ltmode) & !is.na(oplano)) %>%
   filter(ltmode %in% driver.trip.modes) %>%
   left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>% # join weekday weights (and WD)
+  left_join(chts_per.wgt.wd.cty,by=c('SAMPN','PERNO')) %>% # join wd cty weights
   filter(WD==1) %>% # only weekdays
-  group_by(SAMPN,PERNO) %>% summarise(n=sum(NEXPPERWDWGT*ltTCF))
+  group_by(SAMPN,PERNO) %>% 
+  summarise(n.st=sum(NEXPPERWDWGT*ltTCF),
+            n.cty=sum(NEXPPERWDWGT*ltTCF))
 
 # next, attach the household characteristics to each trip observation
 chts_hh_t <- chts_hh
@@ -1255,50 +1258,96 @@ data2 <- data  %>%
               mutate(HHUT=ifelse(RESTY==1 | RESTY==2,'Single','Multiple')), by=c('SAMPN'))
 
 # Now, aggregate the expanded driver trip totals by the stratifications
-aggp.all <- data2 %>% group_by(County,HHUT,INCOM) %>% summarise(n=sum(n))
-aggp.cty.hhut <- data2 %>% 
-  mutate(INCOM='Total') %>%
-  group_by(County,HHUT,INCOM) %>%
-  summarise(n=sum(n))
-aggp.cty.incom <- data2 %>%
-  mutate(HHUT='Total') %>%
-  group_by(County,HHUT,INCOM) %>%
-  summarise(n=sum(n))
-aggp.cty <- data2 %>%
-  mutate(INCOM='Total',HHUT='Total') %>%
-  group_by(County,HHUT,INCOM) %>%
-  summarise(n=sum(n))
+doagg <- function(mydata) {
+  ret <- function(cty) {
+    mydat <- mydata
+    if ( cty == 'California') mydat$County = cty
+    mydat <- mydat %>% 
+      filter(County==cty)
+    
+    aggp.cty.all <- mydat %>%
+      group_by(County,HHUT,INCOM) %>% 
+      summarise(n=sum(ifelse(grepl(paste("^",cty,"$",sep=""),County),n.cty,n.st),na.rm=TRUE))
+    aggp.cty.hhut <- mydat %>% 
+      mutate(INCOM='Total') %>%
+      group_by(County,HHUT,INCOM) %>%
+      summarise(n=sum(ifelse(grepl(paste("^",cty,"$",sep=""),County),n.cty,n.st),na.rm=TRUE))
+    aggp.cty.incom <- mydat %>%
+      mutate(HHUT='Total') %>%
+      group_by(County,HHUT,INCOM) %>%
+      summarise(n=sum(ifelse(grepl(paste("^",cty,"$",sep=""),County),n.cty,n.st),na.rm=TRUE))
+    aggp.cty <- mydat %>%
+      mutate(INCOM='Total',HHUT='Total') %>%
+      group_by(County,HHUT,INCOM) %>%
+      summarise(n=sum(ifelse(grepl(paste("^",cty,"$",sep=""),County),n.cty,n.st),na.rm=TRUE))
 
-aggp <- rbind(aggp.all,aggp.cty.hhut,aggp.cty.incom,aggp.cty)
+    
+    return(rbind(aggp.cty.all,aggp.cty.hhut,aggp.cty.incom,aggp.cty))
+  }
+  return(ret)
+}
 
-# Now, we'll count the total expanded households in each stratifications
+aggp <- do.call(
+  "rbind",
+  lapply(
+    c('California',sort(unique(fipsctyca$County))),
+    doagg(data2)
+  )
+)
+
 hhtt <- chts_hh_t %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
   left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
   select(SAMPN,RESTY,INCOM,County,HHVEH) 
-datahh.all <- hhtt %>% 
-  mutate(HHUT=ifelse(RESTY==1 | RESTY==2,'Single','Multiple')) %>%
-  left_join(chts_hh.wgt.wd,by=c('SAMPN'))  %>% filter(WD==1) %>%
-  group_by(County,HHUT,INCOM) %>% summarise(hhn=sum(NEXPHHWDWGT*HHVEH))
-datahh.cty.hhut <- hhtt %>% 
-  mutate(HHUT=ifelse(RESTY==1 | RESTY==2,'Single','Multiple'),
-         INCOM='Total'
-         ) %>%
-  left_join(chts_hh.wgt.wd,by=c('SAMPN'))  %>% filter(WD==1) %>%
-  group_by(County,HHUT,INCOM) %>% summarise(hhn=sum(NEXPHHWDWGT*HHVEH))
-datahh.cty.incom <- hhtt %>% 
-  mutate(HHUT='Total',
-         INCOM=INCOM
-         ) %>%
-  left_join(chts_hh.wgt.wd,by=c('SAMPN'))  %>% filter(WD==1) %>%
-  group_by(County,HHUT,INCOM) %>% summarise(hhn=sum(NEXPHHWDWGT*HHVEH))
-datahh.cty <- hhtt %>% 
-  mutate(HHUT='Total',
-         INCOM='Total'
-         ) %>%
-  left_join(chts_hh.wgt.wd,by=c('SAMPN'))  %>% filter(WD==1) %>%
-  group_by(County,HHUT,INCOM) %>% summarise(hhn=sum(NEXPHHWDWGT*HHVEH))
 
-datahh <- rbind(datahh.all,datahh.cty.hhut,datahh.cty.incom,datahh.cty)
+dohhagg <- function(mydata) {
+  mydata2 <- mydata %>% 
+    left_join(chts_hh.wgt.wd,by=c('SAMPN'))  %>% filter(WD==1) %>%
+    left_join(chts_hh.wgt.wd.cty,by=c("SAMPN"))
+  
+  return(function(cty) {
+    mydat <- mydata2
+    if ( cty == 'California') mydat$County = cty
+    mydat <- mydat %>% 
+      filter(County==cty)
+    
+    # Now, we'll count the total expanded households in each stratifications
+    datahh.cty.all <- mydat %>% 
+      mutate(HHUT=ifelse(RESTY==1 | RESTY==2,'Single','Multiple')) %>%
+      group_by(County,HHUT,INCOM) %>% 
+      summarise(hhn=sum(ifelse(grepl(paste("^",cty,"$",sep=""),County),NEXPHHWDCTYWGT,NEXPHHWDWGT)*HHVEH))
+    datahh.cty.hhut <- mydat %>% 
+      mutate(HHUT=ifelse(RESTY==1 | RESTY==2,'Single','Multiple'),
+             INCOM='Total'
+      ) %>%
+      group_by(County,HHUT,INCOM) %>% 
+      summarise(hhn=sum(ifelse(grepl(paste("^",cty,"$",sep=""),County),NEXPHHWDCTYWGT,NEXPHHWDWGT)*HHVEH))
+    datahh.cty.incom <- mydat %>% 
+      mutate(HHUT='Total',
+             INCOM=INCOM
+      ) %>%
+      group_by(County,HHUT,INCOM) %>% 
+      summarise(hhn=sum(ifelse(grepl(paste("^",cty,"$",sep=""),County),NEXPHHWDCTYWGT,NEXPHHWDWGT)*HHVEH))
+    datahh.cty <- mydat %>% 
+      mutate(HHUT='Total',
+             INCOM='Total'
+      ) %>%
+      group_by(County,HHUT,INCOM) %>% 
+      summarise(hhn=sum(ifelse(grepl(paste("^",cty,"$",sep=""),County),NEXPHHWDCTYWGT,NEXPHHWDWGT)*HHVEH))
+    
+    return(rbind(datahh.cty.all,datahh.cty.hhut,datahh.cty.incom,datahh.cty))
+  })
+}
+
+
+datahh <- do.call(
+  "rbind",
+  lapply(
+    c('California',sort(unique(fipsctyca$County))),
+    dohhagg(hhtt)
+  )
+)
+
+  
 ```
 
 Now, `data` has the linked trips for each weekday driver trip.  We can simply compute the mean for
@@ -1311,25 +1360,27 @@ agg1 <- aggp %>% left_join(datahh,by=c('County','HHUT','INCOM')) %>%
 
 library(tidyr)
 res.15 <- agg1  %>%
-  arrange(County,HHUT,INCOM) %>% 
   spread(HHUT,nn) %>% # reorganize for table
+  arrange(ifelse(County=='California','aaaaaaa',County),INCOM) %>% 
   select(County,INCOM,Single,Multiple,Total)
 
-res[['15.str']] = ''
-for (var in sort(unique(res.15$County))) {
-  dat<-res.15 %>% filter(County==var) %>%
-    select(`Household Income`=INCOM,Single,Multiple,Total)
+t <- lapply(
+  c('California',sort(unique(res.15$County))),
+  function(cty) {
+    dat<-res.15 %>% filter(County==cty) %>%
+      select(`Household Income`=INCOM,Single,Multiple,Total)
+    
+    return(pandoc.table.return(
+      dat,
+      caption=paste("TABLE 15: Weekday Driver Trips Per Vehicle (",cty,")",sep=""),
+      split.table=Inf,split.cells=Inf,
+      big.mark=',',
+      round=1,
+      #               justify=c('left','left','right','right','right'),
+      style='multiline'))
+  })
+res[['15.str']] = paste(t,collapse="\n\n")
 
-  tab <- pandoc.table.return(
-    dat,
-    caption=paste("TABLE 15: Weekday Driver Trips Per Vehicle (",var,")",sep=""),
-    split.table=Inf,split.cells=Inf,
-    big.mark=',',
-    round=1,
-    #               justify=c('left','left','right','right','right'),
-    style='multiline')
-  res[['15.str']] <- paste(res[['15.str']],tab,sep="\n\n")
-}
 ```
 
 
@@ -1566,8 +1617,9 @@ tab.raw <- lt.wd.cty %>%
               by=c("SAMPN"="SAMPN","PERNO"="PERNO",
                    "dplano"="PLANO"))
 
-res[['17a.cty.str']] <- ''
-for (ctyi in sort(unique(fipsctyca$county_ansi))) {
+t <- lapply(
+  sort(unique(fipsctyca$county_ansi)),
+  function(ctyi) {
   cty <- sprintf("%3.3d",ctyi)
   # unlinked trips
 
@@ -1645,23 +1697,505 @@ for (ctyi in sort(unique(fipsctyca$county_ansi))) {
   
   cty.name <- (fipsctyca %>% filter(county_ansi==as.integer(cty)))$county_name
   
-  res[['17a.cty.str']] <- paste(
-    res[['17a.cty.str']],
+  return(
     pandoc.table.return(fftab.all,
-                 caption=paste("TABLE 17a (cont): Weekday Linked and Unlinked Trips Distributed by Particular Travel Mode and Group (",cty.name,")",sep=""),
-                 split.table=Inf,split.cells=Inf,
-                 justify=c('left','left','right','right','right','right'),
-                 style='multiline',
-                 round=Inf
-                 #,emphasize.strong.rows=which(fftab.all$MODE=='TOTAL',arr.ind=TRUE
-                 ),
-    sep="\n\n"
+                        caption=paste("TABLE 17a (cont): Weekday Linked and Unlinked Trips Distributed by Particular Travel Mode and Group (",cty.name,")",sep=""),
+                        split.table=Inf,split.cells=Inf,
+                        justify=c('left','left','right','right','right','right'),
+                        style='multiline',
+                        round=Inf
+                        #,emphasize.strong.rows=which(fftab.all$MODE=='TOTAL',arr.ind=TRUE
+    )
   )
-}
+  })
+res[['17a.cty.str']] <- paste(t,collapse="\n\n")
 ```
 
 ```{r t17a-cty-results,echo=FALSE,results='asis',cache=FALSE}
-cat(res[['17a.cty.str']]) 
+cat(res[['17a.cty.str']])
+```
+
+## Table 17B and 17C: Weekday Commuters' Directional Travel Mode Split. All Home-to-Work trips and 7:00-9:00am Home-to-Work trips
+
+```{r table-17bc}
+mode.groups <- data.frame( 
+  ltmode=c(
+    c(5,8,10),
+    c(6,7,9,11,14),
+    c(15,16,17,18,19,20,21,22,23,24,25,26,27),
+    c(12,13),
+    c(1),
+    c(2),
+    c(3,4,28,29)
+    ),
+  MODE.GROUP=c(
+    rep('Vehicle Driver',3),
+    rep('Vehicle Passenger',5),
+    rep('Local Public Transit',13),
+    rep('Intercity Public Transportation',2),
+    rep('Walk',1),
+    rep('Bike',1),
+    rep('Miscelleneous Modes',4)
+    ),
+  order = c(
+    rep(1,3),
+    rep(2,5),
+    rep(3,13),
+    rep(4,2),
+    rep(5,1),
+    rep(6,1),
+    rep(7,4)
+  ),
+  stringsAsFactors=FALSE
+  )
+
+gentab <- function(data) {
+  tab <- data %>%  
+    left_join(mode.groups,by=c('ltmode')) %>% group_by(MODE.GROUP,ltmode) %>% 
+    summarise(num=sum(NEXPTCFPERWDWGT,na.rm=TRUE),order=min(order)) %>% 
+    ungroup() %>%
+    arrange(order,MODE.GROUP)
+  
+  tots <- tab %>% ungroup() %>% group_by(MODE.GROUP) %>% 
+    summarise(tnum=sum(num),order=min(order)) %>% ungroup() %>%
+    arrange(order,MODE.GROUP)
+  gtots <-  tots %>%  
+    summarise(MODE.GROUP='Total',
+              gtnum=sum(tnum),order=Inf)
+  ftab <- tots %>% select(MODE.GROUP,num=tnum,order) %>%
+    rbind(gtots %>% transmute(MODE.GROUP=MODE.GROUP,num=gtnum,order=order))
+  ftab <- ftab %>% ungroup() %>%
+    mutate(pct = round(num/gtots$gtnum[1]*100,1))
+  return(ftab)
+}
+
+# linked trips
+All.lt <- lt.wd %>%
+  filter(!is.na(ltmode) & TripType=='HW') %>%
+  left_join(chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+              left_join(fipsctyca,by=c('ICTFIP'='county_ansi')), 
+            by=c('SAMPN'))
+
+
+Am.lt <- All.lt %>% filter(DEP_HR %in% c(7,8))
+
+t <- lapply(
+  c("California",sort(unique(All.lt$County))),
+  function(cty) {
+  
+  all.lt <- All.lt
+  am.lt <- Am.lt
+  if(cty != "California") {
+    all.lt <- All.lt %>% filter(County==cty)
+    am.lt  <- Am.lt %>% filter(County==cty)
+  }
+  
+  fftab.alldayt <- gentab(all.lt) %>% mutate(period='All.Day')
+  fftab.allday <- fftab.alldayt %>% 
+    select(MODE.GROUP,order,num,period) %>% 
+    spread(period,num) %>% 
+    select(MODE.GROUP,All.Day.num=All.Day,order) %>% 
+    left_join(fftab.alldayt %>% 
+                select(MODE.GROUP,pct,period) %>% 
+                spread(period,pct) %>% 
+                select(MODE.GROUP,All.Day.pct=All.Day),
+              by=c('MODE.GROUP')) %>% 
+    arrange(order) 
+  
+  fftab.amt <- gentab(am.lt) %>% mutate(period='AM')
+  fftab.am <- fftab.amt %>% 
+    select(MODE.GROUP,order,num,period) %>% 
+    spread(period,num) %>% 
+    select(MODE.GROUP,AM.num=AM,order) %>% 
+    left_join(fftab.amt %>% 
+                select(MODE.GROUP,pct,period) %>% 
+                spread(period,pct) %>% 
+                select(MODE.GROUP,AM.pct=AM),
+              by=c('MODE.GROUP')) %>% 
+    arrange(order) %>% select(-order) 
+  
+  fftab.all <- merge(fftab.allday,fftab.am,by=c('MODE.GROUP')) %>%
+    arrange(order) %>%
+    select(`Travel Mode`=MODE.GROUP,
+           `All Home-to-Work Trips`=All.Day.num,
+           `All Home-to-Work Trips (%)`=All.Day.pct,
+           `7:00-9:00am Home-to-Work Commute Trips`=AM.num,
+           `7:00-9:00am Home-to-Work Commute Trips (%)`=AM.pct,
+           order=order
+    ) %>%
+    mutate(County=cty)
+  if ( !exists("res.17bc") ) {
+    res.17bc = fftab.all
+  } else {
+    res.17bc <- rbind(res.17bc,fftab.all)
+  }
+  
+  return(
+    pandoc.table.return(
+      fftab.all %>% arrange(order) %>% select(-order,-County),
+      caption=paste("TABLES 17b and 17c: Weekday Commuters' Directional Travel Mode by County (",cty,")",sep=""),
+      split.table=Inf,split.cells=Inf,
+      justify=c('left','right','right','right','right'),
+      style='multiline',
+      round=Inf
+      #,emphasize.strong.rows=which(fftab.all$MODE=='TOTAL',arr.ind=TRUE
+    )
+  )
+  })
+res[['17bc.str']] <- paste(t,collapse="\n\n")
+```
+```{r table-17bc-results,results='asis',echo=FALSE,cache=FALSE}
+cat(res[['17bc.str']])
+```
+
+## TABLE 22: Age of Vehicle in Use on Travel Day by County and Vehicle Type
+
+```{r table-22}
+Vehdat <- chts_veh %>%
+  left_join(chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+              select(-HHWGT,-EXPHHWGT) %>%
+              left_join(fipsctyca,by=c('ICTFIP'='county_ansi')), 
+            by=c('SAMPN')) %>%
+  left_join(chts_hh.wgt.wd.cty,by=c("SAMPN")) %>%
+  left_join(chts_hh.wgt.wd,by=c("SAMPN")) %>%
+  mutate(WD=ifelse(DOW<6,1,2)) %>%
+  filter(WD==1)
+
+t <- lapply(
+      c("California",sort(unique(Vehdat$County))),
+      function(cty) {
+        
+        vehdat <- Vehdat
+        if(cty != "California") {
+          vehdat <- Vehdat %>% filter(County==cty)
+        }
+        
+        usedveh <- vehdat %>% filter(CNTV==1)
+        
+        res <- usedveh %>% 
+          mutate(ystr=as.character(YEAR)) %>%
+          mutate(AGE=ifelse(ystr %in% c("9998","9999"),
+                            "Unknown",
+                            ifelse(as.integer(ystr)<1992,">21",
+                                   ifelse(as.integer(ystr)==2013,'<1',2013-as.integer(ystr)))),
+                 MODEL.YEAR=ifelse(ystr %in% c("9998","9999"),
+                                   "Not Known",
+                                   ifelse(as.integer(ystr)<1992,"1991 or Earlier",YEAR))
+          ) %>% 
+          group_by(AGE,MODEL.YEAR) %>%
+          summarise(n=sum(ifelse(grepl(paste("^",cty,"$",sep=""),County),NEXPHHWDCTYWGT,NEXPHHWDWGT)),
+                    YEAR=min(as.integer(YEAR))) %>% 
+          ungroup() %>%
+          mutate(YEAR=ifelse(YEAR>9000,-YEAR,YEAR))
+        rest <- res %>% ungroup() %>% mutate(YEAR=as.integer(YEAR)) %>%
+          arrange(desc(YEAR)) %>% select(-YEAR)
+        rest.2 <- rest %>% mutate(pct=n/sum(res$n)*100,cumpct=cumsum(n)/sum(res$n)*100)
+        res.22 <- rest.2 %>% transmute(`Model Year`=MODEL.YEAR,
+                                       `Age of Vehicle`=AGE,
+                                       `Num of Veh in Use`=round(n,0),
+                                       `Percent of Vehicles`=round(pct,1),
+                                       `Cumulative Percent`=round(cumpct,1))
+        res.22 <- rbind(res.22, rest.2 %>% summarise(`Model Year`=NA,
+                                                     `Age of Vehicle`='TOTAL',
+                                                     `Num of Veh in Use`=round(sum(rest.2$n),0),
+                                                     `Percent of Vehicles`=NA,
+                                                     `Cumulative Percent`=NA))
+        return(
+          pandoc.table.return(
+            res.22,
+            caption=paste("TABLE 22: Vehicles in Use on Average Weekday Distributed by Age of Vehicle by County (",cty,")",sep=""),
+            split.table=Inf,split.cells=Inf,
+            justify=c('center','center','right','right','right'),
+            style='multiline',
+            round=Inf,
+            big.mark = ',',
+            missing='&nbsp;'
+            ,emphasize.strong.rows=which(res.22$`Age of Vehicle`=='TOTAL',arr.ind=TRUE)
+          ))
+        })
+res[['22.str']] <- paste(t,collapse="\n\n")
+  
+
+```
+```{r table-22-results,results='asis',echo=FALSE,cache=FALSE}
+cat(res[['22.str']])
+```
+
+
+## TABLE 22a: Number of Vehicle Trips (VT), Number of Vehicle Miles Traveled (VMT) and Person Trips (PT) and Person Miles Traveled (PMT) by County by Mode and Purpose.
+
+How to define VT?  By definition, Transit trips will have zero VMT, so having both VMT and mode split doesn't make sense to me.
+
+## TABLE 50: Mode share for the trips under 1 mile, and trips under 3 miles for transit, bike, and walk by County
+
+Also asked for cities, but samples sizes will be too small for most.
+
+```{r t50}
+dat <- chts_pla %>%  
+  filter(PLANO!=1) %>%  # remove start of day
+  filter(is.na(TripDistanceFlag) & TripDistance < 3) %>%  # weighting issue!
+  mutate(oCTFIP=as.integer(lag(CTFIP))) %>%  # origin CTFIP
+  left_join(fipsctyca %>% select(county_ansi,oCounty=County),
+            by=c('oCTFIP'='county_ansi')) %>%
+  filter(!is.na(oCounty)) %>%
+  mutate(DIST=ifelse(TripDistance<1,'< 1 mile','1 to 3 miles'),
+         Mode=ifelse(MODE==1,'Walk',
+                     ifelse(MODE==2,'Bike',
+                            ifelse(MODE %in% public.transit.trip.modes, 'Transit',
+                                   'All Others'))))
+t <- dat %>% 
+  group_by(oCounty,DIST,Mode) %>% 
+  summarise(n=sum(EXPTCFPERWGT,na.rm=TRUE))
+
+tt <- t %>% ungroup() %>% 
+  mutate(Mode='Total') %>% 
+  group_by(oCounty,DIST,Mode) %>% summarise(n=sum(n))
+t2 <- t %>% left_join(tt %>% select(oCounty,DIST,nt=n),by=c('oCounty','DIST')) %>%
+  mutate(pct=round(100*n/nt,1))
+res.50 <- t2 %>% select(oCounty,Mode,DIST,pct) %>% spread(DIST,pct) %>%
+  arrange(oCounty,ifelse(Mode=='All Others','ZZZZ',Mode))
+
+res[['50.str']] <-
+  paste(
+    lapply(
+      sort(unique(fipsctyca$County)),
+      function(cty) {
+        return(pandoc.table.return(
+          res.50 %>% filter(oCounty==cty) %>%
+            select(-oCounty),
+          caption=paste("TABLE 50: Mode Share for Short Distance Trips by County (",cty,")",sep=""),
+          split.table=Inf,split.cells=Inf,
+          justify=c('center','right','right'),
+          style='multiline',
+          round=Inf,
+          big.mark = ','
+        ))
+      }),
+    collapse="\n\n"
+  )
+
+
+```
+```{r table-50-results,results='asis',echo=FALSE,cache=FALSE}
+cat(res[['50.str']])
+```
+
+
+## TABLE 51: Driver trips, bike, walk and transit for millennial versus older age groups. 
+
+
+```{r table-51}
+# following pew: http://www.pewresearch.org/fact-tank/2015/01/16/this-year-millennials-will-overtake-baby-boomers/
+millenials <- 18:35-(2015-2012)
+
+dat <- chts_pla %>%  
+  left_join(chts_per,by=c('SAMPN','PERNO')) %>%
+  filter(AGE>14) %>%
+  filter(PLANO!=1) %>%  # remove start of day
+  mutate(Mode=ifelse(
+    MODE %in% driver.trip.modes, 'Driver',
+    ifelse(
+      MODE %in% c(6), 'Passenger',
+      ifelse(
+        MODE %in% public.transit.trip.modes, 'Transit',
+        ifelse(
+          MODE==1,'Walk',
+          ifelse(
+            MODE==2, 'Bike',
+            'All Others'
+          )
+        )
+      )
+    )
+  ),
+         Generation=ifelse(AGE %in% millenials,
+                           'Millenials (15-32)',
+                           'Older Generations'))
+
+t <- dat %>% group_by(Generation,Mode) %>% summarise(n=sum(EXPTCFPERWGT,na.rm=TRUE))
+tt <- dat %>% mutate(Mode='All Modes') %>% 
+  group_by(Generation,Mode) %>% 
+  summarise(n=sum(EXPTCFPERWGT,na.rm=TRUE))
+t2 <- rbind(t) %>% ungroup()
+res.51 <- t2 %>% left_join(tt %>% select(Generation,nt=n), by=c('Generation')) %>%
+  transmute(Generation=Generation,Mode=Mode,n=n,pct=round(100*n/nt,1)) %>%
+  select(Generation,Mode,pct) %>%
+  spread(Generation,pct) %>%
+  arrange(ifelse(Mode=='All Modes',-999,'A'),
+          desc(`Millenials (15-32)`))
+
+res[['51.str']] <-
+  pandoc.table.return(
+    res.51,
+    caption=paste(
+      "TABLE 51: Driver trips, bike, walk and transit for millennial versus older age groups. ",
+      sep=""),
+    split.table=Inf,split.cells=Inf,
+    justify=c('center','right','right'),
+    style='multiline',
+    round=Inf,
+    big.mark = ','
+  )
+```
+```{r table-51-results,results='asis',echo=FALSE,cache=FALSE}
+cat(res[['51.str']])
+```
+
+## TABLE 52: Statewide Commute trips (JTW) by Mode (Walk, Bike, Drive/Passenger, Transit) and other by Mode and Distance ranges:
+
+```{r table-52}
+ #0.00-0.50
+#0.50-1.00
+#1.00- 2.00
+#2.00 – 5.00
+#5.00 – 10.00
+#10.00+
+dat <- chts_lt %>%  
+  filter(!is.na(tripdist) & !is.na(ltmode)) %>%
+  filter(TripType=='HW') %>%
+  left_join(chts_per,by=c('SAMPN','PERNO')) %>%
+  mutate(
+    Mode=ifelse(
+      ltmode %in% driver.trip.modes, 'Driver',
+      ifelse(
+        ltmode %in% c(6), 'Passenger',
+        ifelse(
+          ltmode %in% public.transit.trip.modes, 'Transit',
+          ifelse(
+            ltmode %in% c(1),'Walk',
+            ifelse(
+              ltmode %in% c(2), 'Bike',
+              'All Others'
+            )
+          )
+        )
+      )
+    )) %>% 
+  mutate(
+    NEXPTCFPERWGT=EXPPERWGT*ltTCF,
+    Distance=ifelse(
+      tripdist < 0.5, '0.0 - 0.5mi',
+      ifelse(
+        tripdist < 1.0, '0.5 - 1.0mi',
+        ifelse(
+          tripdist < 2.0, '1.0 - 2.0mi',
+          ifelse(
+            tripdist < 5.0, '2.0 - 5.0mi',
+            ifelse(
+              tripdist < 10.0, '5.0 - 10.0mi',
+              '10.0mi or greater'
+            )
+          )
+        )
+      )
+    )
+  )
+```
+```{r t52.1}
+agg <- dat %>% group_by(Distance,Mode) %>% summarise(n=sum(NEXPTCFPERWGT))
+aggt.dist <- dat %>% group_by(Distance) %>% summarise(n=sum(NEXPTCFPERWGT)) %>%
+  mutate(Mode='All Modes')
+agg.all <- rbind(agg,aggt.dist) %>%
+  left_join(aggt.dist %>% select(Distance,nt=n),by=c('Distance')) %>%
+  ungroup() %>%
+  transmute(Distance=Distance,Mode=Mode,Trips=round(n,0),Pct=round(n/nt*100,1)) %>%
+  as.data.frame() %>%
+  select(-Trips) %>%
+  spread(Mode,Pct) %>%
+  arrange(as.double(gsub("^(\\d+\\.\\d+).*?$","\\1",Distance)))  %>%
+  select(Distance,Driver,Passenger,Transit,Bike,Walk,`All Others`,`All Modes`)
+res[['52.str']] <-
+  pandoc.table.return(
+    agg.all,
+    caption=paste(
+      "TABLE 52: Statewide Commute trips (HW) by Mode (Walk, Bike, Drive/Passenger, Transit) and other by Mode and Distance ranges",
+      sep=""),
+    split.table=Inf,split.cells=Inf,
+    justify=rep('right',8),
+    style='multiline',
+    round=Inf,
+    big.mark = ','
+  )
+```
+```{r table-52-results,results='asis',echo=FALSE,cache=FALSE}
+cat(res[['52.str']])
+```
+
+
+## TABLE 53: Statewide School trips by Mode (Walk, Bike, Drive/Passenger, Transit) and other by Mode and Distance ranges
+```{r t53}
+# get all linked trips with a school activity at the destination
+lt.dat <- chts_act %>% select(SAMPN,PERNO,PLANO,ACTNO,APURP) %>% filter(APURP==17) %>%
+  left_join(chts_lu_lt,by=c('SAMPN','PERNO','PLANO','ACTNO')) %>%
+  group_by(linkedtripno) %>% summarise(n=n()) %>%
+  select(linkedtripno) %>%
+  left_join(chts_lt,by=c('linkedtripno'))
+
+dat <- lt.dat %>%  
+  filter(!is.na(tripdist) & !is.na(ltmode)) %>%
+  left_join(chts_per,by=c('SAMPN','PERNO')) %>%
+  mutate(
+    Mode=ifelse(
+      ltmode %in% driver.trip.modes, 'Driver',
+      ifelse(
+        ltmode %in% c(6), 'Passenger',
+        ifelse(
+          ltmode %in% public.transit.trip.modes, 'Transit',
+          ifelse(
+            ltmode %in% c(1),'Walk',
+            ifelse(
+              ltmode %in% c(2), 'Bike',
+              'All Others'
+            )
+          )
+        )
+      )
+    )) %>% 
+  mutate(
+    NEXPTCFPERWGT=EXPPERWGT*ltTCF,
+    Distance=ifelse(
+      tripdist < 0.25, '0.0 - 0.25mi',
+      ifelse(
+        tripdist < 0.5, '0.25 - 0.5mi',
+        ifelse(
+          tripdist < 1.0, '0.50 - 1.0mi',
+          ifelse(
+            tripdist < 2.0, '1.0 - 2.0mi',
+              '2.0mi or greater'
+            )
+          )
+        )
+      )
+    )
+```
+```{r t53.1}
+agg <- dat %>% group_by(Distance,Mode) %>% summarise(n=sum(NEXPTCFPERWGT,na.rm=TRUE))
+aggt.dist <- dat %>% group_by(Distance) %>% summarise(n=sum(NEXPTCFPERWGT,na.rm=TRUE)) %>%
+  mutate(Mode='All Modes')
+agg.all <- rbind(agg,aggt.dist) %>%
+  left_join(aggt.dist %>% select(Distance,nt=n),by=c('Distance')) %>%
+  ungroup() %>%
+  transmute(Distance=Distance,Mode=Mode,Trips=round(n,0),Pct=round(n/nt*100,1)) %>%
+  as.data.frame() %>%
+  select(-Trips) %>%
+  spread(Mode,Pct) %>%
+  arrange(as.double(gsub("^(\\d+\\.\\d+).*?$","\\1",Distance)))  %>%
+  select(Distance,Driver,Passenger,Transit,Bike,Walk,`All Others`,`All Modes`)
+res[['53.str']] <- 
+  pandoc.table.return(
+    agg.all,
+    caption=paste(
+      "TABLE 51: Statewide School trips by Mode (Walk, Bike, Drive/Passenger, Transit) and other by Mode and Distance ranges",
+      sep=""),
+    split.table=Inf,split.cells=Inf,
+    justify=rep('right',8),
+    style='multiline',
+    round=Inf,
+    big.mark = ','
+  )
+```
+```{r table-53-results,results='asis',echo=FALSE,cache=FALSE}
+cat(res[['53.str']])
 ```
 
 \newpage
