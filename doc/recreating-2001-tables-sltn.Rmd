@@ -4,7 +4,7 @@ author: "Craig Rindt"
 date: "09/30/2015"
 geometry: margin=1in
 fontfamily: inconsolata
-documentation: false
+documentation: true
 output:
   pdf_document:
     keep_tex: yes
@@ -60,7 +60,7 @@ options("scipen"=100,"digits"=4)          # default precision for floats
 panderOptions('big.mark',',')             # use commas in big numbers
 panderOptions('table.split.table',Inf)    # don't wrap tables
 panderOptions('table.split.cells',Inf)    # don't wrap cells
-panderOptions('keep.trailing.zeros',TRUE)
+panderOptions('keep.trailing.zeros',FALSE)
 panderOptions('round',1)
 ```
 
@@ -93,7 +93,7 @@ in the sample.
 adat <- list()
 
 # weighted sum of vehicles available
-adat[['Vehicles Available']] <- sum(chts_hh$HHVEH*chts_hh$EXPHHWGT)
+adat[['Vehicles Available']] <- round(sum(chts_hh$HHVEH*chts_hh$EXPHHWGT),0)
 ```
 
 The next element is vehicles in use on the average weekday.  This requires 
@@ -115,7 +115,7 @@ hhvehinuse <- chts_pla %>% filter(VEHNO > 0 & VEHNO < 9) %>%
 hhvehinuselabel <- paste('Vehicles In Use on Average Weekday (',
             round(100*sum(hhvehinuse$NEXPHHWDWGT)/adat[['Vehicles Available']],2),
             '%)',sep="")
-adat[[hhvehinuselabel]]  <- sum(hhvehinuse$NEXPHHWDWGT)
+adat[[hhvehinuselabel]]  <- round(sum(hhvehinuse$NEXPHHWDWGT),0)
 ```
 
 The total number of household workers is simply the weighted sum of the
@@ -124,14 +124,14 @@ in the household.
 
 ```{r table-a-3}
 adat[['Full-Time/Part-Time Employees']] <-
-  sum(chts_hh$HHEMP*chts_hh$EXPHHWGT)
+  round(sum(chts_hh$HHEMP*chts_hh$EXPHHWGT),0)
 ```
 
 Licensed drivers is computed similarly from the `HHLIC` variable.
 
 ```{r table-a-4}
 adat[['Licensed Drivers']] <-
-  sum(chts_hh$HHLIC*chts_hh$EXPHHWGT)
+  round(sum(chts_hh$HHLIC*chts_hh$EXPHHWGT),0)
 ```
 
 Occupied housing units is simply the sum of all households.
@@ -139,7 +139,7 @@ Occupied housing units is simply the sum of all households.
 ```{r table-a-5}
 # Occupied Housing Units (Household) 11,502,866
 tothh <- sum(chts_hh$EXPHHWGT)
-adat[['Occupied Housing Units (Household)']] <- tothh
+adat[['Occupied Housing Units (Household)']] <- round(tothh,0)
   
 ```
 
@@ -255,8 +255,11 @@ res.a.1.str <- pandoc.table.return(res.a.1,
              split.tables=Inf,split.cells=Inf, 
              justify=c('left','right'),
              big.mark=',',
-             round=Inf,
              caption="TABLE A: Household Information")
+```
+
+```{r table-a_1-results}
+cat(res.a.1.str)
 ```
 
 To determine household vehicle availability, we transform the `HHVEH` variable to be 0, 1, 2, and 3+
@@ -563,7 +566,7 @@ bdat[['Mean Travel Time (Respondent Reported)']] <- 0
 ```
 ```{r table-b-11_1}
 #  Weekday 'All Trips' Trip Length 22 minutes
-bdat[["&nbsp;&nbsp;Weekday 'All Trips' Trip Length"]] <- 
+bdat[["&nbsp;&nbsp;Weekday 'All Trips' Trip Duration (min)"]] <- 
   round(
     wtd.mean(lt.wd.trips$tripdur, 
              weights=lt.wd.trips$NEXPTCFPERWDWGT),
@@ -571,7 +574,7 @@ bdat[["&nbsp;&nbsp;Weekday 'All Trips' Trip Length"]] <-
 ```
 ```{r table-b-11_2,cache=FALSE}
 #  Weekday 'Home-Work Trips' Trip Length 27 minutes
-bdat[["&nbsp;&nbsp;Weekday 'Home-Work Trips' Trip Length"]] <-
+bdat[["&nbsp;&nbsp;Weekday 'Home-Work Trips' Trip Duration (min)"]] <-
   round(
     wtd.mean(lt.wd.trips.hw$tripdur, 
              weights=lt.wd.trips.hw$NEXPTCFPERWDWGT),
@@ -645,8 +648,12 @@ res.c<-t(t(as.data.frame(
                   weights=lt.wd$NEXPTCFPERWDWGT)$sum.of.weights/tot*100
   )))
 colnames(res.c)<-c('Weekday.Percent')
-res.c<-rbind(res.c,data.frame('Weekday.Percent'=c(sum(res.c[,'Weekday.Percent']))))
+res.c<-rbind(res.c,data.frame('Weekday.Percent'=c(sum(res.c[,'Weekday.Percent'])))) 
 rownames(res.c)<-c(rownames(res.c)[1:7],'Total')
+res.c$VALUE <- rownames(res.c)
+res.c <- res.c %>% arrange(desc(ifelse(Weekday.Percent>99.9999,-Weekday.Percent,Weekday.Percent)))
+rownames(res.c)<-res.c$VALUE
+res.c$VALUE <- NULL
 res.c.str<-pandoc.table.return(res.c,
              split.tables=Inf,split.cells=Inf, 
              justify=c('left','right'),
@@ -1707,7 +1714,7 @@ tab.ul <- chts_pla %>%
   left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>%
   filter(WD==1) %>%
   filter(!is.na(MODE)) %>%
-  left_join(mode.groups %>% select(MODE.GROUP=MODE.GROUP,MODE=ltmode)) %>% 
+  left_join(mode.groups %>% select(MODE.GROUP=MODE.GROUP,MODE=ltmode),by=c('MODE')) %>% 
   mutate(NEXPTCFPERWDWGT=NEXPPERWDWGT*TCF) %>%
   group_by(MODE.GROUP,MODE) %>% 
   summarise(num=sum(NEXPTCFPERWDWGT,na.rm=TRUE))
@@ -1738,7 +1745,7 @@ fftab.ul <- ftab.ul %>%
 
 # linked trips
 tab <- lt.wd %>% 
-  left_join(mode.groups) %>% group_by(MODE.GROUP,ltmode) %>% 
+  left_join(mode.groups,by=c('ltmode')) %>% group_by(MODE.GROUP,ltmode) %>% 
   filter(!is.na(ltmode)) %>%
   summarise(num=sum(NEXPTCFPERWDWGT,na.rm=TRUE))
 #  summarise(num=n())
@@ -1827,7 +1834,7 @@ tab.ul.raw <-chts_pla %>%
   
 tab.raw <- lt.wd.cty %>% 
     filter(!is.na(ltmode)) %>%
-    left_join(mode.groups) %>% group_by(MODE.GROUP,ltmode) %>% 
+    left_join(mode.groups,by=c('ltmode')) %>% group_by(MODE.GROUP,ltmode) %>% 
     left_join(chts_pla %>% select(SAMPN,PERNO,PLANO,oCTFIP=CTFIP),
               by=c("SAMPN"="SAMPN","PERNO"="PERNO",
                    "oplano"="PLANO")) %>%
@@ -1838,14 +1845,17 @@ tab.raw <- lt.wd.cty %>%
 res.17a.cty.str <- 
   paste(
     lapply(
-      sort(unique(fipsctyca$County)),
-      function(cty) {
+      sort(unique(fipsctyca$county_ansi)),
+      function(icty) {
+        cty <- fipsctyca %>% filter(county_ansi==icty)
+        cty <- cty$County
         # unlinked trips
         
         tab.ul <- 
           tab.ul.raw %>%
-          filter(grepl("\\.1$",GROUP) & (CTFIP==cty | oCTFIP==cty)) %>%
-          left_join(mode.groups %>% select(MODE.GROUP=MODE.GROUP,MODE=ltmode)) %>% 
+          filter(grepl("\\.1$",GROUP) & (CTFIP==icty | oCTFIP==icty)) %>%
+          left_join(mode.groups %>% select(MODE.GROUP=MODE.GROUP,MODE=ltmode),
+                    by=c('MODE')) %>% 
           mutate(NEXPTCFPERWDCTYWGT=NEXPPERWDCTYWGT*TCF) %>%
           group_by(MODE.GROUP,MODE) %>% 
           summarise(num=sum(NEXPTCFPERWDCTYWGT,na.rm=TRUE))
@@ -1877,7 +1887,7 @@ res.17a.cty.str <-
         # linked trips
         tab <- 
           tab.raw %>%
-          filter(oCTFIP==cty | dCTFIP==cty) %>%
+          filter(oCTFIP==icty | dCTFIP==icty) %>%
           summarise(num=sum(NEXPTCFPERWDCTYWGT,na.rm=TRUE))
         #  summarise(num=n())
         tab$ltmode <- assign_factors(tab$ltmode,'place','MODE',maxlab = 20)
@@ -1914,11 +1924,9 @@ res.17a.cty.str <-
                                             `TRAVEL MODE GROUP`, "&nbsp;")) %>%
           select(-SORT.ORDER)
         
-        cty.name <- (fipsctyca %>% filter(county_ansi==as.integer(cty)))$county_name
-        
         return(
           pandoc.table.return(fftab.all,
-                              caption=paste("TABLE 17a: Weekday Linked and Unlinked Trips Distributed by Particular Travel Mode and Group (",cty.name,")",sep=""),
+                              caption=paste("TABLE 17a: Weekday Linked and Unlinked Trips Distributed by Particular Travel Mode and Group (",cty,")",sep=""),
                               split.table=Inf,split.cells=Inf,
                               justify=c('left','left','right','right','right','right'),
                               style='multiline',
@@ -2045,10 +2053,10 @@ res.17bc.str <-
         
         fftab.all <- merge(fftab.allday,fftab.am,by=c('MODE.GROUP')) %>%
           arrange(order) %>%
-          select(`Travel Mode`=MODE.GROUP,
-                 `All Home-to-Work Trips`=All.Day.num,
+          transmute(`Travel Mode`=MODE.GROUP,
+                 `All Home-to-Work Trips`=round(All.Day.num,0),
                  `All Home-to-Work Trips (%)`=All.Day.pct,
-                 `7:00-9:00am Home-to-Work Commute Trips`=AM.num,
+                 `7:00-9:00am Home-to-Work Commute Trips`=round(AM.num,0),
                  `7:00-9:00am Home-to-Work Commute Trips (%)`=AM.pct,
                  order=order
           ) %>%
