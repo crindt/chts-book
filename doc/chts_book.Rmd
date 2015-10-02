@@ -1,19 +1,25 @@
 ---
 title: "2012 California Household Travel Survey Data Analysis"
-author: "Craig Rindt"
-date: "09/07/2015"
+author: "Jean-Daniel Saphores \and Craig Rindt \and Suman Mitra"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output:
+  pdf_document:
+    highlight: tango
+    keep_tex: yes
+    number_sections: yes
+    pandoc_args: --chapters
+    template: custom.latex
+    toc: yes
+    toc_depth: 5
   html_document:
     fig_caption: yes
     highlight: tango
     number_sections: yes
     toc: yes
-  pdf_document:
-    highlight: tango
-    keep_tex: yes
-    number_sections: yes
-    toc: yes
-    toc_depth: 5
+fontfamily: inconsolata
+geometry: margin=1in
+documentclass: '`r if (exists("documentation")) {"report"}else{"article"}`'
+documentation: '`r if(exists("documentation")){documentation}else{documentation<-"true";documentation}`'
 ---
 
 ```{r setup,echo=FALSE,cache=FALSE}
@@ -54,6 +60,7 @@ Libraries required to generate this document:
 
 # Diagnostic Checks of the CHTS
 
+
 ```{r child = '3.Diagnostic.Rmd'}
 ```
 
@@ -61,15 +68,20 @@ Libraries required to generate this document:
 
 ## County Level Person Weights
 
+
 ```{r child = '4.1Personweights.Rmd'}
 ```
+\endsectionsB
 
 ## Household Level Person Weights
+
 
 ```{r child = '4.2Householdweights.Rmd'}
 ```
 
+
 ## Weights for Other Geographies
+
 
 ```{r child = '4.3Other Geographies.Rmd'}
 ```
@@ -77,14 +89,18 @@ Libraries required to generate this document:
 ```{r child = '4.4Longdistanceweight.Rmd'}
 ```
 
+
 # Linked Trip Tables
 
 ## How to Create the Linked Trip Table
 
+
 ```{r child = 'chts-linked-trips.Rmd'}
 ```
 
+
 #  Creating the CHTS Summary Tables
+
 
 ```{r child = 'recreating-2001-tables-sltn.Rmd'}
 ```
@@ -97,43 +113,59 @@ during the course of the project.
 
 ## Data Request for Santa Cruz County
 
+
 ```{r child = '6.1SantaCruz county.Rmd'}
 ```
 
+
 ## Data Request for Del Note County
+
 
 ```{r child = '6.2DelNortecounty.Rmd'}
 ```
 
+
 ## Humboldt for Humboldt County
+
 
 ```{r child = '6.3 Humboldt county.Rmd'}
 ```
 
+
 ## Data Request for Lake County
+
 
 ```{r child = '6.4 Lake County.Rmd'}
 ```
 
+
 ## Data Request for Mendocino County
+
 
 ```{r child = '6.5 Mendocino County.Rmd'}
 ```
 
+
 ## Long Distance Trips Questions
+
 
 ```{r child = '6.6 Long Distance Trips questions.Rmd'}
 ```
 
+
 ## Travel Statistics along the SR-1 Corridor
+
 
 ```{r child = '6.7 SR1.Rmd'}
 ```
 
+
 ## Travel Statistics along the SR-17 Corridor
+
 
 ```{r child = '6.8 SR17.Rmd'}
 ```
+
 
 # Conclusions
 

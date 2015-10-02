@@ -29,4 +29,15 @@ echoProgress <- function(str) {
 qfmt <- function(val) { return(format(big.mark=",",val)) }
 
 pp <- function(n) { return(paste(rd,n,sep="/")) }
+p <- function(ps) { return(paste(rd,ps,sep="/")) }
 
+if ( !exists("lev") ) { lev <- 0 }  # section nesting
+SEC <- function(level,text,as.string=FALSE) {
+    head <- gsub("^\\s*(#+)\\s*$","\\1",level)
+    ret <- paste("\n",paste(rep('#',nchar(head)+lev),collapse="")," ",text,"\n\n",sep="")
+    if ( as.string ) {
+      return(ret)
+    } else {
+      cat(ret)
+    }
+}
