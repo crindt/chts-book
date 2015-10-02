@@ -45,7 +45,7 @@ library(chts2011wgt)
 # read in the FIPS county table for pretty printing
 fipsctyca <- read.csv(paste(rd,"data/fips-county.csv",sep="/"),
                       header=TRUE,
-                       stringsAsFactors=FALSE) %>%
+                      stringsAsFactors=FALSE) %>%
   filter(state=="CA") %>% 
   mutate(County=gsub(" County$","",county_name))
 
@@ -71,56 +71,69 @@ multi.family  <- c(2:6) # RESTY values
 
 ## Weighting Calculations
 
-Weights used in the calculations of the following tables were generated separately
+Weights used in the calculations of the following tables were generated
+separately
 
-Here we load in various weights used in the calculations below, including weekday weights and 
-county weights (and county weekday weights).
+Here we load in various weights used in the calculations below, including
+weekday weights and county weights (and county weekday weights).
 
 ```{r load-weights}
 library(chts2011wgt)
 ```
 
-\newpage
-
 ## Table A: KEY 2000-2001 TRAVEL SURVEY DATA FOR CALIFORNIA
 
-Table A contains a range of information about households.  We describe how each is computed below.
+Table A contains a range of information about households.  In R, we'll construct
+this table as a list with named rows, so we begin by creating an empty list.
 
-Vehicles available is simply the weighted sum of the household vehicles available 
-in the sample.
+```{r table-a-0}
+adat <- list()
+```
+
+Now, we'll describe how to create each element of the table.  First, the number
+of vehicles available is simply the weighted sum of the household vehicles
+available in the sample.
 
 ```{r table-a-1}
-adat <- list()
-
 # weighted sum of vehicles available
 adat[['Vehicles Available']] <- round(sum(chts_hh$HHVEH*chts_hh$EXPHHWGT),0)
 ```
 
-The next element is vehicles in use on the average weekday.  This requires 
-weights based upon the subsample of households whose data 
-was collected on a weekday.  **FIXME: Technically, this should omit holidays, which
-is a step we leave for later improvement.**  We calculated this above.
+The next element is vehicles in use on the average weekday.  This requires
+weights based upon the subsample of households whose data was collected on a
+weekday.  We loaded these weights earlier.  **FIXME: Technically, this should
+omit holidays, which is a step we leave for later improvement.**
 
+To compute the vehicles in use, we filter all `place` records for those in which
+`VEHNO` is between 1 and 8.  This indicates that a household vehicle was used
+for this trip.  We then attach the household statewide weekday weights, filter
+for weekday samples only, group by `SAMPN` and `VEHNO` to get a single record
+for each vehicle in use, then compute the weighted sum.
 
 ```{r table-a-2}
-# FIXME: wonder if the total vehicles (a-1) should be computed from the weekday set?
-# in theory, it should be identical -->
+# Identify vehicles in use
+hhvehinuse <- chts_pla %>%
+  filter(VEHNO > 0 & VEHNO < 9) %>%            # select records using HH veh
+  left_join(chts_hh.wgt.wd,by=c('SAMPN')) %>%  # attach weekday weights
+  filter(WD==1) %>%                            # select only weekdays
+  group_by(SAMPN,VEHNO,NEXPHHWDWGT) %>%        # get a single record for each veh
+  summarise(cnt=n())                           # # of trips/veh (not used)
 
-# weighted sum of vehicles in use
-# FIXME: original is by weekday
-hhvehinuse <- chts_pla %>% filter(VEHNO > 0 & VEHNO < 9) %>% 
-  left_join(chts_hh.wgt.wd,by=c('SAMPN')) %>%
-  filter(WD==1) %>%   # select only weekdays
-  group_by(SAMPN,VEHNO,NEXPHHWDWGT) %>% summarise(cnt=n())
+# Total vehicles in use is the weighted sum of vehicles in use
+totvehinuse <- sum(hhvehinuse$NEXPHHWDWGT)
+
+# The table puts the % of vehicles in use in the label, we compute that here
 hhvehinuselabel <- paste('Vehicles In Use on Average Weekday (',
-            round(100*sum(hhvehinuse$NEXPHHWDWGT)/adat[['Vehicles Available']],2),
+            round(100*totvehinuse/adat[['Vehicles Available']],2),
             '%)',sep="")
-adat[[hhvehinuselabel]]  <- round(sum(hhvehinuse$NEXPHHWDWGT),0)
+
+# Add the solution to the list
+adat[[hhvehinuselabel]]  <- round(totvehinuse,0)
 ```
 
-The total number of household workers is simply the weighted sum of the
-`HHEMP` variable, which reports the number of full and/or part-time workers
-in the household.
+The total number of household workers is simply the weighted sum of the `HHEMP`
+variable, which reports the number of full and/or part-time workers in the
+household.  We are using statewide weights here.
 
 ```{r table-a-3}
 adat[['Full-Time/Part-Time Employees']] <-
@@ -134,10 +147,10 @@ adat[['Licensed Drivers']] <-
   round(sum(chts_hh$HHLIC*chts_hh$EXPHHWGT),0)
 ```
 
-Occupied housing units is simply the sum of all households.
+Occupied housing units is simply the weighted sum of all households.
 
 ```{r table-a-5}
-# Occupied Housing Units (Household) 11,502,866
+# Occupied Housing Units (Household) 
 tothh <- sum(chts_hh$EXPHHWGT)
 adat[['Occupied Housing Units (Household)']] <- round(tothh,0)
   
@@ -152,26 +165,30 @@ pandoc.list(strsplit((chts_md %>% filter(VAR.NAME=='RESTY'))[1,'VALUES'],'\n')[[
 ```
 
 ```{r table-a-5-1}
-# Single Housing Units 63.8%
-adat[['Single Housing Units']] <- 
-  round(100*sum((chts_hh%>%filter(RESTY %in% single.family))$EXPHHWGT)/tothh,1)
+# Single Housing Units 
+shu <- chts_hh %>% filter(RESTY %in% single.family)
+
+adat[['Single Housing Units']] <- round(100*sum(shu$EXPHHWGT)/tothh,1)
 ```
 
 Multiple housing units is defined as duplexes, mobile homes, and multi-unit
 buildings.
 
 ```{r table-a-5-2}
-# Multiple Housing Units 35.6%
+# Multiple Housing Units
+mhu <- chts_hh %>% filter(RESTY %in% multi.family)
+
 adat[['Multiple Housing Units']] <- 
-  round(100*sum((chts_hh%>%filter(RESTY %in% multi.family))$EXPHHWGT)/tothh,1)
+  round(100*sum(mhu$EXPHHWGT)/tothh,1)
 ```
 
 Other housing units are boats/RVs, other, or refused.
 
 ```{r table-a-5-3}
 # Other Housing Units 0.6%
-adat[['Other Housing Units']] <- 
-  round(100*sum((chts_hh%>%filter(RESTY %in% c(7:99)))$EXPHHWGT)/tothh,1)
+ohu <- chts_hh%>%filter(RESTY %in% c(7:99))
+
+adat[['Other Housing Units']] <- round(100*sum(ohu$EXPHHWGT)/tothh,1)
 ```
 
 To compute the median household income when income is defined as ordinal variable, 
@@ -180,23 +197,32 @@ we'll follow the US Census bureau's method (described
 [here](http://www.s4.brown.edu/us2010/SUC/MHHINote.htm).  The method is 
 to compute the median category and then use 
 [pareto interpolation](https://en.wikipedia.org/wiki/Pareto_interpolation) 
-within that category range to determine the median.  
+within that category range to determine the median.
 
 ```{r table-a-8}
-# Median Household Income $47,865
+# Median Household Income
+
+# First, compute the weighted median
 suppressMessages(require(isotone)) # for weighted median function
 median.category <- weighted.median(chts_hh$INCOM,chts_hh$EXPHHWGT)
-# Get the upper and lower bound of this range
-catvals <- assign_factors(c(median.category),'hh','INCOM')
-# convert "$1,234 to $12,345" to c(1234,12345)
+
+# Next, get the upper and lower bound of this range, we do this by reading the
+# bounds from the string definition stored in the factor label
+catvals <- assign_factors(c(median.category),'hh','INCOM')  # get factor label
+
+# Convert "$1,234 to $12,345" to c(1234,12345)
 lohi <- as.integer(gsub("[$,]","",(unlist(strsplit(as.character(catvals[[1]])," to ")))))
-# parameters for pareto interpolation
+
+
+# Determine parameters for pareto interpolation
 a <- lohi[1]  # income value at the lower limit of the category containing the median
 b <- lohi[2]  # income value at the upper limit of the category containing the median
 Pa <- (chts_hh %>% filter(INCOM < median.category) %>% 
          summarise(n=sum(EXPHHWGT)))[1,'n']/tothh
 Pb <- (chts_hh %>% filter(INCOM < (median.category+1)) %>% 
          summarise(n=sum(EXPHHWGT)))[1,'n']/tothh
+
+# Apply pareto interpolation functions
 thetaf <- function(a,b,Pa,Pb) {
   return ((log10(1-Pa)-log10(1-Pb))/(log10(b)-log10(a)))
   }
@@ -207,11 +233,13 @@ kappaf <- function(a,b,Pa,Pb) {
 theta <- thetaf(a,b,Pa,Pb)
 kappa <- kappaf(a,b,Pa,Pb)
 hhmedian <- kappa*(2^(1/theta))
+
+# Store the result
 adat[['Median Household Income']] <- hhmedian
 ```
 
-To determine the persons per household, we compute the weighted mean of household size (`HHSIZ`)
-using statewide expansion weights.
+To determine the persons per household, we compute the weighted mean of
+household size (`HHSIZ`) using statewide expansion weights.
 
 ```{r table-a-9}
 # Persons Per Household 2.8
@@ -219,8 +247,8 @@ adat[['Persons per Household']] <-
   round(wtd.mean(chts_hh$HHSIZ,weights=chts_hh$EXPHHWGT),1)
 ```
 
-We take a similar approach for vehicles per household, taking the weighted mean of the
-`HHVEH` variable.
+We take a similar approach for vehicles per household, taking the weighted mean
+of the `HHVEH` variable.
 
 ```{r table-a-10}
 # Vehicles Per Household 1.9
@@ -236,7 +264,8 @@ adat[['Full/Part-Time Employees Per Household']] <-
   round(wtd.mean(chts_hh$HHEMP,weights=chts_hh$EXPHHWGT),1)
 ```
 
-And, finally, for licensed drivers per household, we compute the weighted mean of `HHLIC`.
+And, finally, for licensed drivers per household, we compute the weighted mean
+of `HHLIC`.
 
 ```{r table-a-12}
 # Licensed Drivers Per Household 1.7
@@ -245,47 +274,64 @@ adat[['Licensed Drivers Per Household']] <-
   round(wtd.mean(chts_hh$HHLIC,weights=chts_hh$EXPHHWGT),1)
 ```
 
-Now, we can plot the table.
+Now, we can compute the table.  Note that throughout this documentation, we are
+using the `pander` package to generate markdown tables that can be processed by
+`pandoc` to create tables in a variety of formats.  The `pandoc.table.return`
+function generates the table in markdown format and returns it as a string.  We
+are storing these strings so we can output all of the tables in the Appendix.
 
 ```{r table-a_1} 
 res <- list()
 res.a.1 <- t(t(unlist(adat)))
 colnames(res.a.1) <- c("Household Information") 
-res.a.1.str <- pandoc.table.return(res.a.1,
-             split.tables=Inf,split.cells=Inf, 
-             justify=c('left','right'),
-             big.mark=',',
-             caption="TABLE A: Household Information")
+res.a.1.str <-
+  pandoc.table.return(
+    res.a.1,
+    justify=c('left','right'),
+    caption="TABLE A: Household Information"
+  )
 ```
 
-```{r table-a_1-results}
+Print out the table inline.  For the remaining tables, we will print them out,
+but will not echo the code that prints them as it is redundant.  We include it
+here to illustrate the method.
+
+```{r table-a_1-results,results='asis'}
 cat(res.a.1.str)
 ```
 
-To determine household vehicle availability, we transform the `HHVEH` variable to be 0, 1, 2, and 3+
+To determine household vehicle availability in categories consistent with the
+2001 tables, we transform the `HHVEH` variable to be 0, 1, 2, and 3+.
 
 ```{r table-a_2}
 vd <- chts_hh %>% transmute(HHVEHg=ifelse(HHVEH>2,3,HHVEH),EXPHHWGT)
 ```
 
-Then, we use the `wtd.table` function from the `Hmisc` package to generate a weighted frequency
-table from that transformed data.
+Then, we use the `wtd.table` function from the `Hmisc` package to
+generate a weighted frequency table from that transformed data.
 
 ```{r table-a_2b,results='asis',cache=FALSE}
-vd <- chts_hh %>% transmute(HHVEHg=ifelse(HHVEH>2,3,HHVEH),EXPHHWGT)
-res.a.2 <- t(t(wtd.table(vd$HHVEHg,weights=vd$EXPHHWGT)$sum.of.weights))
-res.a.2[,1] <- paste(round(100*res.a.2[,1]/sum(res.a.2[,1]),0),'%',sep='')
-colnames(res.a.2) <- c('Household Vehicle Availability')
+# apply wtd.table, whose output needs to be converted into a dataframe that can be 
+# used by pandoc.table
+res.a.2 <- as.data.frame(wtd.table(vd$HHVEHg,weights=vd$EXPHHWGT)$sum.of.weights)
+
+# Manipulate the weighted table into percents and define col and row names
+colnames(res.a.2) <- c('Percent of Households')
+res.a.2[,1] <- paste(
+  round(100*res.a.2$`Percent of Households`/sum(res.a.2$`Percent of Households`),0),
+  '%',sep='')
 rownames(res.a.2) <- gsub("3 ","3+ ",paste(rownames(res.a.2),'Vehicles'))
+
+# create the table
 res.a.2.str <- pandoc.table.return(res.a.2,
              split.tables=Inf,split.cells=Inf, 
              justify=c('left','right'),
              big.mark=',',
              caption="TABLE A: Household Vehicle Availability")
-cat(res.a.2.str)
 ```
 
-```{r echo=FALSE}
+```{r echo=FALSE,results='asis'}
+cat(res.a.2.str)
 res[["res.a"]] <- list()
 res[["res.a"]]$title  <- "TABLE A: Household Vehicle Availability"
 res[["res.a"]]$data.1 <- res.a.1
@@ -293,36 +339,48 @@ res[["res.a"]]$data.2 <- res.a.2
 res[["res.a"]]$tabtxt <- paste(res.a.1.str,res.a.2.str,sep="\n\n\n")
 ```
 
-\newpage 
-
 ## Table B: Weekday Trip Information
 
-The weekday trip information is based upon linked trips, which we can read in but we
-need appropriate weights for weekday travel.  Recall that for Table A, we computed
-household weights for weekdays.  Trips are person-specific, so we need to compute
-*person* weights by weekday vs weekend.  Again, this requires recomputation of weights 
-based upon the subsample of people whose data was collected on a weekday.  
-**FIXME: Technically, this should omit holidays, which is a step we leave for later 
-improvement.**
+The weekday trip information is based upon linked trips, which have
+been calculated elsewhere and included as part of the `chts2011`
+package in the `chts_lt` data frame.
 
-Now we have the necessary weights.  Let's read in the linked trips and join the
+However, as above, we need appropriate weights for weekday travel.
+Recall that for Table A, we computed household weights for weekdays.
+Trips are person-specific, so we need to compute *person* weights by
+weekday vs weekend.  Again, this requires recomputation of weights
+based upon the subsample of people whose data was collected on a
+weekday.  Luckily, we have already done this as part of the
+`chts2011wgt` package (loaded previously) and can access them directly
+as `chts_per.wgt.wd`.  Let's read in the linked trips and join the
 appropriate trips to people sampled on weekdays.
 
 ```{r setup-linked-trips}
-ltf2 <- chts_lt %>% filter(!is.na(ltmode) & !is.na(oplano))
-lt.wd <- chts_per.wgt.wd %>% filter(WD==1) %>% # grab weekday travelers
-  select(SAMPN,PERNO,WD,NEXPPERWDWGT,NPERWDWGT) %>%  # select what we want
-  left_join(ltf2,by=c('SAMPN','PERNO')) %>%  # join on the linked trips
-  mutate(NEXPTCFPERWDWGT=NEXPPERWDWGT*ltTCF)  # compute the TCF weights
+
+# First, create a clean version of the linked trips, omitting any
+# trips that lack a mode or origin place (these are typically the
+# "start" trip of a person's day
+lt.clean <- chts_lt %>% filter(!is.na(ltmode) & !is.na(oplano))
+
+lt.wd.trips <- chts_per.wgt.wd %>%           # weekday people w/weights
+    filter(WD==1) %>%                               # weekday travelers
+  select(SAMPN,PERNO,WD,NEXPPERWDWGT,NPERWDWGT) %>% # specific cols
+  left_join(lt.clean,by=c('SAMPN','PERNO')) %>%     # join linked trips
+  mutate(NEXPTCFPERWDWGT=NEXPPERWDWGT*ltTCF)        # compute TCF weights
 ```
 
-Now let's compute each element of the table.  Total trips will be the weighted
-sum of the linked trips (including the GPS trip correction factor).  The first thing
-we need to do is clarify some definitions.  We follow the definitions of the 2001 report:
+Now let's compute each element of the table.  Total trips will be the
+weighted sum of the linked trips (including the GPS trip correction
+factor).  The first thing we need to do is clarify some definitions.
+Throughout, we follow the definitions of the 2001 report as much as
+possible.
 
-```{r mode-defs-setup,echo=FALSE}
+First, we set up some lists of the `all.modes`, `driver.trip.modes`,
+`person.trip.modes`, `vehicle.trips.modes`,
+`public.transit.trip.modes`, and `public.transport.trip.modes`
 
-all.modes=sort(unique(ltf2$ltmode))
+```{r mode-defs-setup-1}
+all.modes=sort(unique(lt.clean$ltmode))
 
 driver.trip.modes=c(5,8)
 
@@ -346,7 +404,13 @@ public.transport.trip.modes <-
     13,
     22,23 # include Amtrak bus and other bus as "intercity" bus
     )
+```
 
+Next, we create the `modetab` dataframe to store (and print) how we
+define modes, along with storing the filters we'll use to select
+specific modes throughout the document.
+
+```{r mode-defs-setup-2}
 mode.defs <- list(
   all.modes=all.modes,
   person.trip.modes=person.trip.modes,
@@ -356,33 +420,55 @@ mode.defs <- list(
   public.transport.trip.modes=public.transport.trip.modes
 )
 
-
+# create the table holding descriptions and filters we'll apply
 modetab <- data.frame(
-  type=c("PERSON TRIPS",
-          "DRIVER TRIPS",
-          "PUBLIC TRANSIT TRIPS",
-          "PUBLIC TRANSPORTATION TRIPS"),
-  def2001=c("Include all in-vehicle driver and passenger trips including public transit and rail passengers for household members five years of age or older. Person trips exclude walk, bicycle, airplane (commercial and private), and \"other\" mode trips. Don’t Know and Refused responses are not included.",
-             "Include automobile, pickup truck, RV, Sport Utility Vehicle, van, truck, and Motorcycle/Moped driver trips.",
-             "Include modes such as local public bus, express bus, Dial-A-Ride/Paratransit, light rail/streetcar/trolley, Metro Blue Line, Metro Green Line, Metro Red Line, BART, CALTRAIN, Metro Link, and AMTRAK. (Note that intercity bus and commercial airplane passengers are not included as public transit trips in this report.)",
-             "Include modes such as local public bus, express bus, Dial-A-Ride/Paratransit, light rail/streetcar/trolley, Metro Blue Line, Metro Green Line, Metro Red Line, BART, CALTRAIN, Metro Link, AMTRAK, intercity bus and commercial airplane passengers."),
-  notes=c(
-    "",
-    "",
-    "We have included school bus in this definition.  We interpreted intercity bus to be greyhound and Amtrak bus, so *excluded* here",
-    "We interpreted intercity bus to be greyhound and Amtrak bus, so *included* here"
-    ),
-  modefilt=c(unlist(lapply(c(
-    "ltmode %in% person.trip.modes",
-    "ltmode %in% driver.trip.modes",
-    "ltmode %in% public.transit.trip.modes",
-    "ltmode %in% public.transport.trip.modes"
-    ),function(f) { return (paste(interp(f,.values=mode.defs),sep="",collapse=""));}))),
-  otherfilt=c(
-    "AGE > 4",
-    "","",""
-    ),
-  stringsAsFactors=FALSE)
+  type=c(
+    "PERSON TRIPS",
+    "DRIVER TRIPS",
+    "PUBLIC TRANSIT TRIPS",
+    "PUBLIC TRANSPORTATION TRIPS"),
+  def2001=c(
+    "Include all in-vehicle driver and passenger trips including\
+ public transit and rail passengers for household members five\
+ years of age or older. Person trips exclude walk, bicycle,\
+ airplane (commercial and private), and \"other\" mode trips. Don’t\
+ Know and Refused responses are not included.",
+ "Include automobile, pickup truck, RV, Sport Utility Vehicle, van,\
+ truck, and Motorcycle/Moped driver trips.",
+ "Include modes such as local public bus, express bus,\
+ Dial-A-Ride/Paratransit, light rail/streetcar/trolley, Metro Blue\
+ Line, Metro Green Line, Metro Red Line, BART, CALTRAIN, Metro Link,\
+ and AMTRAK. (Note that intercity bus and commercial airplane\
+ passengers are not included as public transit trips in this report.)",
+ "Include modes such as local public bus, express bus,\
+ Dial-A-Ride/Paratransit, light rail/streetcar/trolley, Metro Blue\
+ Line, Metro Green Line, Metro Red Line, BART, CALTRAIN, Metro Link,\
+ AMTRAK, intercity bus and commercial airplane passengers."),
+ notes=c(
+   "",
+   "",
+   "We have included school bus in this definition.  We interpreted\
+ intercity bus to be greyhound and Amtrak bus, so *excluded* here",
+    "We interpreted intercity bus to be greyhound and Amtrak bus, so\
+ *included* here"
+ ),
+ modefilt=c(
+   unlist(
+     lapply(c(
+       "ltmode %in% person.trip.modes",
+       "ltmode %in% driver.trip.modes",
+       "ltmode %in% public.transit.trip.modes",
+       "ltmode %in% public.transport.trip.modes"
+     ),function(f) {
+       return (paste(interp(f,.values=mode.defs),sep="",collapse=""));
+     }))),
+ otherfilt=c(
+   "AGE > 4",
+   "","",""
+ ),
+ stringsAsFactors=FALSE)
+
+# format the modtab for printing in the documentation
 res.b.0 <- modetab %>% transmute(
   type = type,
   "2001 Definition"=def2001,
@@ -409,8 +495,13 @@ b.0.str <- pandoc.table.return(
 ```{r results-b-0,results='asis',cache=FALSE,echo=FALSE}
 cat(b.0.str)
 ```
-    
-              
+
+Next, we create the actual filters from the definitions in `modetab`.
+We're using some advanced methods from the lazyeval package to convert
+strings into code.  The important thing to understand is that the
+various filters (e.g., `person.trips.filter`) can be applied to the
+CHTS dataframes using `dplyr`'s `filter` command to select relevant
+subsets of data for analysis.
 
 ```{r table-b-setup,echo=FALSE}
 suppressMessages(require(lazyeval))
@@ -431,88 +522,160 @@ public.transport.trips.filter <- interp(
   .values=mode.defs)
 ```
 
+Moving on to elements of the table.  We begin with the total (linked)
+trips, which is simply the weighted sum of linked trips.  (NOTE:
+`na.rm=TRUE` is used throughout as there is at least one linked trip
+record with an `NA` value for TCF.)
+
 ```{r table-b-1}
-# Total Trips 98,549,454
-bdat=list()
+bdat=list()     # create the list for storing table B data
+
+# Total Trips
 bdat[['Total Trips']] <- 
-  round(sum(lt.wd$NEXPTCFPERWDWGT,na.rm=TRUE),0)
+  round(sum(lt.wd.trips$NEXPTCFPERWDWGT,na.rm=TRUE),0)
 ```
+
+Person trips are computed by as the sum of linked trips that match the
+`person.trips.filter` we defined above.  Because person trips are
+limited to those trips involving people over four years of age, we
+need to join the `AGE` column from the `chts_per` table.  Note that
+the `filter_` variant of the `filter` function allows us to specify
+the filter formula as a string from the table above (instead of bare
+code).
+
 ```{r table-b-2}
-# Person Trips* 91,011,903
-# all trips except walk,bike,wheelchair, or non-motorized
-lt.per.wd <- lt.wd %>% 
+# Person Trips are all trips except walk,bike,wheelchair, or
+# non-motorized involving persons over age four
+lt.per.wd <- lt.wd.trips %>% 
   left_join(chts_per %>% select(SAMPN,PERNO,AGE),by=c('SAMPN','PERNO')) %>%
   filter_(person.trips.filter)
-bdat[['Person Trips*']] <- round(
+
+# simply the weighted sum
+bdat[['Person Trips']] <- round(
   sum(
     lt.per.wd$NEXPTCFPERWDWGT,na.rm=TRUE
     ),
   0)
 ```
+
+Driver trips are computed similarly, except we don't need to worry
+about the AGE filter, which is redundant in this case.
+
 ```{r table-b-3}
 # Driver Trips** 68,053,113
 # Vehicle driver or motorcycle driver
-lt.driver.wd <- lt.wd %>% filter_(driver.trips.filter)
-bdat[['Driver Trips**']] <- 
+lt.driver.wd <- lt.wd.trips %>% filter_(driver.trips.filter)
+
+# Weighted sum
+bdat[['Driver Trips']] <- 
   round(
     sum(lt.driver.wd$NEXPTCFPERWDWGT,na.rm=TRUE),
     0)
 ```
+
+To compute weekday trips per household, we'll simply divide the total
+trips computed above by the total number of households.
+
 ```{r table-b-4}
-# Total Trips Per Household 8.6
-tot.hh.wd <- (chts_hh.wgt.wd %>% filter(WD==1) %>% summarise(n=sum(NEXPHHWDWGT)))[1,'n']
-# FIXME Confirm hh totals align across weighting schemes
-bdat[['Total Trips Per Household']] <-
-  round(bdat[['Total Trips']]/tot.hh.wd,1)
-# FIXME: Seems high?
+# Total Trips Per Household
+
+# Total households
+tot.hh.wd <- (
+  chts_hh.wgt.wd %>%
+    filter(WD==1) %>%
+    summarise(n=sum(NEXPHHWDWGT))
+)[1,'n']
+
+# total trips computed above divided by total households...
+ttph <- bdat[['Total Trips']] / tot.hh.wd
+
+# Compute and store the result
+bdat[['Total Trips Per Household']] <- round(ttph,1)
 ```
+
+Person trips per household is computed the same way using person trips
+instead of household trips.  We simply reuse the total number of
+households.
+
 ```{r table-b-5}
 # Person Trips Per Household 7.9
 bdat[['Person Trips Per Household']] <-
-  round(bdat[['Person Trips*']]/tot.hh.wd,1)
+  round(bdat[['Person Trips']]/tot.hh.wd,1)
 ```
+
+Person trips per person five years of age or older is again computed
+by reusing the total weekday person trips and dividing by the total
+number of persons five years of age or older.
+
 ```{r table-b-6}
-# Person Trips Per Person Five Years of Age or Older*** 3.0
+# Person Trips Per Person Five Years of Age or Older
+
+# Total persons 5 years or older (on weekdays)
 tot.per.wd.5 <- 
-  sum((chts_per %>% left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>%
-         #filter_(person.trips.filter) %>%
-         filter(WD==1)
-       )$NEXPPERWDWGT,na.rm=TRUE)
-# FIXME: should match population marginal
+  sum(
+  (chts_per %>%
+     left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>%
+     filter(WD==1 & AGE > 4)
+  )$NEXPPERWDWGT,
+  na.rm=TRUE)
+
+# Compute and store the result
 bdat[['Person Trips Per Person Five Years of Age or Older***']] <-
-  round(bdat[['Person Trips*']]/tot.per.wd.5,1)
+  round(bdat[['Person Trips']]/tot.per.wd.5,1)
 ```
+
+Driver trips per household is total driver trips divided by total
+households.  We reuse early calculations to get the result.
+
 ```{r table-b-7}
-# Driver Trips Per Household 5.9
+# Driver Trips Per Household
 bdat[['Driver Trips Per Household']] <-
-  round(bdat[['Driver Trips**']]/tot.hh.wd,1)
+  round(bdat[['Driver Trips']]/tot.hh.wd,1)
 ```
+
+Driver trips per vehicle available is total driver trips divided by
+total vehicles available. We reuse early calculations to get the
+result.
+
 ```{r table-b-8}
-# Driver Trips Per Vehicle Available 3.2
+# Driver Trips Per Vehicle Available
 bdat[['Driver Trips Per Vehicle Available']] <-
-  round(bdat[['Driver Trips**']]/adat[['Vehicles Available']],1)
+  round(bdat[['Driver Trips']]/adat[['Vehicles Available']],1)
 ```
+
+Drive trips per vehicle in use on travel day is total driver trips
+divided by vehicles in use on the travel day.  We reuse early
+calculations to get the result.
+
+
 ```{r table-b-9}
 # Driver Trips Per Vehicle In Use on Travel Day 4.8
 bdat[['Driver Trips Per Vehicle In Use on Travel Day']] <-
-  round(bdat[['Driver Trips**']]/adat[[hhvehinuselabel]],2)
+  round(bdat[['Driver Trips']]/adat[[hhvehinuselabel]],2)
 ```
 
-Vehicle occupancy is a little tricky with linked trips as it varies per leg of trip.  
-The linked trip table includes the maximum number of travelers on any leg (`MAXTR`)
-and the minimum number of travelers (`MINTR`).  For our purposes here, we'll
-assume we want the average *maximum* number of travelers.  However, there are many
-records for which the number of travelers was not reported (these show up as `NA` records.
-Necessarily, we need to compute the occupancy from the subset of linked trips without
-`NA` values for `TOTTR`.
+Vehicle occupancy is a little tricky with linked trips as it varies
+per leg of trip.  The linked trip table includes the maximum number of
+travelers on any leg (`MAXTR`) and the minimum number of travelers
+(`MINTR`).  For our purposes here, we'll assume we want the average
+*maximum* number of travelers. 
 
-```{r table-b-10,cache=FALSE}
+First, to make our table legible, we'll add a blank line to act as a
+heading for the vehicle occupancy section (we'll replace the NA with a
+blank when we construct the table).
+
+```{r table-b-10}
 # Vehicle Occupancy
-bdat[['Vehicle Occupancy']] <- 0
+bdat[['Vehicle Occupancy']] <- NA
 ```
+
+The 2001 table listed occupancy for 24 hours and for the AM peak
+(7-9am).  In both cases we define occupancy as the weighted mean of
+`MAXTR`.  Here we compute the 24 hour occupancy by filtering the
+weekday linked trips and then computing the weighted mean.
+
 ```{r table-b-10_1}
 #  All Trips (24 hours) 1.4
-lt.wd.trips<- lt.wd
 lt.wd.trips.veh <- lt.wd.trips %>%
   # let's filter on only "vehicle" trips (no transit)
   filter(ltmode %in% vehicle.trip.modes)
@@ -523,17 +686,18 @@ bdat[['&nbsp;&nbsp;All Trips (24 hours)']] <-
     1)
 ```
 
-We interpret the 7-9am time window as a departure window.
+For AM trips, we perform the same calculation as above, except we add
+a filter for trips departing between 7am and 8:59am.
 
 ```{r table-b-10_2}
-#  All Trips (7-9 a.m.) 1.2
-lt.wd.trips.am <- lt.wd.trips  %>% 
-  # select all trips active during AM window
-  filter((DEP_HR >= 7 & DEP_HR <9)) 
+#  All Weekday Trips (7-9 a.m.)
+lt.wd.trips.am <- lt.wd.trips %>% 
+  filter((DEP_HR >= 7 & DEP_HR <9)) # trips starting during AM window
 
 lt.wd.trips.am.veh <- lt.wd.trips.am %>% 
   # let's filter on only "vehicle" trips (no transit)
   filter(ltmode %in% vehicle.trip.modes)
+
 bdat[['&nbsp;&nbsp;All Trips (7-9am)']] <-
   round(
     wtd.mean(    
@@ -541,43 +705,102 @@ bdat[['&nbsp;&nbsp;All Trips (7-9am)']] <-
       weights=lt.wd.trips.am.veh$NEXPTCFPERWDWGT),
     1)
 ```
+
+We're also interested in the occupancies for Home-Work vehicle trips
+for both 24 hours and the AM peak.  The calulations are similar to
+those above, we simply filter for trips with a TripType of `HW`.  Here
+is the 24-hour calculation (we re-use data frames from above and
+simply add the additional `HW` filter).
+
 ```{r table-b-10_3}
 #  Home-Work Trips (24 hours) 1.1
-lt.wd.trips.hw.veh <- lt.wd.trips.veh %>% filter(TripType=='HW') 
-lt.wd.trips.hw <- lt.wd.trips %>% filter(TripType=='HW') 
+lt.wd.trips.hw.veh <-
+  lt.wd.trips.veh %>%
+  filter(TripType=='HW') 
+
 bdat[['&nbsp;&nbsp;Home-Work Trips (24 hours)']] <-
   round(
     wtd.mean(lt.wd.trips.hw.veh$MAXTR,
              weights=lt.wd.trips.hw.veh$NEXPTCFPERWDWGT),
     1)
 ```
+
+Here is the AM peak calculation.
+
 ```{r table-b-10_4}
 #  Home-Work Trips (7-9 a.m.) 1.1
-lt.wd.trips.am.hw.veh <- lt.wd.trips.am.veh %>% filter(TripType=='HW')  
+lt.wd.trips.am.hw.veh <-
+  lt.wd.trips.am.veh %>%
+  filter(TripType=='HW')  
+
 bdat[['&nbsp;&nbsp;Home-Work Trips (7-9am)']] <-
   round(
     wtd.mean(lt.wd.trips.am.hw.veh$MAXTR,
              weights=lt.wd.trips.am.hw.veh$NEXPTCFPERWDWGT),
     1)
 ```
+
+Computing mean travel times are similarly the weighted mean of
+reported trip duration.  It is unclear in the 2001 tables whether
+these values are for all trip modes or for vehicle trips only.  As
+such, we compute them both.  Again, we start by adding a heading to
+this list.
+
 ```{r table-b-11}
 # Mean Travel Time (Respondent Reported)
-bdat[['Mean Travel Time (Respondent Reported)']] <- 0 
+bdat[['Mean Travel Time (Respondent Reported)']] <- NA
 ```
+
+Then, we compute weighted mean trip duration for all trips types and
+modes.
+
 ```{r table-b-11_1}
 #  Weekday 'All Trips' Trip Length 22 minutes
-bdat[["&nbsp;&nbsp;Weekday 'All Trips' Trip Duration (min)"]] <- 
+bdat[["&nbsp;&nbsp;Weekday 'All Trips', All Modes, Trip Duration (min)"]] <- 
   round(
     wtd.mean(lt.wd.trips$tripdur, 
              weights=lt.wd.trips$NEXPTCFPERWDWGT),
     0)
 ```
-```{r table-b-11_2,cache=FALSE}
+
+Next, we compute weighted mean trip duration for all trips types and
+vehicle modes.
+
+```{r table-b-11_2}
+#  Weekday 'All Trips' Trip Length 22 minutes
+bdat[["&nbsp;&nbsp;Weekday 'All Trips', Vehicle Modes, Trip Duration (min)"]] <- 
+  round(
+    wtd.mean(lt.wd.trips.veh$tripdur, 
+             weights=lt.wd.trips.veh$NEXPTCFPERWDWGT),
+    0)
+```
+
+Next, we compute weighted mean trip duration for home-work trips and
+all modes.
+
+```{r table-b-11_3,cache=FALSE}
 #  Weekday 'Home-Work Trips' Trip Length 27 minutes
+
+# Weekday home to work trips (all modes)
+lt.wd.trips.hw <- lt.wd.trips %>% filter(TripType=='HW') 
+
 bdat[["&nbsp;&nbsp;Weekday 'Home-Work Trips' Trip Duration (min)"]] <-
   round(
     wtd.mean(lt.wd.trips.hw$tripdur, 
              weights=lt.wd.trips.hw$NEXPTCFPERWDWGT),
+    0)
+```
+
+Next, we compute weighted mean trip duration for home-work trips and
+vehicle modes.
+
+```{r table-b-11_4,cache=FALSE}
+#  Weekday 'Home-Work Trips' Trip Length 27 minutes
+
+bdat[["&nbsp;&nbsp;Weekday 'Home-Work Trips', Vehicle Modes Trip Duration (min)"]] <-
+  round(
+    wtd.mean(lt.wd.trips.hw.veh$tripdur, 
+             weights=lt.wd.trips.hw.veh$NEXPTCFPERWDWGT),
     0)
 ```
 
@@ -590,46 +813,46 @@ res.b.str<-pandoc.table.return(res.b,
              split.tables=Inf,
              split.cells=Inf, 
              justify=c('left','right'),
+             missing='&nbsp;',  # replace missing values (NAs) with blanks
              round=Inf,
              big.mark=',',
              caption="TABLE B: Weekday Trip Information")
-res.b.str <- gsub("(\\*\\*\\s*)     0","\\1&nbsp;",res.b.str)
+```
+
+```{r table-b-results,results='asis',echo=FALSE,cache=FALSE}
+cat(res.b.str)
 res[["res.b"]] <- list()
 res[["res.b"]]$title  <- "TABLE B: Weekday Trip Information"
 res[["res.b"]]$data   <- res.b
 res[["res.b"]]$tabtxt <- res.b.str
-
 ```
 
-```{r table-b-results,results='asis',echo=FALSE,cache=FALSE}
-cat(res[['res.b']]$tabtxt)
-```
-
-\newpage
 
 ## Table C - TRAVEL SURVEY DATA FOR CALIFORNIA---Travel Mode Distribution
 
+To compute the travel mode distribution table, we first start by
+defining mode classifications to match the 2001 tables.
 
 ```{r table-c}
-lt.wd$modesummary <-
+lt.wd.trips$modesummary <-
   factor(
     ifelse(
-      lt.wd$ltmode %in% c(driver.trip.modes),
+      lt.wd.trips$ltmode %in% c(driver.trip.modes),
       1,
       ifelse(
-        lt.wd$ltmode == 6,       # vehicle passenger trips
+        lt.wd.trips$ltmode == 6,       # vehicle passenger trips
         2,
         ifelse(
-          lt.wd$ltmode %in% c(public.transport.trip.modes),
+          lt.wd.trips$ltmode %in% c(public.transport.trip.modes),
           3,
           ifelse(
-            lt.wd$ltmode==18,    # school bus trips
+            lt.wd.trips$ltmode==18,    # school bus trips
             4,
             ifelse(
-              lt.wd$ltmode==2,   # bicycle trips
+              lt.wd.trips$ltmode==2,   # bicycle trips
               5,
               ifelse(
-                lt.wd$ltmode==1, # walk trips
+                lt.wd.trips$ltmode==1, # walk trips
                 6,
                 7)))))),
     levels=1:7,
@@ -641,41 +864,66 @@ lt.wd$modesummary <-
              "Walk Trips",
               "All Others")
     )
-            
-tot <- sum(lt.wd$NEXPTCFPERWDWGT,na.rm=TRUE)
-res.c<-t(t(as.data.frame(
-  wtd.table(lt.wd$modesummary,
-                  weights=lt.wd$NEXPTCFPERWDWGT)$sum.of.weights/tot*100
-  )))
+```
+
+Next, we generate the weighted table of relative trip frequencies by
+these modes (again converting the result to a `data.frame` so we can
+print it using pandoc).
+
+```{r table-c-2}
+tot <- sum(lt.wd.trips$NEXPTCFPERWDWGT,na.rm=TRUE)
+res.c<-as.data.frame( 
+  wtd.table(lt.wd.trips$modesummary,
+                  weights=lt.wd.trips$NEXPTCFPERWDWGT)$sum.of.weights
+  )
+```
+
+Now we'll add the total row and sort the rows from highest frequency
+to lowest, placing the total on the bottom.
+
+```{r table-c-3}
 colnames(res.c)<-c('Weekday.Percent')
+res.c$`Weekday.Percent` <- res.c$`Weekday.Percent`/tot*100
 res.c<-rbind(res.c,data.frame('Weekday.Percent'=c(sum(res.c[,'Weekday.Percent'])))) 
 rownames(res.c)<-c(rownames(res.c)[1:7],'Total')
 res.c$VALUE <- rownames(res.c)
-res.c <- res.c %>% arrange(desc(ifelse(Weekday.Percent>99.9999,-Weekday.Percent,Weekday.Percent)))
+res.c <- res.c %>% 
+  arrange(desc(ifelse(`Weekday.Percent`>99.9999,-`Weekday.Percent`,`Weekday.Percent`))) %>%
+  transmute(VALUE=VALUE,`Weekday Percent`=`Weekday.Percent`)
 rownames(res.c)<-res.c$VALUE
 res.c$VALUE <- NULL
+```
+
+Lastly, we generate the table.
+
+```{r table-c-5}
 res.c.str<-pandoc.table.return(res.c,
              split.tables=Inf,split.cells=Inf, 
              justify=c('left','right'),
              big.mark=',',
              round=1,
+             keep.trailing.zeros = TRUE,
              caption="TABLE C: Travel Mode Distribution")
+```
+
+```{r table-c-results,results='asis',echo=FALSE,cache=FALSE}
+cat(res.c.str)
 res[["res.c"]] <- list()
 res[["res.c"]]$title  <- "TABLE C: Travel Mode Distribution"
 res[["res.c"]]$data   <- res.c
 res[["res.c"]]$tabtxt <- res.c.str
 ```
 
-```{r table-c-results,results='asis',echo=FALSE,cache=FALSE}
-cat(res.c.str)
-```
-
-\newpage
 
 ## Table D: TRAVEL SURVEY DATA FOR CALIFORNIA---Weekday Commute Mode Share Information
 
+The process to compute the commute mode share is similar to that used
+for the travel mode distribution we just calculated.  We start by
+filtering to look only at Home to Work trips and generating the Mode
+categories we want to summarize.
+
 ```{r table-d}
-lt.wd.hw <- lt.wd %>% filter(TripType=='HW')
+lt.wd.hw <- lt.wd.trips %>% filter(TripType=='HW')
 
 lt.wd.hw$modesummary <-
   factor(
@@ -704,19 +952,30 @@ lt.wd.hw$modesummary <-
              "Bicycle",
              "Others")
     )
+```
 
-            
+Next, we generate the weighted frequency table an convert it to
+percentages by dividing by the total number of trips.  We do this
+first for trips occuring any time of the day.
+
+```{r table-d-2}
 tot <- sum(lt.wd.hw$NEXPTCFPERWDWGT,na.rm=TRUE)
-tab<-t(t(as.data.frame(
+tab<-as.data.frame(
     wtd.table(lt.wd.hw$modesummary,
               weights=lt.wd.hw$NEXPTCFPERWDWGT)$sum.of.weights/tot*100,
-    )))
+    )
+
+# Manipulate the column names and add the total row
 colnames(tab)<-'X.24.Hours'
 tab<-rbind(tab,data.frame('X.24.Hours'=c(sum(tab[,'X.24.Hours']))))
 colnames(tab)<-c('24 Hours')
 rownames(tab)<-c(rownames(tab)[1:6],'Total')
+```
 
+Next, we do the same computation, but only include trips departing in
+the 7am-9am window.
 
+```{r table-d-3}
 lt.wd.hw.am <- lt.wd.hw  %>%                                          
     # select all trips active during AM window
   filter((DEP_HR >= 7 & DEP_HR <9)) 
@@ -725,16 +984,27 @@ tab2<-t(t(as.data.frame(
     wtd.table(lt.wd.hw.am$modesummary,
               weights=lt.wd.hw.am$NEXPTCFPERWDWGT)$sum.of.weights/tot2*100,
     )))
+
+# Manipulate the column names and add the total row
 colnames(tab2)<-'AM'
 tab2<-rbind(tab2,data.frame('AM'=c(sum(tab2[,'AM']))))
 rownames(tab2)<-c(rownames(tab2)[1:6],'Total')
+```
 
+Now, we want to merge the two tables into one.  We use `cbind` to add
+the AM column from the AM table to the 24 hour table, then manipulate
+the results for printing.
+
+```{r table-d-4}
 res.d <- cbind(tab,tab2 %>% select(AM))
+
+# manipulate the data frame for printing.
 res.d[['Commuter Mode Share---Weekday Trips']] <-
   rownames(res.d)
 rownames(res.d)<-NULL
 res.d <- res.d[,c(3,1,2)]
 
+# generate the table
 res.d.str <- pandoc.table.return(res.d,
              split.tables=Inf,split.cells=Inf, 
              justify=c('left','right','right'),
@@ -742,44 +1012,67 @@ res.d.str <- pandoc.table.return(res.d,
              round=1,
              caption="TABLE D: Weekday Mode Share Information",
              emphasize.strong.cols = 1) 
+```
+
+```{r table-d-results,results='asis',echo=FALSE,cache=FALSE}
+cat(res[['d.str']])
 res[["res.d"]] <- list()
 res[["res.d"]]$title  <- "TABLE D: Weekday Mode Share Information"
 res[["res.d"]]$data   <- res.d
 res[["res.d"]]$tabtxt <- res.d.str
 ```
 
-```{r table-d-results,results='asis',echo=FALSE,cache=FALSE}
-cat(res[['d.str']])
-```
-
-\newpage
 
 ## Table 1: PERSONS/VEHICLE PER HOUSEHOLD By County
 
+To compute persons and vehicles per household for the state and each
+county, we need the household table, which includes the number of
+persons (`HHSIZ`) and vehicles (`HHVEH`) in each household sampled.
+Using that, we can compute the statewide weighted means of each value
+using the statewide weights in `EXPHHWGT`.
+
 ```{r table-1}
 # Statewide
-hh <- chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
-  left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>%
-  left_join(chts_hh.wgt.cty %>% select(-CTFIP),by=c("SAMPN"))
+hh <- chts_hh %>% 
+  mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+  left_join(fipsctyca,by=c('ICTFIP'='county_ansi'))
 state<-hh %>% 
-        summarise('phhw'=weighted.mean(HHSIZ,EXPHHWGT),
-                  'vhhw'=weighted.mean(HHVEH,EXPHHWGT)
-                  )
+  summarise('phhw'=weighted.mean(HHSIZ,EXPHHWGT),
+            'vhhw'=weighted.mean(HHVEH,EXPHHWGT)
+            )
 state$County <- 'California'
+```
 
+To compute the means by county, we need to join the county weights,
+then group the dataset by county and compute the weighted mean for
+each group using the county weights in `NEXPHHWGT`.
+
+```{r table-1-1}
 # By County
-by.cty <-
-      hh %>% group_by(County) %>% 
-        summarise('phhw'=weighted.mean(HHSIZ,NEXPHHWGT),
-                  'vhhw'=weighted.mean(HHVEH,NEXPHHWGT))
+by.cty <- hh %>% 
+  left_join(chts_hh.wgt.cty %>% select(-CTFIP),by=c("SAMPN")) %>%
+  group_by(County) %>% 
+  summarise('phhw'=weighted.mean(HHSIZ,NEXPHHWGT),
+            'vhhw'=weighted.mean(HHVEH,NEXPHHWGT))
+```
 
+Finally, we join the county data onto the state data so we can produce
+the final table.
+
+```{r table-1-2}
+# Combine state and table data
 res.1 <- rbind(state,by.cty) %>% 
-  select(County,'Persons per Household'=phhw,'Vehicles per Household'=vhhw) %>% 
+  select(
+    County,
+    'Persons per Household'=phhw,
+    'Vehicles per Household'=vhhw
+  ) %>% 
   as.data.frame()
 
 res.1.str <- pandoc.table.return(
   res.1,
   justify=c('left','right','right'),
+  # make the California row bold
   emphasize.strong.rows=which(res.1$County=='California',arr.ind=TRUE),
   caption='TABLE 1: Persons/Vehicle per Household by County',
   split.table=Inf,
@@ -787,21 +1080,21 @@ res.1.str <- pandoc.table.return(
   big.mark=',',
   round=1
   ) 
+```
+
+```{r table-1-results,results='asis',echo=FALSE,cache=FALSE}
+cat(res.1.str)
 res[["res.1"]] <- list()
 res[["res.1"]]$title  <- "TABLE 1: Persons/Vehicle per Household by County"
 res[["res.1"]]$data   <- res.1
 res[["res.1"]]$tabtxt <- res.1.str
 ```
 
-```{r table-1-results,results='asis',echo=FALSE,cache=FALSE}
-cat(res.1.str)
-```
-
-\newpage
 
 ## TABLE 5: LICENSED DRIVERS PER HOUSEHOLD
 
-Persons 16 years of age or older.
+We use a similar process to generate the licensed drivers per
+household (`HHLIC`), first computing the weighted mean for the state.
 
 ```{r table-5}
 # Statewide
@@ -809,7 +1102,11 @@ lic.ca <- chts_hh %>% summarise(
   County='California',  
   Licensed=round(wtd.mean(HHLIC,weights=EXPHHWGT),1)
   )
+```
 
+Then, we repeat the the process by county.
+
+```{r table-5-1}
 # Per County
 lic.cty <-  chts_hh %>% 
   mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
@@ -819,7 +1116,11 @@ lic.cty <-  chts_hh %>%
   summarise(
     Licensed=wtd.mean(HHLIC,weights=NEXPHHWGT)
     )
+```
 
+Again, we join the State and County data to produce the final table.
+
+```{r table-5-2}
 res.5 <- rbind(lic.ca,lic.cty)
 
 res.5.str <- pandoc.table.return(
@@ -830,26 +1131,34 @@ res.5.str <- pandoc.table.return(
   big.mark = ',',
   round = 1
   )
+```
+
+```{r table-5-results,results='asis',echo=FALSE,cache=FALSE}
+cat(res.5.str)
 res[["res.5"]] <- list()
 res[["res.5"]]$title  <- "TABLE 5: Licensed Drivers per Household by County"
 res[["res.5"]]$data   <- res.5
 res[["res.5"]]$tabtxt <- res.5.str
 ```
 
-```{r table-5-results,results='asis',echo=FALSE,cache=FALSE}
-cat(res.5.str)
-```
-
-\newpage
 
 ## TABLE 6: EMPLOYEES PER HOUSEHOLD
+
+Once again, the process is similar for computing the employees per
+household table in that we compute weighted means of the `HHEMP`
+variable by state and county.  Here is the state computation.
 
 ```{r table-6}
 emp.ca <- chts_hh %>% summarise(
   County='California',
   Employed=round(wtd.mean(HHEMP,weights=EXPHHWGT),1)
   )
-emp.reg <- chts_hh %>% 
+```
+
+Next, we compute the weighted county means.
+
+```{r table-6-1}
+emp.cty <- chts_hh %>% 
   mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
   left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>%
   left_join(chts_hh.wgt.cty %>% select(-CTFIP),by=c("SAMPN")) %>%
@@ -857,8 +1166,13 @@ emp.reg <- chts_hh %>%
   summarise(
     Employed=wtd.mean(HHEMP,weights=NEXPHHWGT)
     )
+```
 
-res.6 <- rbind(emp.ca,emp.reg)
+Finally, as above, we join the state and county data to produce the
+final table.
+
+```{r table-6-2}
+res.6 <- rbind(emp.ca,emp.cty)
 res.6.str <- pandoc.table.return(
   res.6,
   justify=c('left','right'),
@@ -868,40 +1182,66 @@ res.6.str <- pandoc.table.return(
   round=1,
   keep.trailing.zeros = TRUE
   )
+```
+
+```{r table-6-results,results='asis',echo=FALSE,cache=FALSE}
+cat(res.6.str)
 res[["res.6"]] <- list()
 res[["res.6"]]$title  <- "TABLE 6: Employees per Household by County"
 res[["res.6"]]$data   <- res.6
 res[["res.6"]]$tabtxt <- res.6.str
 ```
 
-```{r table-6-results,results='asis',echo=FALSE,cache=FALSE}
-cat(res.6.str)
-```
-
-\newpage
 
 ## TABLE 9: WEEKDAY TRIP-TYPE DISTRIBUTION
 
-```{r table-9-1}
-dat<-(ltf2 %>% 
-        left_join(chts_per %>% select(SAMPN,PERNO,EXPPERWGT),by=c('SAMPN','PERNO')) %>% 
-        mutate(EXPTCFPERWGT=EXPPERWGT*ltTCF) %>%
-        group_by(TripType) %>% 
-        filter(TripType!=""))
-tt <- t(t(wtd.table(dat$TripType,weights=dat$EXPTCFPERWGT,type='table')))
-ttt <- rownames(tt)
-rownames(tt)<-NULL
+We will now compute the weekday trip type distribution by state and
+for each county.  We begin with the state.  To compute the trip type
+distribution, we'll use the linked trip data, which contains the
+`TripType` variable.  Because the weighting for trips comes from the
+person weights, we need to join the person table onto the linked trip
+table.  We modify these weights using the Trip Correction Factor (TCF)
+of the primary leg of the linked trip (`ltTCF`) to produce the linked
+trip weight `EXPTCFPERWGT`.
 
+```{r table-9-1}
+dat<-
+  lt.clean %>% 
+  left_join(chts_per %>% select(SAMPN,PERNO,EXPPERWGT),by=c('SAMPN','PERNO')) %>% 
+  mutate(EXPTCFPERWGT=EXPPERWGT*ltTCF)
+```
+
+With that, we can compute a weighted frequency table using the
+`wtd.table` function.  The nested transpose `t(t(.))` calls are a quick idiom
+for converting the data into a tabular format. 
+
+```{r table-9-2}
+tt <- t(t(wtd.table(dat$TripType,weights=dat$EXPTCFPERWGT,type='table')))
+```
+
+Next, we manipulate the table for printing.
+
+```{r table-9-3}
+# Row names are the trip types, we grab them so we can make them a column.
+ttt <- rownames(tt)
+rownames(tt)<-NULL   # ...then we remove the row names
+
+# create the final data frame.
 res.9.1 <- data.frame(
   "Trip Type"=ttt,
   "Number"=tt,
-  "Percent"=round(tt/sum(tt)*100,2))
+  "Percent"=round(tt/sum(tt)*100,2)  # Note, we add the Percent column
+)
+
+# Add a total row to the data frame
 res.9.1 <- rbind(res.9.1,
                 data.frame(
                   `Trip Type`=c("TOTAL"),
                   "Number"=round(sum(res.9.1$Number),0),
                   "Percent"=sum(res.9.1$Percent))) %>%
   arrange(ifelse(Trip.Type=='TOTAL',999,1),desc(Percent))
+
+# generate the table
 res.9.1.str <- 
   pandoc.table.return(
     res.9.1,caption="TABLE 9: Weekday Trip Type Distribution",
@@ -917,26 +1257,47 @@ res.9.1.str <-
 cat(res.9.1.str)
 ```
 
-
-And here are the trip distribution tables by county.
+To compute the county tables, we will use the household's county as
+the grouping variable.  To do this, we join the household data with
+the matching `County` name from the `fipsctyca` table, then join the
+county-specific person weights.
 
 
 ```{r trip-dist-by-county}
-data<-ltf2 %>% 
-  filter(!is.na(dplano)) %>%
-  left_join(chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
-              left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
-              select(SAMPN,County),by=c("SAMPN")) %>%
-  left_join(chts_per.wgt.cty %>% select(SAMPN,PERNO,NEXPPERWGT)) %>%
-  group_by(TripType) %>% filter(TripType!="")
+data <- lt.clean %>% 
+  left_join(
+    chts_hh %>%
+      mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+      left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
+      select(SAMPN,County),by=c("SAMPN")
+  ) %>%
+  left_join(chts_per.wgt.cty %>% select(SAMPN,PERNO,NEXPPERWGT))
+```
 
+With that dataset, we use the `lapply` method to call a
+table-generating function for each county.  The function generates the
+pandoc table and returns it as a string.  We collapse all county
+tables into a single string for printing.
+
+Inside the table-generating function, we simply filter the full
+dataset above by county and compute the weighted frequency table as we
+did with the state.  In this case, we're using the household county
+weights.
+
+```{r t9-2-trip-dist-by-county}
 res.9.2.str <- 
-  paste(
+  paste(  # paste will concatenate the results of the lapply function
     lapply(
-      c(sort(fipsctyca$County)),
+      c(sort(fipsctyca$County)),   # The counties to loop over
+
+      # the table generating function.
       function(cty) {
-        dat<-data %>% filter(County==cty)
+        dat<-data %>% filter(County==cty)  # filter to the county of interest
+
+        # generate the table
         tt <- t(t(wtd.table(dat$TripType,weights=dat$NEXPPERWGT,type='table')))
+
+        # manipulate the output
         ttt <- rownames(tt)
         rownames(tt)<-NULL
         tabtot <- data.frame(
@@ -949,6 +1310,8 @@ res.9.2.str <-
                           "Number"=round(sum(tabtot$Number),0),
                           "Percent"=sum(tabtot$Percent))) %>%
           arrange(ifelse(Trip.Type=='TOTAL',999,1),desc(Percent))
+
+        # generate and return the table
         return(
           pandoc.table.return(
             tabtot,
@@ -961,7 +1324,8 @@ res.9.2.str <-
             emphasize.strong.rows=which(tabtot$Trip.Type=='TOTAL',arr.ind=TRUE))
         )
       }),
-    collapse="\n\n")
+    collapse="\n\n"  # put two blank lines between each county table
+  )
 ```
 ```{r t9-2-results,results='asis',echo=FALSE,cache=FALSE}
 cat(res.9.2.str)
@@ -973,36 +1337,69 @@ res[["res.9"]]$data.2 <- NA
 res[["res.9"]]$tabtxt <- res.9.str
 ```
 
-\newpage
 
 ## TABLE 10a: WEEKDAY PERSON TRIPS PER HOUSEHOLD
 
-We're looking for weekday person trips per household broken down by county, housing unit type, vehicle ownership, and trip type.  We also want the total across all trip types for each category.
-We're going to be working with the linked trip tables.
+Here, we're looking for weekday person trips per household broken down
+by county, housing unit type, vehicle ownership, and trip type.  We
+also want the total across all trip types for each category.  Again,
+we're going to be working with the linked trip tables.
+
+We start by producing the main table of person trips per household by
+filtering the linked trip table for trips whose primary leg used a
+mode in `person.trip.modes`.  Onto that subset, we join the statewide
+and county-specific weekday person weights.  Then, we group by the
+`TripType` and compute the weighted trip sums for the state and by
+each county for each `TripType` category.
+
 
 ```{r table-10a-1}
 # compute person trips per category
 # Filter for weekday person trips and count the expanded total trips per type
-data <- chts_lt %>% filter(!is.na(ltmode) & !is.na(oplano)) %>%
+data <- lt.clean %>%
   filter(ltmode %in% person.trip.modes) %>%
-  left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>% # join statewide weekday weights (and WD)
+  
+  # join statewide weekday weights (and WD)
+  left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>% 
   filter(WD==1) %>% # only weekdays
-  left_join(chts_per.wgt.wd.cty,by=c('SAMPN','PERNO')) %>% # join county weekday weights
+  
+  # also, join county weekday weights
+  left_join(chts_per.wgt.wd.cty,by=c('SAMPN','PERNO')) %>% 
   group_by(SAMPN,PERNO,TripType) %>% 
   summarise(
     n.st=sum(NEXPPERWDWGT*ltTCF),
     n.cty=sum(NEXPPERWDCTYWGT*ltTCF)
-    )
+  )
+```
 
+Next, because vehicle ownership and housing unit type are
+household-level variables, we need to attach the household data onto
+the table we computed above.  Note that we use the `RESTY` variable to
+determine Single vs Multi-familty housing units, and we simplify the
+vehicle ownership variable into 0, 1, 2, and 3+ categories.
+
+```{r table-10a-1-1}
 # next, attach the household characteristics to each trip observation
 data2 <- data  %>% 
-  left_join(chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
-              left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
-              select(SAMPN,RESTY,HHVEH,County) %>% 
-              mutate(HHUT=ifelse(RESTY==1 | RESTY==2,'Single','Multiple'),
-                     VOWN=ifelse(HHVEH<3,as.character(HHVEH),'3+')), 
-            by=c('SAMPN'))
+  left_join(
+    chts_hh %>%
+      mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
+      left_join(fipsctyca,by=c('ICTFIP'='county_ansi')) %>% 
+      select(SAMPN,RESTY,HHVEH,County) %>% 
+      
+      # create the HHUT and VOWN categories
+      mutate(
+        HHUT=ifelse(RESTY==1 | RESTY==2,'Single','Multiple'),
+        VOWN=ifelse(HHVEH<3,as.character(HHVEH),'3+')
+      ), 
+    by=c('SAMPN')
+  )
+```
 
+The next step is to compute the category marginals.  We create a
+convenience function that we'll reuse for each county (and the state).
+
+```{r table-10a-1-2}
 doagg <- function(dataa,aggv) {
   # Now, aggregate the expanded totals by the stratifications
   dots <- c(paste("sum(",aggv,",na.rm=TRUE)",sep=""))
@@ -1062,8 +1459,8 @@ datahh <- rbind(
   
 ```
 
-Now, `data2` has the linked trips for each weekday person trip.  We can simply compute the mean for
-each combination.
+Now, `data2` has the linked trips for each weekday person trip.  We
+can simply compute the mean for each combination. 
 
 ```{r table-10a-2}
 # take the trip aggs (appg), join the household aggs by stratification, devide totals
@@ -1115,7 +1512,6 @@ res[["res.10a"]]$tabtxt <- res.10a.str
 cat(res.10a.str) 
 ```
 
-\newpage
 
 ## TABLE 11: WEEKDAY DRIVER TRIPS PER HOUSEHOLD
 
@@ -1126,7 +1522,7 @@ for each category.
 ```{r table-11a-1}
 # compute driver trips per category
 # Filter for weekday driver trips and count the expanded total trips per type
-data <- chts_lt %>% filter(!is.na(ltmode) & !is.na(oplano)) %>%
+data <- lt.clean %>%
   filter(ltmode %in% driver.trip.modes) %>%
   left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>% # join weekday weights (and WD)
   filter(WD==1) %>% # only weekdays
@@ -1259,13 +1655,12 @@ res[["res.11"]]$tabtxt <- res.11.str
 cat(res.11.str) 
 ```
 
-\newpage
 
 ## TABLE 13a: WEEKDAY PERSON AND DRIVER TRIPS PER HOUSEHOLD
 
 ```{r table13a}
 # By County, HH
-datapt <- chts_lt %>% filter(!is.na(ltmode) & !is.na(oplano)) %>%
+datapt <- lt.clean %>%
   filter(ltmode %in% person.trip.modes) %>%
   left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>% # join weekday weights (and WD)
   filter(WD==1) %>% # only weekdays
@@ -1285,7 +1680,7 @@ datapt2 <- datapt  %>%
                      HHSIZ=ifelse(HHSIZ<5,as.character(HHSIZ),'5+')), 
             by=c('SAMPN'))
 
-datadt <- chts_lt %>% filter(!is.na(ltmode) & !is.na(oplano)) %>%
+datadt <- lt.clean %>%
   filter(ltmode %in% driver.trip.modes) %>%
   left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>% # join weekday weights (and WD)
   filter(WD==1) %>% # only weekdays
@@ -1442,14 +1837,13 @@ res[["res.13"]]$tabtxt <- res.13.str
 cat(res.13.str)
 ```
 
-\newpage
 
 ## TABLE 15: WEEKDAY DRIVER TRIPS PER VEHICLE BY COUNTY, HH INCOME, AND HOUSING UNIT
 
 ```{r table-15}
 # compute driver trips per category
 # Filter for weekday driver trips and count the expanded total trips per type
-data <- chts_lt %>% filter(!is.na(ltmode) & !is.na(oplano)) %>%
+data <- lt.clean %>%
   filter(ltmode %in% driver.trip.modes) %>%
   left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>% # join weekday weights (and WD)
   left_join(chts_per.wgt.wd.cty,by=c('SAMPN','PERNO')) %>% # join wd cty weights
@@ -1601,7 +1995,6 @@ res[["res.15"]]$tabtxt <- res.15.str
 cat(res.15.str)
 ```
 
-\newpage
 
 ## TABLE 15a: WEEKDAY PERSON AND VEHICLE MILES TRAVELED PER VEHICLE BY COUNTY AND HH INCOME
 
@@ -1686,7 +2079,6 @@ res[["res.15a"]]$tabtxt <- res.15a.str
 cat(res.15a.str)
 ```
 
-\newpage
 
 ## TABLE 17a: WEEKDAY UNLINKED AND LINKED TRIPS DISTRIBUTED BY PARTICULAR TRAVEL MODE AND GROUP
 
@@ -1744,7 +2136,7 @@ fftab.ul <- ftab.ul %>%
     )
 
 # linked trips
-tab <- lt.wd %>% 
+tab <- lt.wd.trips %>% 
   left_join(mode.groups,by=c('ltmode')) %>% group_by(MODE.GROUP,ltmode) %>% 
   filter(!is.na(ltmode)) %>%
   summarise(num=sum(NEXPTCFPERWDWGT,na.rm=TRUE))
@@ -1823,7 +2215,7 @@ mode.groups <- data.frame(
 lt.wd.cty <- chts_per.wgt.wd.cty %>% 
   filter(grepl("\\.1$",GROUP)) %>% # grab weekday travelers
   select(SAMPN,PERNO,GROUP,NEXPPERWDCTYWGT,NPERWDCTYWGT) %>%  # select what we want
-  left_join(chts_lt,by=c('SAMPN','PERNO')) %>%  # join on the linked trips
+  left_join(lt.clean,by=c('SAMPN','PERNO')) %>%  # join on the linked trips
   mutate(NEXPTCFPERWDCTYWGT=NEXPPERWDCTYWGT*ltTCF)  # compute the TCF weights
 
 tab.ul.raw <-chts_pla %>% 
@@ -1853,7 +2245,7 @@ res.17a.cty.str <-
         
         tab.ul <- 
           tab.ul.raw %>%
-          filter(grepl("\\.1$",GROUP) & (CTFIP==icty | oCTFIP==icty)) %>%
+          filter(grepl("\\.1$",GROUP) & (as.integer(CTFIP)==icty | as.integer(oCTFIP)==icty)) %>%
           left_join(mode.groups %>% select(MODE.GROUP=MODE.GROUP,MODE=ltmode),
                     by=c('MODE')) %>% 
           mutate(NEXPTCFPERWDCTYWGT=NEXPPERWDCTYWGT*TCF) %>%
@@ -1887,7 +2279,7 @@ res.17a.cty.str <-
         # linked trips
         tab <- 
           tab.raw %>%
-          filter(oCTFIP==icty | dCTFIP==icty) %>%
+          filter(as.integer(oCTFIP)==icty | as.integer(dCTFIP)==icty) %>%
           summarise(num=sum(NEXPTCFPERWDCTYWGT,na.rm=TRUE))
         #  summarise(num=n())
         tab$ltmode <- assign_factors(tab$ltmode,'place','MODE',maxlab = 20)
@@ -1948,7 +2340,6 @@ res[["res.17a"]]$data.2 <- NA
 res[["res.17a"]]$tabtxt <- paste(res.17a.st.str,res.17a.cty.str,sep="\n\n\n")
 ```
 
-\newpage
 
 ## Table 17B and 17C: Weekday Commuters' Directional Travel Mode Split. All Home-to-Work trips and 7:00-9:00am Home-to-Work trips
 
@@ -2005,7 +2396,7 @@ gentab <- function(data) {
 }
 
 # linked trips
-All.lt <- lt.wd %>%
+All.lt <- lt.wd.trips %>%
   filter(!is.na(ltmode) & TripType=='HW') %>%
   left_join(chts_hh %>% mutate(ICTFIP=as.integer(CTFIP)%%1000) %>%
               left_join(fipsctyca,by=c('ICTFIP'='county_ansi')), 
@@ -2090,7 +2481,6 @@ res[["res.17bc"]]$data <- NA #res.17bc
 res[["res.17bc"]]$tabtxt <- res.17bc.str
 ```
 
-\newpage
 
 ## TABLE 22: Age of Vehicle in Use on Travel Day by County and Vehicle Type
 
@@ -2163,20 +2553,18 @@ res.22.str <-
   )
 ```
 ```{r table-22-results,results='asis',echo=FALSE,cache=FALSE}
-cat(res.22.str)
+cat(res.22.str) 
 res[["res.22"]] <- list()
 res[["res.22"]]$title  <- "TABLE 22: Vehicles in Use on Average Weekday Distributed by Age of Vehicle and by County"
 res[["res.22"]]$data <- NA
 res[["res.22"]]$tabtxt <- res.22.str
 ```
 
-\newpage
 
 ## TABLE 22a: Number of Vehicle Trips (VT), Number of Vehicle Miles Traveled (VMT) and Person Trips (PT) and Person Miles Traveled (PMT) by County by Mode and Purpose.
 
 How to define VT?  By definition, Transit trips will have zero VMT, so having both VMT and mode split doesn't make sense to me.
 
-\newpage
 
 ## TABLE 50: Mode share for the trips under 1 mile, and trips under 3 miles for transit, bike, and walk by County
 
@@ -2234,7 +2622,6 @@ res[["res.50"]]$data <- res.50
 res[["res.50"]]$tabtxt <- res.50.str
 ```
 
-\newpage
 
 ## TABLE 51: Driver trips, bike, walk and transit for millennial versus older age groups. 
 
@@ -2301,7 +2688,6 @@ res[["res.51"]]$tabtxt <- res.51.str
 
 ```
 
-\newpage
 
 ## TABLE 52: Statewide Commute trips (JTW) by Mode (Walk, Bike, Drive/Passenger, Transit) and other by Mode and Distance ranges:
 
@@ -2312,7 +2698,7 @@ res[["res.51"]]$tabtxt <- res.51.str
 #2.00 – 5.00
 #5.00 – 10.00
 #10.00+
-dat <- chts_lt %>%  
+dat <- lt.clean %>%  
   filter(!is.na(tripdist) & !is.na(ltmode)) %>%
   filter(TripType=='HW') %>%
   left_join(chts_per,by=c('SAMPN','PERNO')) %>%
@@ -2388,7 +2774,6 @@ res[["res.52"]]$data <- res.52
 res[["res.52"]]$tabtxt <- res.52.str
 ```
 
-\newpage
 
 ## TABLE 53: Statewide School trips by Mode (Walk, Bike, Drive/Passenger, Transit) and other by Mode and Distance ranges
 ```{r t53}
@@ -2397,7 +2782,7 @@ lt.dat <- chts_act %>% select(SAMPN,PERNO,PLANO,ACTNO,APURP) %>% filter(APURP==1
   left_join(chts_lu_lt,by=c('SAMPN','PERNO','PLANO','ACTNO')) %>%
   group_by(linkedtripno) %>% summarise(n=n()) %>%
   select(linkedtripno) %>%
-  left_join(chts_lt,by=c('linkedtripno'))
+  left_join(lt.clean,by=c('linkedtripno'))
 
 dat <- lt.dat %>%  
   filter(!is.na(tripdist) & !is.na(ltmode)) %>%
@@ -2454,7 +2839,7 @@ res.53.str <-
   pandoc.table.return(
     agg.all,
     caption=paste(
-      "TABLE 51: Statewide School trips by Mode (Walk, Bike, Drive/Passenger, Transit) and other by Mode and Distance ranges",
+      "TABLE 53: Statewide School Trips by Mode (Walk, Bike, Drive/Passenger, Transit) and other by Mode and Distance ranges",
       sep=""),
     split.table=Inf,split.cells=Inf,
     justify=rep('right',8),
@@ -2466,12 +2851,10 @@ res.53.str <-
 ```{r table-53-results,results='asis',echo=FALSE,cache=FALSE}
 cat(res.53.str)
 res[["res.53"]] <- list()
-res[["res.53"]]$title  <- "TABLE 52: Statewide Commute trips (HW) by Mode (Walk, Bike, Drive/Passenger, Transit) and other by Mode and Distance ranges"
+res[["res.53"]]$title  <- "TABLE 53: Statewide School Trips (HW) by Mode (Walk, Bike, Drive/Passenger, Transit) and other by Mode and Distance ranges"
 res[["res.53"]]$data <- res.53
 res[["res.53"]]$tabtxt <- res.53.str
 ```
-
-\newpage
 
 \fi
 
