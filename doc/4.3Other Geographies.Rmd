@@ -4,11 +4,24 @@ author: "Suman Mitra"
 date: "September 2, 2015"
 output: html_document
 ---
-## Overview 
+
+```{r og-setup-0,echo=FALSE,cache=FALSE}
+if ( !exists("rd") ) { rd <- gsub("(.*?chts-book).*","\\1",getwd()) }
+source(paste(rd,'R/setup-hooks.R',sep="/"))
+```
+
+
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('#','Overview ')
+```
 
 This document explains how person level weights are developed for City of Los Angeles (LA) using the R statistical software for people of City of Los Angeles who participated in the 2012 CHTS. The purpose of these weights is to scale up information provided by respondents to the population of City of Los Angeles based on the socio-economic variables listed below.  Users of these weights are cautioned that these weights should not be applied to lower-level geographies such as zip codes. 
 
-## Methodology
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('#','Methodology')
+```
 
 Weights are calculated by raking at the person level. These weights adjust the relative importance of responses to reflect the different probabilities of selection of respondents, and align the sample distributions to population distributions, based on the 2010 Census. In particular, the  weights are adjusted so that the sums of the adjusted weights are equal to known population totals for certain subgroups of the population of the City of Los Angeles. Since sampling information is not available for the City of Los Angeles, we assume equal probability here. Variables used for raking at the person level are:
 
@@ -21,12 +34,18 @@ Weights are calculated by raking at the person level. These weights adjust the r
 Following the raking procedure, very large weights are capped to be no more than five times the mean weight. To check whether the new weights represent the total population of the City of Los Angeles, we do some random checking for different variables and the results show that the new weights align with the population of the City of Los Angeles. We used this new person weight to calculate the final trip weight which is an outcome of Trip Correction Factor (TCF) * New Person Weight of LA City. 
 
 
-## R Code and Implementation
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('#','R Code and Implementation')
+```
 
 The following commands are used to generate person weight for City of Los Angeles.
 
 
-### Generate Person level weight for City of LA
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('##','Generate Person level weight for City of LA')
+```
 
 First we set the working directory. Then we need to import the person data file and corresponding lookup file (containing location information) and then we merge them.
 

@@ -1,13 +1,16 @@
 ---
 title: "2012 California Household Travel Survey Data Analysis"
-author: "Jean-Daniel Saphores \and Craig Rindt \and Suman Mitra"
-date: '`r format(Sys.Date(), "%B %d, %Y")`'
+author: "Jean-Daniel Saphores and Craig Rindt and Suman Mitra"
+# Set the date to be the newest modification time of all Rmd files
+date: '`r (function() {f<-dir(); max(file.mtime(f[grepl("^.*\\.Rmd$",f)]))})()`'
 output:
   pdf_document:
     highlight: tango
     keep_tex: yes
     number_sections: yes
-    pandoc_args: --chapters
+    pandoc_args: [
+      "--chapters"
+      ]
     template: custom.latex
     toc: yes
     toc_depth: 5
@@ -18,8 +21,8 @@ output:
     toc: yes
 fontfamily: inconsolata
 geometry: margin=1in
-documentclass: '`r if (exists("documentation")) {"report"}else{"article"}`'
 documentation: '`r if(exists("documentation")){documentation}else{documentation<-"true";documentation}`'
+documentclass: '`r if (exists("documentation")) {"report"}else{"article"}`'
 ---
 
 ```{r setup,echo=FALSE,cache=FALSE}
@@ -71,7 +74,6 @@ Libraries required to generate this document:
 
 ```{r child = '4.1Personweights.Rmd'}
 ```
-\endsectionsB
 
 ## Household Level Person Weights
 
@@ -92,11 +94,10 @@ Libraries required to generate this document:
 
 # Linked Trip Tables
 
-## How to Create the Linked Trip Table
-
-
+`r NESTLEV()`
 ```{r child = 'chts-linked-trips.Rmd'}
 ```
+`r UNNESTLEV()`
 
 
 #  Creating the CHTS Summary Tables
@@ -118,7 +119,7 @@ during the course of the project.
 ```
 
 
-## Data Request for Del Note County
+## Data Request for Del Norte County
 
 
 ```{r child = '6.2DelNortecounty.Rmd'}

@@ -5,11 +5,23 @@ date: "September 2, 2015"
 output: html_document
 ---
 
-## Overview 
+```{r hw-setup-0,echo=FALSE,cache=FALSE}
+if ( !exists("rd") ) { rd <- gsub("(.*?chts-book).*","\\1",getwd()) }
+source(paste(rd,'R/setup-hooks.R',sep="/"))
+```
+
+
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('#','Overview ')
+```
 
 This document explains how county-level weights are developed using the R statistical software for household who participated in the 2012 CHTS. The purpose of these weights is to scale up information provided by respondents to the population of each county based on the socio-economic variables listed below. The household level weights were developed at the county level. Users of these weights are cautioned that these weights should not be applied to lower-level geographies such as cities or zip codes. Similar weights can be developed for these geographies if they contain enough CHTS respondents.
 
-## Methodology
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('#','Methodology')
+```
 
 Household-level county weights are calculated by raking at the household level. These weights adjust the relative importance of responses to reflect the different probabilities of selection of respondents, and align sample distributions to population distributions based on the 2010 Census. In particular, household weights were adjusted so that the sums of adjusted weights are equal to known population totals for certain subgroups of the population of each county.  Following NuStats' work for Caltrans, variables used for raking at the household level are:
 
@@ -21,18 +33,24 @@ Household-level county weights are calculated by raking at the household level. 
 After the raking procedure, very large weights are capped to be no more than five times the mean of weights. To check whether the new weights represent the total population of the counties, we perform some random checks for different variables and the results show that the new weights align with the population of the different counties. 
 
 
-## R Code and Implementation
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('#','R Code and Implementation')
+```
 
 The following commands are used to generate county wide household weight.
 
 
-### Generate Household level weight
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('##','Generate Household level weight')
+```
 
 First we need to import the person data file and corresponding lookup file (containing location information) and then we merge them.
 
 ```{r hw-1,echo=FALSE}
-if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
-p <- function(ps) { return(paste(rd,ps,sep="/")) }
+if ( !exists("rd") ) { rd <- "/Users/crindt/chts-book" }
+source(paste(rd,'R/setup-hooks.R',sep="/"))
 ```
 
 
@@ -207,14 +225,14 @@ As our data is ready for raking, we proceed for raking next. We  do it in a for 
 ```{r hw-16,cache=TRUE}
 # Raking to create new expanded weight for all counties
 #Need library "survey"
-library (survey)
+suppressMessages(library (survey))
 # Loop function
 for (i in 1:length(hhwrk.data)){ #length must be equal to 58=total number of county
   tryCatch({ ##If there is any error it will give error message but still continue the loop 
   f=seq(6001, 6115, by=2)
   s<-as.character(f[i])
-  name=c('HHweight_',s, '.CSV')
-  name=paste(name,collapse="")
+  name=paste('HHweight_',s, '.CSV',sep="")
+  name=p(paste("Weight/HHWeight_County",name,sep="/"))
   temp1<- svydesign(id=~1, weights=~HHWGT,data=hhcnty_list[[i]],fpc=~fpc,pps="brewer") # Survey design (Need library "survey")
   # Raking
   temp3<- rake(temp1, list(~HHSIZE,~INCOME,~HHVEHC,~HHWRK), list(hhsize.data[[i]],hhincome.data[[i]],hhveh.data[[i]],hhwrk.data[[i]]),control = list(maxit = 1000)) 
@@ -237,8 +255,8 @@ for (i in e){
   tryCatch({
     f=seq(6001, 6115, by=2)
     s<-as.character(f[i])
-    name=c('HHweight_',s, '.CSV')
-    name=paste(name,collapse="")
+    name=paste('HHweight_',s, '.CSV',sep="")
+    name=p(paste("Weight/HHWeight_County",name,sep="/"))
     temp1<- svydesign(id=~1, weights=~EXPHHWGT,data=hhcnty_list[[i]], fpc=~fpc,pps="brewer") # Survey design (Need library "survey")
     temp3<- rake(temp1, list(~HHSIZE,~INCOME,~HHWRK), list(hhsize.data[[i]],hhincome.data[[i]],hhwrk.data[[i]]),control = list(maxit = 1000)) # Raking
     temp4<-trimWeights(temp3,lower=(min(weights(temp3))),upper=(5*mean(weights(temp3))))# Trim the weights (max value no greater than 5 times the mean)

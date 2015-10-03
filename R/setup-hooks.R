@@ -41,3 +41,5 @@ SEC <- function(level,text,as.string=FALSE) {
       cat(ret)
     }
 }
+NESTLEV <- function(depth=1) { lev <- lev + depth; return("") }
+UNNESTLEV <- function(depth=1) { lev <- lev - depth; return("") }

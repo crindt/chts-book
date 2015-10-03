@@ -37,7 +37,7 @@ source(p("R/setup-hooks.R"))
 
 ```{r scc-1 }
 # Set the working directory
-setwd(p("Santa Cruz County"))
+#setwd(p("Santa Cruz County"))
 
 
 #Import the place level with new weight csv file and give a new name

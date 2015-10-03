@@ -5,11 +5,22 @@ date: "September 1, 2015"
 output: html_document
 ---
 
-## Overview 
+```{r pw-setup-0,echo=FALSE,cache=FALSE}
+if ( !exists("rd") ) { rd <- gsub("(.*?chts-book).*","\\1",getwd()) }
+source(paste(rd,'R/setup-hooks.R',sep="/"))
+```
+
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('#','Overview')
+```
 
 This document explains how county-level weights are developed using the R statistical software for people who participated in the 2012 CHTS. The purpose of these weights is to scale up information provided by respondents to the population of each county based on the socio-economic variables listed below. The person level weights were developed at the county level. Users of these weights are cautioned that these weights should not be applied to lower-level geographies such as cities or zip codes. Similar weights can be developed for these geographies if they contain enough CHTS respondents.
 
-## Methodology
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('#','Methodology')
+```
 
 Person-level county weights are calculated by raking at the person level. These weights adjust the relative importance of responses to reflect the different probabilities of selecting respondents, and align the sample distributions to population distributions based on the 2010 Census. In particular, person-level weights were adjusted so that the sum of these weights equals known population totals for certain subgroups of the population of each county.  Variables used for raking at the person level are:
 
@@ -24,12 +35,18 @@ After the raking procedure, very large weights are capped to be no more than fiv
 We use this new county wide person weight to calculate the final  trip weight which is an outcome of Trip Correction Factor (TCF) * New County Wide Person Weight. 
 
 
-## R Code and Implementation
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('#','R Code and Implementation')
+```
 
 The following commands are used to generate county wide person weight.
 
 
-### Generate Person level weight
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('##','Generate Person level weight')
+```
 
 First we need to import the person data file and corresponding lookup file (containing location information) and then we merge them.
 
@@ -219,8 +236,8 @@ for (i in 1:length(hisp.data)){ #length must be equal to 58=total number of coun
   tryCatch({ #If there is any error it will give error message but still continue the loop 
   f=seq(6001, 6115, by=2)
   s<-as.character(f[i])
-  name=c('perweight_',s, '.CSV')
-  name=paste(name,collapse="")
+  name=paste('perweight_',s, '.CSV',sep="")
+  name=p(paste("Weight/PersonWeight_County",name,sep="/"))
   temp1<- svydesign(id=~1, weights=~PERWGT,data=percnty_list[[i]], fpc=~fpc,pps="brewer") # Survey design 
   temp3<- rake(temp1, list(~RACEn,~HISPn,~AGEn,~EMPLYn,~GENDn), list(race.data[[i]],hisp.data[[i]],age.data[[i]],emply.data[[i]],gend.data[[i]]),control = list(maxit = 100)) # Raking
   temp4<-trimWeights(temp3,lower=(min(weights(temp3))),upper=(5*mean(weights(temp3))))# Trim the weights (max value no greater than 5 times the mean)
@@ -240,8 +257,8 @@ for (i in d){
   tryCatch({ 
     f=seq(6001, 6115, by=2)
     s<-as.character(f[i])
-    name=c('perweight_',s, '.CSV')
-    name=paste(name,collapse="")
+    name=paste('perweight_',s, '.CSV',sep="")
+    name=p(paste("Weight/PersonWeight_County",name,sep="/"))
     temp1<- svydesign(id=~1, weights=~EXPPERWGT,data=percnty_list[[i]], fpc=~fpc,pps="brewer") # Survey design 
     # Raking
     temp3<- rake(temp1, list(~HISPn,~AGEn,~EMPLYn,~GENDn), list(hisp.data[[i]],age.data[[i]],emply.data[[i]],gend.data[[i]]),control = list(maxit = 100)) 

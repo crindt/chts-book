@@ -38,7 +38,8 @@ p <- function(ps) { return(paste(rd,ps,sep="/")) }
 setwd(p("LD data request"))
 
 #Import the long distance  (with new weight) csv file and give a new name
-wLDdata <- read.csv(p("Weight/LD_Weight2/wLD_data13015.csv"), header=TRUE)
+#wLDdata <- read.csv(p("Weight/LD_Weight2/wLD_data13015.csv"), header=TRUE)
+wLDdata <- read.csv(p("Weight/LD_Weight2/wLD_data922015.csv"), header=TRUE)
 names(wLDdata)
 ```
 
