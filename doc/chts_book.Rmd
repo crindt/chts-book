@@ -28,6 +28,7 @@ documentclass: '`r if (exists("documentation")) {"report"}else{"article"}`'
 ```{r setup,echo=FALSE,cache=FALSE}
 if ( !exists('rd') ) { rd <- '/Users/crindt/chts-book'}
 source(paste(rd,'R/setup-hooks.R',sep="/"))
+lev <- 0
 ```
 
 # Introduction
@@ -72,29 +73,47 @@ Libraries required to generate this document:
 ## County Level Person Weights
 
 
-```{r child = '4.1Personweights.Rmd'}
+`r NESTLEV(2)`
+
+```{r child = '4.1Personweights.Rmd',cache=FALSE}
 ```
+
+`r UNNESTLEV(2)`
 
 ## Household Level Person Weights
 
 
+`r NESTLEV(2)`
+
 ```{r child = '4.2Householdweights.Rmd'}
 ```
+`r UNNESTLEV(2)`
 
 
 ## Weights for Other Geographies
 
 
+`r NESTLEV(2)`
+
 ```{r child = '4.3Other Geographies.Rmd'}
 ```
+
+`r UNNESTLEV(2)`
+
+## Weights for Long Distance Trips
+
+
+`r NESTLEV(2)`
 
 ```{r child = '4.4Longdistanceweight.Rmd'}
 ```
 
+`r UNNESTLEV(2)`
 
 # Linked Trip Tables
 
 `r NESTLEV()`
+
 ```{r child = 'chts-linked-trips.Rmd'}
 ```
 `r UNNESTLEV()`
@@ -102,10 +121,12 @@ Libraries required to generate this document:
 
 #  Creating the CHTS Summary Tables
 
+`r NESTLEV()`
 
 ```{r child = 'recreating-2001-tables-sltn.Rmd'}
 ```
 
+`r UNNESTLEV()`
 
 # Data Analysis Requests
 
@@ -114,59 +135,82 @@ during the course of the project.
 
 ## Data Request for Santa Cruz County
 
+`r NESTLEV(2)`
+
 
 ```{r child = '6.1SantaCruz county.Rmd'}
 ```
 
+`r UNNESTLEV(2)`
 
 ## Data Request for Del Norte County
 
 
+`r NESTLEV(2)`
+
 ```{r child = '6.2DelNortecounty.Rmd'}
 ```
 
+`r UNNESTLEV(2)`
 
 ## Humboldt for Humboldt County
 
 
+`r NESTLEV(2)`
+
 ```{r child = '6.3 Humboldt county.Rmd'}
 ```
 
+`r UNNESTLEV(2)`
 
 ## Data Request for Lake County
 
 
+`r NESTLEV(2)`
+
 ```{r child = '6.4 Lake County.Rmd'}
 ```
 
+`r UNNESTLEV(2)`
 
 ## Data Request for Mendocino County
 
 
+`r NESTLEV(2)`
+
 ```{r child = '6.5 Mendocino County.Rmd'}
 ```
 
+`r UNNESTLEV(2)`
 
 ## Long Distance Trips Questions
 
+`r NESTLEV(2)`
 
 ```{r child = '6.6 Long Distance Trips questions.Rmd'}
 ```
 
+`r UNNESTLEV(2)`
 
 ## Travel Statistics along the SR-1 Corridor
 
 
+`r NESTLEV(2)`
+
 ```{r child = '6.7 SR1.Rmd'}
 ```
 
+`r UNNESTLEV(2)`
 
 ## Travel Statistics along the SR-17 Corridor
 
 
+`r NESTLEV(2)`
+
 ```{r child = '6.8 SR17.Rmd'}
 ```
 
+`r UNNESTLEV(2)`
 
 # Conclusions
 

@@ -12,7 +12,7 @@ source(paste(rd,'R/setup-hooks.R',sep="/"))
 
 ```{r results='asis',echo=FALSE,cache=FALSE}
 ############################################################ NESTABLE SECTION
-SEC('#','Overview')
+SEC('#','Overview') 
 ```
 
 This document explains how county-level weights are developed using the R statistical software for people who participated in the 2012 CHTS. The purpose of these weights is to scale up information provided by respondents to the population of each county based on the socio-economic variables listed below. The person level weights were developed at the county level. Users of these weights are cautioned that these weights should not be applied to lower-level geographies such as cities or zip codes. Similar weights can be developed for these geographies if they contain enough CHTS respondents.

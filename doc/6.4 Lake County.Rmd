@@ -5,7 +5,10 @@ date: "September 3, 2015"
 output: html_document
 ---
 
-## Data Request for Lake County
+```{r lc-setup-0,echo=FALSE,cache=FALSE}
+if ( !exists("rd") ) { rd <- gsub("(.*?chts-book).*","\\1",getwd()) }
+source(paste(rd,'R/setup-hooks.R',sep="/"))
+```
 
 1. Trips by Mode
 2. Modal split for driving alone
@@ -14,18 +17,34 @@ output: html_document
 5. Trips by Purpose
 6. Work trips by mode
 
-## Summary and Methodology
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('#','Summary and Methodology')
+```
+
 
 We generate tables by mode for the following: total number of trips, total trip distance, average trip distance, total trip duration, average trip duration, and total number of trips for driving alone.  To calculate the drive alone numbers we extract data for total travelers (`TOTTR=1`) and `MODE={5, 6, 7, 8, 10}` (basically, drivers of cars, trucks, or motorcycles). We also generate tables for the total number of trips by trip purpose and for work trips by mode. Here, we actually generate tables for total number of trips by activity purpose since the trip purpose is given in the database as activity purpose and there is more than one activity in many single trips. We consider each activity as a trip. We only consider the purpose code (`APURP=9`) for work trips.  We generate every table for both trips originating in and ending in Lake County. We use the new county wide weights of the Lake County to generate weighted results for trips that originated in Lake County and statewide weights to generate weighted results for trips that originated outside of Lake County. 
 
 
-## R Code and Implementation
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('#','R Code and Implementation')
+```
+
 
 The following commands are used to generate the results.
 
-### Trips to Lake County
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('##','Trips to Lake County')
+```
 
-#### Mode split calculations
+
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('###','Mode split calculations')
+```
+
 
 To answer the questions we need the place level table (with weights) that we computed in the section 4.
 
@@ -129,7 +148,11 @@ rm(temp2)
 rm(temp3)
 ```
 
-#### Trip duration by mode
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('###','Trip duration by mode')
+```
+
 
 Next, we perform a similar computation for Total Trip duration for all trips ending 
 in Lake, by mode.
@@ -186,7 +209,11 @@ rm(temp3)
 rm(temp)
 ```
 
-#### Trip distance by mode
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('###','Trip distance by mode')
+```
+
 
 Moving on, we determine Total Trip distance for all trips ending in Lake, by mode.
 
@@ -241,7 +268,11 @@ rm(temp3)
 rm(temp)
 ```
 
-#### Modal split for driving alone
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('###','Modal split for driving alone')
+```
+
 
 The next question was the modal split for Drive Alone.  To compute this, we
 subset the data based on `TOTTR` (Total travelers) and `MODE={5, 6, 7, 8, 10}` 
@@ -301,7 +332,11 @@ rm(temp3)
 ```
 
 
-### Trips from Lake County
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('##','Trips from Lake County')
+```
+
 
 Now we perform a similar computation for trips *from* Lake County.  As before, we
 subset the place data, but this time for trips originating in Lake County.
@@ -315,7 +350,11 @@ names(place_33O)
 head(place_33O)
 ```
 
-#### Trips by mode
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('###','Trips by mode')
+```
+
 
 Now we generate the mode frequency table for all trips from Lake County.
 
@@ -366,7 +405,11 @@ rm(temp2)
 rm(temp3)
 ```
 
-#### Trip duration by Mode
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('###','Trip duration by Mode')
+```
+
 
 Now we repeat the trip duration calculation for Lake Origins.
 
@@ -422,7 +465,11 @@ rm(temp3)
 rm(temp)
 ```
 
-#### Trip distance by Mode
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('###','Trip distance by Mode')
+```
+
 
 Here is the trip distance calculation for all trips from Lake, by Mode.
 
@@ -477,7 +524,11 @@ rm(temp3)
 rm(temp)
 ```
 
-#### Modal split for driving alone
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('###','Modal split for driving alone')
+```
+
 
 And lastly for the Lake origins, here is the drive alone modal split.  As before, 
 we subset the data based on `TOTTR` (Total travelers) and `MODE={5, 6, 7, 8, 10}`
@@ -535,7 +586,11 @@ rm(temp2)
 rm(temp3)
 ```
 
-### Trip Purpose Calculations
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('##','Trip Purpose Calculations')
+```
+
 
 Now we need trip purpose breakdown, so we need to import activity level data with the 
 appropriate weights.  Here we load and merge them.
@@ -637,7 +692,11 @@ act_place$Actpur<-ifelse(
 head(act_place)
 ```
 
-#### Trip Purposes from Lake County
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('###','Trip Purposes from Lake County')
+```
+
 
 We start with trips from Lake County, subsetting based open the origin county `OCTFIP=33`.
 
@@ -697,12 +756,20 @@ rm(temp3)
 ```
 
 
-### Work Trips by Mode
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('##','Work Trips by Mode')
+```
+
 
 The last sub question wanted work trips by Mode for Lake County.  
 
 
-#### Work Trips Originating in Lake County
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('###','Work Trips Originating in Lake County')
+```
+
 
 First, we reuse the merged activity table from above for trips activities (and associated trips) originating in Lake 
 County, and subset it for work trips only.
@@ -759,7 +826,11 @@ rm(temp2)
 rm(temp3)
 ```
 
-#### Work Trips Ending in Lake County
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('###','Work Trips Ending in Lake County')
+```
+
 
 Now we want to find trips ending in Lake county `(CTFIP=33)`.  Again, we subset
 the place table and adjust the weights to be Lake weights if the origins are in

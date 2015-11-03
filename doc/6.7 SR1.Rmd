@@ -1,16 +1,29 @@
 ---
-title: "6.7 Travel Statistics along the SR-1 Corridor"
+title: "Travel Statistics along the SR-1 Corridor"
 author: "Suman Mitra"
 date: "September 4, 2015"
 output: pdf_document
 ---
 
-## Summary and Methodology
+```{r sr1-setup-0,echo=FALSE,cache=FALSE}
+if ( !exists("rd") ) { rd <- gsub("(.*?chts-book).*","\\1",getwd()) }
+source(paste(rd,'R/setup-hooks.R',sep="/"))
+```
+
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('#','Summary and Methodology')
+```
+
 
 We found 269 household respondents (622 person respondents) including 98 GPS respondents within 1 km on each side of the SR1 (San Francisco Golden Gate Bridge to Pacifica). We generated tables by mode for the following: total number of trips, total trip distance, average trip distance, total trip duration, average trip duration.  We also generated tables for the total number of trips by trip purpose and for work trips by mode. Here, we actually generated tables for total number of trips by activity purpose since the trip purpose is given in the database as activity purpose and there is more than one activity in many single trips. We considered each activity as a trip. We only considered the purpose code (APURP) 9 for work trips.  We generated every table for both weighted and unweighted results. We used county wide weights to generate weighted results. 
 
 
-## R Code and Implementation
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('#','R Code and Implementation')
+```
+
 
 The following commands are used to generate the results.
 
@@ -56,7 +69,11 @@ head(sr1_place)
 
 
 
-### Modal split for SR1 corridor
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('##','Modal split for SR1 corridor')
+```
+
 
 First, we generate trip frequency by mode.
 
@@ -110,7 +127,11 @@ rm(temp3)
 ```
 
 
-### Total Trip duration for all trips by mode for SR1 corridor
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('##','Total Trip duration for all trips by mode for SR1 corridor')
+```
+
 
 Next, we perform a similar computation for Total Trip duration for all trips for SR1 corridor, by mode.
 
@@ -172,7 +193,11 @@ rm(temp)
 ```
 
 
-#### Trip distance by mode
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('###','Trip distance by mode')
+```
+
 
 Moving on, we determine Total Trip distance for SR1 Corridor, by mode.
 
@@ -234,7 +259,11 @@ rm(temp3)
 rm(temp)
 ```
 
-### Trip Purpose Calculations
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('##','Trip Purpose Calculations')
+```
+
 
 
 Now we need trip purpose breakdown, so we need to import activity level data with the 
@@ -271,7 +300,11 @@ names(sr1_act)
 head(sr1_act)
 ```
 
-### Trip Purposes for trips along SR1 Corridor
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('##','Trip Purposes for trips along SR1 Corridor')
+```
+
 
 We compute the observations for trip purpose for trips of SR1 corridor based on new weights.
 
@@ -321,7 +354,11 @@ rm(temp3)
 ```
 
 
-### Work Trips by Mode
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('##','Work Trips by Mode')
+```
+
 
 We want to generate work trips by Mode for  SR1 Corridor.
 
