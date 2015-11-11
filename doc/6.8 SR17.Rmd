@@ -9,8 +9,9 @@ output:
 ---
 
 ```{r sr17-setup-0,echo=FALSE,cache=FALSE}
-if ( !exists("rd") ) { rd <- gsub("(.*?chts-book).*","\\1",getwd()) }
-source(paste(rd,'R/setup-hooks.R',sep="/"))
+if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
+source(paste(rd,"R/setup-hooks.R",sep="/"))
+write(paste("Using Root Directory",rd,"\n"),stderr())
 ```
 
 
@@ -273,8 +274,7 @@ appropriate weights.  Here we load and merge them.
 
 
 ```{r sr17-16,}
-#Import the activity level variables csv file and give a new name
-#act_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_activity.csv", header=TRUE)
+#Import the activity level variables dataframe and give a new name
 library(chts2011)
 act_data <- chts_act
 names(act_data)
@@ -287,7 +287,86 @@ For display purposes, we convert the purpose codes into readable strings.
 
 ```{r sr17-17,}
 # Recoding activity purpose
-act_place$Actpur<-ifelse(act_place$APURP==1," Personal Activities",ifelse(act_place$APURP==2," Preparing Meals/Eating ",ifelse(act_place$APURP==3," Hosting Visitors",ifelse(act_place$APURP==4," Exercise ",ifelse(act_place$APURP==5," Study/Schoolwork ",ifelse(act_place$APURP==6," Work For Pay At Home",ifelse(act_place$APURP==7,"Using Computer/Telephone/Cell",ifelse(act_place$APURP==8," All Other Activities At My Home ",ifelse(act_place$APURP==9," Work/Job Duties ",ifelse(act_place$APURP==10," Training",ifelse(act_place$APURP==11," Meals At Work ",ifelse(act_place$APURP==12," Work-Sponsored Social Activities ",ifelse(act_place$APURP==13," Non-Work Related Activities",ifelse(act_place$APURP==14," Exercise/Sports ",ifelse(act_place$APURP==15," Volunteer Work/Activities ",ifelse(act_place$APURP==16," All Other Work-Related Activities",ifelse(act_place$APURP==17," In School/Classroom/Laboratory ",ifelse(act_place$APURP==18," Meals At School/College ",ifelse(act_place$APURP==19," After School Sports/Physical Activity ",ifelse(act_place$APURP==20," All Other After SchoolActivities ",ifelse(act_place$APURP==21," Change Type Of Transportation/Transfer ", ifelse(act_place$APURP==22," Pickup/Drop Off Passenger(S) ", ifelse(act_place$APURP==23," Drive Through Meals", ifelse(act_place$APURP==24," Drive Through Other (ATM, Bank) ",ifelse(act_place$APURP==25," Work-Related",ifelse(act_place$APURP==26," Service Private Vehicle",ifelse(act_place$APURP==27," Routine Shopping ",ifelse(act_place$APURP==28," Shopping For Major Purchases",ifelse(act_place$APURP==29," Household Errands", ifelse(act_place$APURP==30," Personal Business", ifelse(act_place$APURP==31," Eat Meal at Restaurant/Diner", ifelse(act_place$APURP==32," Health Care", ifelse(act_place$APURP==33," Civic/Religious Activities", ifelse(act_place$APURP==34," Outdoor Exercise", ifelse(act_place$APURP==35," Indoor Exercise ", ifelse(act_place$APURP==36," Entertainment ", ifelse(act_place$APURP==37," Social/Visit Friends/Relatives", ifelse(act_place$APURP==38," Other ", ifelse(act_place$APURP==39," Loop Trip", " Don't Know/Refused")))))))))))))))))))))))))))))))))))))))
+act_place$Actpur <-
+  ifelse(
+    act_place$APURP==1," Personal Activities",
+  ifelse(
+    act_place$APURP==2," Preparing Meals/Eating ",
+  ifelse(
+    act_place$APURP==3," Hosting Visitors",
+  ifelse(
+    act_place$APURP==4," Exercise ",
+  ifelse(
+    act_place$APURP==5," Study/Schoolwork ",
+  ifelse(
+    act_place$APURP==6," Work For Pay At Home",
+  ifelse(
+    act_place$APURP==7,"Using Computer/Telephone/Cell",
+  ifelse(
+    act_place$APURP==8," All Other Activities At My Home ",
+  ifelse(
+    act_place$APURP==9," Work/Job Duties ",
+  ifelse(
+    act_place$APURP==10," Training",
+  ifelse(
+    act_place$APURP==11," Meals At Work ",
+  ifelse(
+    act_place$APURP==12," Work-Sponsored Social Activities ",
+  ifelse(
+    act_place$APURP==13," Non-Work Related Activities",
+  ifelse(
+    act_place$APURP==14," Exercise/Sports ",
+  ifelse(
+    act_place$APURP==15," Volunteer Work/Activities ",
+  ifelse(
+    act_place$APURP==16," All Other Work-Related Activities",
+  ifelse(
+    act_place$APURP==17," In School/Classroom/Laboratory ",
+  ifelse(
+    act_place$APURP==18," Meals At School/College ",
+  ifelse(
+    act_place$APURP==19," After School Sports/Physical Activity ",
+  ifelse(
+    act_place$APURP==20," All Other After SchoolActivities ",
+  ifelse(
+    act_place$APURP==21," Change Type Of Transportation/Transfer ", 
+  ifelse(
+    act_place$APURP==22," Pickup/Drop Off Passenger(S) ", 
+  ifelse(
+    act_place$APURP==23," Drive Through Meals", 
+  ifelse(
+    act_place$APURP==24," Drive Through Other (ATM, Bank) ",
+  ifelse(
+    act_place$APURP==25," Work-Related",
+  ifelse(
+    act_place$APURP==26," Service Private Vehicle",
+  ifelse(
+    act_place$APURP==27," Routine Shopping ",
+  ifelse(
+    act_place$APURP==28," Shopping For Major Purchases",
+  ifelse(
+    act_place$APURP==29," Household Errands", 
+  ifelse(
+    act_place$APURP==30," Personal Business", 
+  ifelse(
+    act_place$APURP==31," Eat Meal at Restaurant/Diner", 
+  ifelse(
+    act_place$APURP==32," Health Care", 
+  ifelse(
+    act_place$APURP==33," Civic/Religious Activities", 
+  ifelse(
+    act_place$APURP==34," Outdoor Exercise", 
+  ifelse(
+    act_place$APURP==35," Indoor Exercise ", 
+  ifelse(
+    act_place$APURP==36," Entertainment ", 
+  ifelse(
+    act_place$APURP==37," Social/Visit Friends/Relatives", 
+  ifelse(
+    act_place$APURP==38," Other ", 
+  ifelse(
+    act_place$APURP==39," Loop Trip", " Don't Know/Refused"
+  )))))))))))))))))))))))))))))))))))))))
 ```
 
 Now, merge the this data with SR 17 data table.

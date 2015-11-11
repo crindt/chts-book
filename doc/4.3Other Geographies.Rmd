@@ -5,25 +5,42 @@ date: "September 2, 2015"
 output: html_document
 ---
 
-```{r og-setup-0,echo=FALSE,cache=FALSE}
-if ( !exists("rd") ) { rd <- gsub("(.*?chts-book).*","\\1",getwd()) }
-source(paste(rd,'R/setup-hooks.R',sep="/"))
+```{r og-setup-0,echo=FALSE,cache=TRUE}
+if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
+source(paste(rd,"R/setup-hooks.R",sep="/"))
+write(paste("Using Root Directory",rd,"\n"),stderr())
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('#','Overview ')
 ```
 
-This document explains how person level weights are developed for City of Los Angeles (LA) using the R statistical software for people of City of Los Angeles who participated in the 2012 CHTS. The purpose of these weights is to scale up information provided by respondents to the population of City of Los Angeles based on the socio-economic variables listed below.  Users of these weights are cautioned that these weights should not be applied to lower-level geographies such as zip codes. 
+This document explains how person level weights are developed for City
+of Los Angeles (LA) using the R statistical software for people of
+City of Los Angeles who participated in the 2012 CHTS. The purpose of
+these weights is to scale up information provided by respondents to
+the population of City of Los Angeles based on the socio-economic
+variables listed below.  Users of these weights are cautioned that
+these weights should not be applied to lower-level geographies such as
+zip codes.
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('#','Methodology')
 ```
 
-Weights are calculated by raking at the person level. These weights adjust the relative importance of responses to reflect the different probabilities of selection of respondents, and align the sample distributions to population distributions, based on the 2010 Census. In particular, the  weights are adjusted so that the sums of the adjusted weights are equal to known population totals for certain subgroups of the population of the City of Los Angeles. Since sampling information is not available for the City of Los Angeles, we assume equal probability here. Variables used for raking at the person level are:
+Weights are calculated by raking at the person level. These weights
+adjust the relative importance of responses to reflect the different
+probabilities of selection of respondents, and align the sample
+distributions to population distributions, based on the 2010
+Census. In particular, the weights are adjusted so that the sums of
+the adjusted weights are equal to known population totals for certain
+subgroups of the population of the City of Los Angeles. Since sampling
+information is not available for the City of Los Angeles, we assume
+equal probability here. Variables used for raking at the person level
+are:
 
   * Hispanic Status (Hispanic, Non-Hispanic)-LA City-wide distribution.
   * Ethnicity (White, African American, Asian, Other)-LA City-wide distribution.
@@ -31,23 +48,27 @@ Weights are calculated by raking at the person level. These weights adjust the r
   * Employment Status (Part-time or full-time Employed, Not-employed)-LA City-wide distribution
   * Gender (Male, Female) - LA City-wide distribution
 
-Following the raking procedure, very large weights are capped to be no more than five times the mean weight. To check whether the new weights represent the total population of the City of Los Angeles, we do some random checking for different variables and the results show that the new weights align with the population of the City of Los Angeles. We used this new person weight to calculate the final trip weight which is an outcome of Trip Correction Factor (TCF) * New Person Weight of LA City. 
+Following the raking procedure, very large weights are capped to be no
+more than five times the mean weight. To check whether the new weights
+represent the total population of the City of Los Angeles, we do some
+random checking for different variables and the results show that the
+new weights align with the population of the City of Los Angeles. We
+used this new person weight to calculate the final trip weight which
+is an outcome of `Trip Correction Factor (TCF)` * `New Person Weight of
+LA City`.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('#','R Code and Implementation')
 ```
 
-The following commands are used to generate person weight for City of Los Angeles.
+The following commands are used to generate person weight for City of
+Los Angeles.
 
-
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Generate Person level weight for City of LA')
-```
-
-First we set the working directory. Then we need to import the person data file and corresponding lookup file (containing location information) and then we merge them.
+First we set the working directory. Then we need to import the person
+data file and corresponding lookup file (containing location
+information) and then we merge them.
 
 ```{r og-1,echo=FALSE}
 if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
@@ -57,23 +78,29 @@ p <- function(ps) { return(paste(rd,ps,sep="/")) }
 ```{r og-2,cache=TRUE}
 # Set the working directory
 setwd(p("Weight/LA_Weight"))
-# Import the person level variables csv file and give a new name
+
+# Import the person level variables and give a new name
 library(chts2011)
 library(chts2011pvt)
-#persondata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_per.csv", header=TRUE)
+
 persondata <- chts_per
-# Import the lookup variable csv file and give a new name (containing x, y coordinate data)
-#lookup_hh <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_hh.csv", header=TRUE)
 lookup_hh <- chts_lu_hh
+
 # Merging two data set to get the county information
 perdata2<-merge(persondata,lookup_hh, by ="SAMPN", all = TRUE)
-# Names of the new merged file
+
+# Names of the new merged data frame
 names(perdata2)
 ```
 
-We have new file which contains information of respondents from the City of Los Angeles. We use this data file to generate person weight for City of Los Agneles. Now, we need to recode the raking variables to make them similar to the census data (Here we are using American Community Survey, 2010 five year estimate data). 
+We have new file which contains information of respondents from the
+City of Los Angeles. We use this data file to generate person weight
+for City of Los Angeles. Now, we need to recode the raking variables
+to make them similar to the census data (Here we are using American
+Community Survey, 2010 five year estimate data).
 
-First we will assign zero for 'NA' observations of raking variables because the code we will use later for raking can't read 'NA'. 
+First we will assign zero for `NA` observations of raking variables
+because the code we will use later for raking can't read `NA`.
 
 ```{r og-3,cache=TRUE}
 # Assign 0 for all NA observations
@@ -97,21 +124,34 @@ Next, we recode the age and race variable.
 
 ```{r og-5,cache=TRUE}
 # For recoding AGE
-perdata2$AGEn<-ifelse(perdata2$AGE<20,1,ifelse((perdata2$AGE>=20 & perdata2$AGE<=24),2,ifelse((perdata2$AGE>=25 & perdata2$AGE<=34),3,ifelse((perdata2$AGE>=35 & perdata2$AGE<=54),4,ifelse((perdata2$AGE>=55 & perdata2$AGE<=64),5,6)))))
+perdata2$AGEn <-
+  ifelse(perdata2$AGE<20,1,
+         ifelse((perdata2$AGE>=20 & perdata2$AGE<=24),2,
+                ifelse((perdata2$AGE>=25 & perdata2$AGE<=34),3,
+                       ifelse((perdata2$AGE>=35 & perdata2$AGE<=54),4,
+                              ifelse((perdata2$AGE>=55 &
+                                        perdata2$AGE<=64),5,6)))))
 # Show values
 head(perdata2$AGE,10)
 
 # For recoding race
-perdata2$RACEn<-ifelse(perdata2$RACE1==1,1,ifelse(perdata2$RACE1==2,2,ifelse(perdata2$RACE1==4,3,4)))
+perdata2$RACEn <-
+  ifelse(perdata2$RACE1==1,1,
+         ifelse(perdata2$RACE1==2,2,
+                ifelse(perdata2$RACE1==4,3,4)))
 # Show values
 head(perdata2$RACEn,10)
 ```
 
-Here, we recode employmnet (EMPLY) and Gender variable.
+Here, we recode employment (`EMPLY`) and Gender variable.
 
 ```{r og-6,cache=TRUE}
 # For recoding EMPLY
-perdata2$EMPLYn<-ifelse(perdata2$EMPLY==1,1,ifelse(perdata2$EMPLY==2,2,ifelse(perdata2$EMPLY==8,1,2)))
+perdata2$EMPLYn <-
+  ifelse(perdata2$EMPLY==1,1,
+         ifelse(perdata2$EMPLY==2,2,
+                ifelse(perdata2$EMPLY==8,1,2)))
+
 # Show values
 head(perdata2$EMPLYn,10)
 
@@ -121,7 +161,10 @@ perdata2$GENDn<-ifelse(perdata2$GEND==1,1,2)
 head(perdata2$GENDn,10)
 ```
 
-Now we have data file (perdata2) which has similar coding  as census data for raking variables. Next, we need to subset the data for respondents who live in the City of Los Angeles. The variable named as HCITY contain the city name of respondents' residential  location.
+Now we have data frame (`perdata2`) which has similar coding as census
+data for raking variables. Next, we need to subset the data for
+respondents who live in the City of Los Angeles. The variable named as
+`HCITY` contain the city name of respondents' residential location.
 
 ```{r og-7,cache=TRUE}
 # Create a subset for city of LA
@@ -131,41 +174,58 @@ dim(perdata_LA)
 head(perdata_LA)
 ```
 
-Now we have a new file named as perdata_LA which we use to generate person weight for the City of LA. We need census data of raking variables (Hispanic, Race, Employment status, Gender and Age). We collect this information from census and organize them as per our requriment and save as csv file. Then we import them and create seperate dataframe for City of LA (the csv file contain informaiton of all the counties).
+Now we have a new data frame named `perdata_LA` which we use to
+generate person weights for the City of LA.  We need census data of
+raking variables (Hispanic, Race, Employment status, Gender and
+Age).  We collect this information from census and organize them as per
+our requirement and save as CSV file. Then we import them and create
+separate dataframe for City of LA (the CSV file contain information of
+all the counties).
  
-First we import race variable for City of LA.
+First we import the Race variables for City of LA.
 
 ```{r og-8,cache=TRUE}
 #Import the LA city population data of raking variables 
-race.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/race_LA.csv"), header=TRUE)
+race.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/race_LA.csv"),
+                         header=TRUE)
 race.data_LA
 ```
 
-Next, we import hispanic variable for the City of LA.
+Next, we import the Hispanic variables for the City of LA.
 
 ```{r og-9,cache=TRUE}
-hisp.data_LA<- read.csv(p("Weight/LA_Weight/Raking variables/hisp_LA.csv"), header=TRUE)
+hisp.data_LA<- read.csv(p("Weight/LA_Weight/Raking variables/hisp_LA.csv"),
+                        header=TRUE)
 hisp.data_LA
 ```
 
-Then, we import age variable.
+Then, we import the Age variables.
 
 ```{r og-10,cache=TRUE}
-age.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/age_LA.csv"), header=TRUE)
+age.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/age_LA.csv"),
+                        header=TRUE)
 age.data_LA
 ```
 
-Finally, we import geneder and employment status variable.
+Finally, we import the Gender and Employment status variables.
 
 ```{r og-11,cache=TRUE}
-gend.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/gend_LA.csv"), header=TRUE)
+gend.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/gend_LA.csv"),
+                         header=TRUE)
 gend.data_LA
 
-emply.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/emply_LA.csv"), header=TRUE)
+emply.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/emply_LA.csv"),
+                          header=TRUE)
 emply.data_LA
 ```
 
-As our data is ready for raking, next we proceed for raking to generate person weight for the City of LA. To do this we need to install the library "survey". First we design a survey using 'svydesign' command and we use sampling without replacement (pps ="brewer") option. Since sampling information is not available for the City of Los Angeles, we assume equal probability here. So we don't need to specify the fpc option here. 
+As our data is ready for raking, next we proceed for raking to
+generate person weight for the City of LA. To do this we need to
+install the library "survey". First we design a survey using
+`svydesign` command and we use sampling without replacement (pps
+="brewer") option. Since sampling information is not available for the
+City of Los Angeles, we assume equal probability here. So we don't
+need to specify the fpc option here.
 
 
 ```{r og-12,cache=TRUE}
@@ -175,39 +235,58 @@ library (survey)
 temp1<- svydesign(id=~1,data=perdata_LA,pps="brewer")
 ```
 
-Then we perform the raking using 'rake' command and check the summary statistics of new weight.
+Then we perform the raking using `rake` command and check the summary
+statistics of new weight.
 
 ```{r og-13,cache=TRUE}
 # Raking for the City of LA to create new expanded weight
-temp2<- rake(temp1, list(~RACEn,~HISPn,~AGEn,~EMPLYn,~GENDn), list(race.data_LA,hisp.data_LA,age.data_LA,emply.data_LA,gend.data_LA),control = list(maxit = 100))
+temp2<- rake(temp1,
+             list(~RACEn,~HISPn,~AGEn,~EMPLYn,~GENDn),
+             list(race.data_LA,hisp.data_LA,age.data_LA,
+                  emply.data_LA,gend.data_LA),
+             control = list(maxit = 100))
+
 # Summary statistics of new weight
 summary(weights(temp2)) 
 ```
 
-After raking, we trim the weight so that very large weights were capped to be no more than five times the mean of weight. The generated expanded person weights for City of LA are saved in our specified directory.
+After raking, we trim the weight so that very large weights were
+capped to be no more than five times the mean of weight. The generated
+expanded person weights for City of LA are saved in our specified
+directory.
 
 ```{r og-14,cache=TRUE}
 # Trim the weights (max value no greater than 5 times the mean)
 temp3<-trimWeights(temp2,lower=(min(weights(temp2))),upper=(5*mean(weights(temp2))))
+
 # Summary of trimmed weight
 summary(weights(temp3))
+
 # Combine expanded weight with sample no and person no
 perweight_LA<-cbind(temp3$variables[1:2],weights(temp3))
 names(perweight_LA)
+
 # Change the column name of weight variable
 colnames(perweight_LA)[3] <- "NEXPPERWGT_LA"
+
 # show the new weights
 head(perweight_LA)
 
 ```
 
 
-Now we have on file which contains new expanded person weight for the City of LA. We want to generate new  person weight (not expanded) for the City of LA from our expanded weight. We know that person weight = Expanded weight * sample ratio and sample ratio = sample population /City of LA total population. 
+Now we have on file which contains new expanded person weight for the
+City of LA. We want to generate new person weight (not expanded) for
+the City of LA from our expanded weight. We know that `person weight` =
+`Expanded weight` * `sample ratio` and `sample ratio` =
+`sample population`/`City of LA total population`.
 
 First, we generate sample ratio for the City of LA.
 
 ```{r og-15,cache=TRUE}
-# Create a variable for sampling ratio (sr)=sample population (4889) / City total population based on 2010 census(3792621)
+# Create a variable for sampling ratio (sr)=
+# sample population (4889) / City total population
+# based on 2010 census(3792621)
 sr<- (sum(perdata2$HCITY=="LOS ANGELES"))/3792621 
 perdata_LA$SR <- sr
 head(perdata_LA$sr)
@@ -221,14 +300,15 @@ perweight_LA$NPERWGT_LA<-perweight_LA$NEXPPERWGT_LA*perdata_LA$SR
 head(perweight_LA)
 ```
 
-We save the new weight as csv file by using following code.
+We save the new weights as a CSV file.
 
 ```{r og-17,cache=TRUE}
 # Save as csv file
 write.csv(perweight_LA, file="PerWeight_LA.csv",row.names=FALSE) 
 ```
 
-We want to merge the new weight with the City of LA person data file.
+We want to merge the new weight with the City of LA person data frame
+and save that.
 
 ```{r og-18,cache=TRUE}
 # Merge the new weight file with original person data file
@@ -237,9 +317,12 @@ head(nper_LA)
 write.csv(nper_LA, file="npersondataLA.csv",row.names=FALSE)
 ```
 
-Now, we have a person data file of the City of LA with new person weight.
+Now, we have a person data file of the City of LA with new person
+weight.
 
-As we mentioned earlier we want check whether the new weights represent the total population of the City of LA. So we perform some random checks for different variables using following codes. 
+As we mentioned earlier we want check whether the new weights
+represent the total population of the City of LA. So we perform some
+random checks for different variables using following codes.
 
 ```{r og-19,cache=TRUE}
 # Random Check
@@ -251,7 +334,7 @@ wntv1<- rbind(wntv, c("Total", colSums(wntv[,2:3])))
 wntv1
 ```
 
-Here, we do a random check for education variable.
+Here, we do a random check for the education variable.
 
 ```{r og-20,cache=TRUE}
 # For education
@@ -261,9 +344,14 @@ weduc1<- rbind(weduc, c("Total", colSums(weduc[,2:3])))
 weduc1
 ```
 
-The total population of the City of LA is 3,792,621  (based on census). Our random check shows that the new weights align with the total population of the City of LA for both variables. 
+The total population of the City of LA is 3,792,621 (based on
+census). Our random check shows that the new weights align with the
+total population of the City of LA for both variables.
 
-Now we need to calculate the new final trip weight using the new person weight of the City of LA. To do this, first, we need to import the place level file and merge it with new weight file of the City of LA.
+Now we need to calculate the new final trip weight using the new
+person weight of the City of LA. To do this, first, we need to import
+the place level file and merge it with new weight file of the City of
+LA.
 
 ```{r og-21,cache=TRUE}
 #Import the place level data  csv file and give a new name
@@ -274,7 +362,10 @@ nplacedata_LA<-merge(nplacedata,perweight_LA, by =c("SAMPN","PERNO"), all = TRUE
 names(nplacedata_LA)
 ```
 
-The final trip weight is an outcome of Trip Correction Factor (TCF) * New Person Weight of LA City. The follow codes are used to calculate the final trip weight and the expanded final trip weight for the City of LA.
+The final trip weight is an outcome of `Trip Correction Factor
+(TCF)` * `New Person Weight of LA City`. The follow code calculates
+the final trip weight and the expanded final trip weight for the City
+of LA.
 
 ```{r og-22,cache=TRUE}
 # Generate Final trip weight (TCF*NPERWGT_LA) for LA
@@ -287,10 +378,11 @@ placedata_LA<-subset(nplacedata_LA,PPrimaryCity=="LOS ANGELES")
 head(placedata_LA)
 ```
 
-If we want to save the new file with new trip weight as csv file, we can do it by using following codes.
+Finally, we save the new data frame with the trip weights as a CSV file
 
 ```{r og-23,cache=TRUE}
 write.csv(placedata_LA, file="nplacedata_LA.csv",row.names=FALSE)
 ```
 
-Now we have new place data file with new trip weight for the City of LA.
+Now we have new place data file with new trip weight for the City of
+LA.

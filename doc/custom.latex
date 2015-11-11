@@ -125,10 +125,6 @@ $if(tables)$
 \renewcommand{\caption}[1]{{\rmfamily\oldcaption{#1}}}
 $endif$
 %
-% Make subsections start on new page
-\let\myoldsubsection\subsection
-\renewcommand{\subsection}[1]{\newpage\myoldsubsection{#1}}
-%
 \newenvironment{nestsections}{%
   \let\oldsection\section
   \let\oldsubsection\subsection
@@ -242,6 +238,8 @@ $endfor$
 $if(title)$
 \maketitle
 $endif$
+\setcounter{page}{1}
+\pagenumbering{roman}
 $if(abstract)$
 \begin{abstract}
 $abstract$
@@ -266,6 +264,9 @@ $endif$
 $if(lof)$
 \listoffigures
 $endif$
+\clearpage
+\setcounter{page}{1}
+\pagenumbering{arabic}
 $body$
 
 $if(natbib)$

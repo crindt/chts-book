@@ -17,14 +17,14 @@ documentclass: '`r if (exists("documentation")) {"report"}else{"article"}`'
 documentation: '`r if(exists("documentation")){documentation}else{documentation<-NULL;documentation}`'
 ---
 
-```{r lt-setup,cache=FALSE,echo=FALSE}
+```{r lt-setup,cache=TRUE,echo=FALSE}
 # Set the working directory so we can access libraries
-#rd <- gsub("(.*?chts2011).*","\\1",getwd())
-if ( !exists("rd") ) { rd <- "/Users/crindt/chts-book" }
-source(paste(rd,'R/setup-hooks.R',sep="/"))
+if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
+source(paste(rd,"R/setup-hooks.R",sep="/"))
+write(paste("Using Root Directory",rd,"\n"),stderr())
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('#','Introduction')
 ```
@@ -35,41 +35,84 @@ table.  The 2001 CHTS included a linked trip table with the following
 fields, for which we summarize how we anticipate computing comparable
 information from the CHTS 2011 data.
 
-CHTS 2001         CHTS 2011
----------------   ------------------------------------------------------------------------------------
-`Sampn`           `SAMPN`
-`PerNo`           `PERNO`
-`DayNo`           N/A
-`Source_Act`      To be computed from `ACTNO`
-`Dest_Act`        To be computed from `ACTNO`
-`Source_PlaNo`    To be computed from `PLANO`
-`Dest_PlaNo`      To be computed from `PLANO`
-`Source_LocNo`    N/A
-`Dest_LocNo`      N/A
-`DType`           Unknown values in `{1,2}`
-`MODE`            Interpreted as mode of longest distance trip in set of linked trips
-`MAPPED_MODE`     Definition unclear.  Values: in `{S,W,L,D,I,B,P,T,A,O}`
-`TripType`        Mapping between conventional 4-step model trip ends: `{HW,HS,OO,WO,HO}
-`Dep_Hr`          Departure hour: `DEP_HR`
-`Dep_Min`         Departure minute: `DEP_MIN`
-`Arr_Hr`          Arrival hour: `ARR_HR`
-`Arr_Min`         Arrival minute: `ARR_MIN`
-`TrpDur`          Total duration of all linked trips combined
-`IgnoredActDur`   Duration of all ignored activities (those with `APURP=c(21,22)`)
-`VehAvail`        Whether a vehicle we available for this trip.  It's unclear if we can compute this
-`VehNo`           Household vehicle used for trip (if any)
-`Party`           Number of people on the linked trip.  We will assume this refers to the primary trip
-`DOM_WDWGT`       Day of month weekday weight?  Unclear whether there is a 2011 analogue
-`DOM_WEWGT`       Day of month weekend weight?  Unclear whether there is a 2011 analogue
-`DOM_SDWGT`       Day of month ? weight?  Unclear whether there is a 2011 analogue
-`DOM_AWDWGT`      Day of month ? weight?  Unclear whether there is a 2011 analogue
-`DOM_ASDWGT`      Day of month ? weight?  Unclear whether there is a 2011 analogue
-`Orig_DOM_AWDWGT` Original(?) Day of month ? weight?  Unclear whether there is a 2011 analogue
-`Orig_DOM_WEWGT`  Original(?) Day of month ? weight?  Unclear whether there is a 2011 analogue
-`PHASE`           ?
+```{r echo=FALSE,results='asis'}
+tab <-
+    data.frame(
+        `CHTS 2001`=
+            c(
+                '`Sampn`',
+                '`PerNo`',
+                '`DayNo`',
+                '`Source_Act`',
+                '`Dest_Act`',
+                '`Source_PlaNo`',
+                '`Dest_PlaNo`',
+                '`Source_LocNo`',
+                '`Dest_LocNo`',
+                '`DType`',
+                '`MODE`',
+                '`MAPPED_MODE`',
+                '`TripType`',
+                '`Dep_Hr`',
+                '`Dep_Min`',
+                '`Arr_Hr`',
+                '`Arr_Min`',
+                '`TrpDur`',
+                '`IgnoredActDur`',
+                '`VehAvail`',
+                '`VehNo`',
+                '`Party`',
+                '`DOM_WDWGT`',
+                '`DOM_WEWGT`',
+                '`DOM_SDWGT`',
+                '`DOM_AWDWGT`',
+                '`DOM_ASDWGT`',
+                '`Orig_DOM_AWDWGT`',
+                '`Orig_DOM_WEWGT`',
+                '`PHASE`'),
+        `CHTS 2011`=c(
+            '`SAMPN`',
+            '`PERNO`',
+            'N/A',
+            'To be computed from `ACTNO`',
+            'To be computed from `ACTNO`',
+            'To be computed from `PLANO`',
+            'To be computed from `PLANO`',
+            'N/A',
+            'N/A',
+            'Unknown values in `{1,2}`',
+            'Interpreted as mode of longest distance trip in set of linked trips',
+            'Definition unclear.  Values: in `{S,W,L,D,I,B,P,T,A,O}`',
+            'Mapping between conventional 4-step model trip ends: `{HW,HS,OO,WO,HO}',
+            'Departure hour: `DEP_HR`',
+            'Departure minute: `DEP_MIN`',
+            'Arrival hour: `ARR_HR`',
+            'Arrival minute: `ARR_MIN`',
+            'Total duration of all linked trips combined',
+            'Duration of all ignored activities (those with `APURP=c(21,22)`)',
+            "Whether a vehicle we available for this trip.  It's unclear if we can compute this",
+            'Household vehicle used for trip (if any)',
+            'Number of people on the linked trip.  We will assume this refers to the primary trip',
+            'Day of month weekday weight?  Unclear whether there is a 2011 analogue',
+            'Day of month weekend weight?  Unclear whether there is a 2011 analogue',
+            'Day of month ? weight?  Unclear whether there is a 2011 analogue',
+            'Day of month ? weight?  Unclear whether there is a 2011 analogue',
+            'Day of month ? weight?  Unclear whether there is a 2011 analogue',
+            'Original(?) Day of month ? weight?  Unclear whether there is a 2011 analogue',
+            'Original(?) Day of month ? weight?  Unclear whether there is a 2011 analogue',
+            '?')
+    )
+pandoc.table(
+    tab,
+    caption="Mapping between 2001 and 2011 linked trip data",
+    split.table=Inf,
+    split.cells=Inf,
+    style='multiline',
+    justify=c('left','left')
+    )
+```
 
-
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('#','Methodological Overview')
 ```
@@ -105,7 +148,7 @@ Thus, there is potential for a trip to have multiple trip purposes
 depending on the number and purposes of the activities performed at
 the destination place.
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Identifying linked trips')
 ```
@@ -125,7 +168,7 @@ order the activities reported for each person and increment a the
 observed.  This defines a mapping between unlinked trips (i.e. places)
 and linked trips.
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Linked trip MODE (Identifying the principal trip)')
 ```
@@ -144,7 +187,7 @@ characteristics, to describe the corresponding attribute of the linked
 trip.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Linked trip origin and destination')
 ```
@@ -183,7 +226,7 @@ This will be converted into two linked trips:
 
 Places 2 and 4 will be attached to LTNO = 2 and 4 respectively.
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Trip type (or purpose)')
 ```
@@ -257,7 +300,7 @@ un-linked trips to capture travel demand that would otherwise go
 unanalyzed.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Linked Trip Statistics')
 ```
@@ -284,7 +327,7 @@ all trips making up the linked trip.  The relevant values are as follows:
 * `ARR_MIN`: The arrival minute to the destination of this linked trip
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('#','Generating Linked Trip Tables Using R')
 ```
@@ -293,7 +336,7 @@ SEC('#','Generating Linked Trip Tables Using R')
 The following sections describe how we implemented the methods described 
 above using `R`.
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Setup')
 ```
@@ -303,7 +346,7 @@ The following sets up the R environment for generating the linked trip
 table as described above.  This section is somewhat dependent on the
 your local setup.  However, it should be fairly portable.
 
-```{r lt-setup-1,cache=FALSE,echo=TRUE}
+```{r lt-setup-1,cache=TRUE,echo=TRUE}
 setwd(rd)
 
 # Load common setup
@@ -322,7 +365,7 @@ Next, we load the `dplyr` library, which simplifies manipulating the
 data with complex queries.  We also define some sample numbers (the
 `testhh` variables) that we'll use to consider our results.
 
-```{r lt-setup2,cache=FALSE}
+```{r lt-setup2,cache=TRUE}
 # Load some packages we'll use
 suppressMessages(library(dplyr))
 
@@ -335,7 +378,7 @@ testhh5 <- 1041305  # PERNO 1 has chain that starts and ends in the same locatio
 
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Accessing the data')
 ```
@@ -387,7 +430,7 @@ dfp <- chts_pla %>% arrange(SAMPN,PERNO,PLANO)
 print(dim(dfp))
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Identifying linked trips')
 ```
@@ -460,7 +503,7 @@ definition.  We do this using `dplyr`'s group by function.
 lt <- filter(ltt,SAMPN>0) %>% 
   group_by(SAMPN,PERNO,LTNO)
 ```
-```{r lt-group-linked-trips-test,cache=FALSE}
+```{r lt-group-linked-trips-test,cache=TRUE}
 # a version of the linked trips that includes first household activities of the day
 library(chts2011)
 lttest <- chts_act %>% select(SAMPN,PERNO,PLANO,ACTNO,APURP) %>%
@@ -470,7 +513,7 @@ lttest <- chts_act %>% select(SAMPN,PERNO,PLANO,ACTNO,APURP) %>%
 At this point `lt` contains the basic linked trip table, though it's not properly 
 grouped yet.  Let's look at a sample household.
 
-```{r lt-show-linked-trip-numbering,echo=TRUE,cache=FALSE}
+```{r lt-show-linked-trip-numbering,echo=TRUE,cache=TRUE}
 testhhrows <- lttest %>%
   filter(SAMPN==testhh) 
 print.data.frame(
@@ -478,7 +521,7 @@ print.data.frame(
         select(SAMPN,PERNO,PLANO,ACTNO,APURP,ATRIPNO,LTNO,LTNO.per)
         )
 ```
-```{r lt-expl-calcs,echo=FALSE,cache=FALSE}
+```{r lt-expl-calcs,echo=FALSE,cache=TRUE}
 per <- 1
 pla <- 2
 rows <- which(testhhrows$PERNO==per&testhhrows$PLANO==pla,arr.ind=TRUE)
@@ -517,7 +560,7 @@ we need to associate a single mode with that linked trip for analysis
 purposes.  We'll tackle that first.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Linked trip MODE (and Trip Correction Factor [TCF])')
 ```
@@ -605,7 +648,7 @@ ltrm <- select(ltrm2,SAMPN,PERNO,PLANO,ACTNO,LTNO,mmrank,ltmode,ltmodeplano,ltTC
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Linked trip origin')
 ```
@@ -685,7 +728,7 @@ passenger trip (`APURP=21`), as is `(8,1)` in row 9.  Thus, we need to
 tag the linked-trip-end destinations too.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Linked trip destinations')
 ```
@@ -756,7 +799,7 @@ in row 6 is the *second* activity at `PLANO==6` and therefore
 shouldn't be the destnation).  Similarly, for `LTNO==86`, we
 see that we've chosen `(dpla,dact)=(9,1)` (row 9).
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Determining trip type')
 ```
@@ -1044,7 +1087,7 @@ pandoc.table(oo,caption="Other to Other",
 
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Bringing it all together')
 ```
@@ -1198,7 +1241,7 @@ And indeed it is, as we can see that `LTNO==231` (row==2) has
 identical.  We leave it to the analyst to decide whether this is
 important for his or her application of the data.
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Linked trip departure and arrival times')
 ```
@@ -1249,7 +1292,7 @@ chts_pla %>% filter(SAMPN==testhh2 & PLANO<7) %>% select(PLANO,ARR_HR,ARR_MIN,DE
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Write the table')
 ```
@@ -1268,7 +1311,7 @@ write.csv(chts_lu_lt,file=paste(rd,'linked-trips/chts_lu_lt.csv',sep="/")) # ...
 
 The final table contains the following data:
 
-```{r lt-data-defs,echo=FALSE,results='asis',cache=FALSE}
+```{r lt-data-defs,echo=FALSE,results='asis',cache=TRUE}
 suppressMessages(library(pander)) 
 tab <- data.frame(variable=names(chts_lt),description=NA)
 tab[tab$variable=="SAMPN",'description'] <- "Sample number"
@@ -1308,7 +1351,7 @@ Note that we've also written out the linked trip lookup table
 (`chts_lu_lt`) that allows the user to relate each activity with a
 particular linked trip.  The columns of this table are as follows:
 
-```{r lt-lookup-data-defs,echo=FALSE,results='asis',cache=FALSE}
+```{r lt-lookup-data-defs,echo=FALSE,results='asis',cache=TRUE}
 tab <- data.frame(variable=names(chts_lu_lt),description=NA)
 tab[tab$variable=="SAMPN",'description'] <- "Sample number"
 tab[tab$variable=="PERNO",'description'] <- "Person number"
@@ -1356,7 +1399,7 @@ round(dim(joined.table)[1]/dim(chts_lt)[1]*100.0,1)`%) in the dataset
 involving at least one walk trip.
 
 
-```{r echo=FALSE,cache=FALSE}
+```{r echo=FALSE,cache=TRUE}
 # clean up so we can use the official packages elsewhere
 rm("chts_lt")
 rm("chts_lu_lt")

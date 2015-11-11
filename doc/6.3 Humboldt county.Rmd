@@ -6,8 +6,9 @@ output: html_document
 ---
 
 ```{r hc-setup-0,echo=FALSE,cache=FALSE}
-if ( !exists("rd") ) { rd <- gsub("(.*?chts-book).*","\\1",getwd()) }
-source(paste(rd,'R/setup-hooks.R',sep="/"))
+if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
+source(paste(rd,"R/setup-hooks.R",sep="/"))
+write(paste("Using Root Directory",rd,"\n"),stderr())
 ```
 
 1. Trips by Mode
@@ -22,15 +23,28 @@ source(paste(rd,'R/setup-hooks.R',sep="/"))
 SEC('#','Summary and Methodology')
 ```
 
-
-We generate tables by mode for the following: total number of trips, total trip distance, average trip distance, total trip duration, average trip duration, and total number of trips for driving alone.  To calculate the drive alone numbers we extract data for total travelers (`TOTTR=1`) and `MODE={5, 6, 7, 8, 10}` (basically, drivers of cars, trucks, or motorcycles). We also generate tables for the total number of trips by trip purpose and for work trips by mode. Here, we actually generate tables for total number of trips by activity purpose since the trip purpose is given in the database as activity purpose and there is more than one activity in many single trips. We consider each activity as a trip. We only consider the purpose code (`APURP=9`) for work trips.  We generate every table for both trips originating in and ending in Humboldt County. We use the new county wide weights of the Humboldt County to generate weighted results for trips that originated in Humboldt County and statewide weights to generate weighted results for trips that originated outside of Humboldt County. 
-
+We generate tables by mode for the following: total number of trips,
+total trip distance, average trip distance, total trip duration,
+average trip duration, and total number of trips for driving alone.
+To calculate the drive alone numbers we extract data for total
+travelers (`TOTTR=1`) and `MODE={5, 6, 7, 8, 10}` (basically, drivers
+of cars, trucks, or motorcycles). We also generate tables for the
+total number of trips by trip purpose and for work trips by
+mode. Here, we actually generate tables for total number of trips by
+activity purpose since the trip purpose is given in the database as
+activity purpose and there is more than one activity in many single
+trips. We consider each activity as a trip. We only consider the
+purpose code (`APURP=9`) for work trips.  We generate every table for
+both trips originating in and ending in Humboldt County. We use the
+new county wide weights of the Humboldt County to generate weighted
+results for trips that originated in Humboldt County and statewide
+weights to generate weighted results for trips that originated outside
+of Humboldt County.
 
 ```{r results='asis',echo=FALSE,cache=FALSE}
 ############################################################ NESTABLE SECTION
 SEC('#','R Code and Implementation')
 ```
-
 
 The following commands are used to generate the results.
 
@@ -39,14 +53,13 @@ The following commands are used to generate the results.
 SEC('##','Trips to Humboldt County')
 ```
 
-
 ```{r results='asis',echo=FALSE,cache=FALSE}
 ############################################################ NESTABLE SECTION
 SEC('###','Mode split calculations')
 ```
 
-
-To answer the questions we need the place level table (with weights) that we computed in the section 4.
+To answer the questions we need the place level table (with weights)
+that we computed in the section on [County Level Person Weights].
 
 ```{r hc-0,echo=FALSE}
 if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
@@ -75,15 +88,46 @@ library("dplyr")
 nplacedata <- nplace %>% group_by(SAMPN,PERNO)%>% arrange(SAMPN,PERNO,PLANO) %>% mutate(OCTFIP=lag(CTFIP))
 
 # For recoding Mode
-nplacedata$Mode<-ifelse(nplacedata$MODE==1,"Walk",ifelse(nplacedata$MODE==2,"Bike",ifelse(nplacedata$MODE==3,"Wheelchair/Mobility Scooter",ifelse(nplacedata$MODE==4,"Other Non-Motorized",ifelse(nplacedata$MODE==5,"Auto/Van/Truck Driver",ifelse(nplacedata$MODE==6,"Auto /Van/Truck Passenger",ifelse(nplacedata$MODE==7,"Carpool/Vanpool",ifelse(nplacedata$MODE==8,"Motorcycle/Scooter/Moped",ifelse(nplacedata$MODE==9,"Taxi/Hired Car/Limo",ifelse(nplacedata$MODE==10,"Rental Car/Vehicle",ifelse(nplacedata$MODE==11,"Private shuttle ",ifelse(nplacedata$MODE==12,"Greyhound Bus",ifelse(nplacedata$MODE==13,"Plane",ifelse(nplacedata$MODE==14,"Other Private Transit",ifelse(nplacedata$MODE==15,"Local Bus,Rapid Bus",ifelse(nplacedata$MODE==16,"Express Bus/Commuter Bus",ifelse(nplacedata$MODE==17,"Premium Bus",ifelse(nplacedata$MODE==18,"School Bus",ifelse(nplacedata$MODE==19,"Public Transit Shuttle",ifelse(nplacedata$MODE==20,"Air BART/LAX Fly Away",ifelse(nplacedata$MODE==21,"Dial-a-Ride/Paratransit", ifelse(nplacedata$MODE==22,"Amtrak Bus", ifelse(nplacedata$MODE==23,"Other Bus ", ifelse(nplacedata$MODE==24,"BART,Metro Red/Purple Line",ifelse(nplacedata$MODE==25,"ACE, Amtrak, Cal train",ifelse(nplacedata$MODE==26,"Metro",ifelse(nplacedata$MODE==27,"Street Car/Cable Car",ifelse(nplacedata$MODE==28,"Other Rail",ifelse(nplacedata$MODE==29,"Ferry / Boat","Don't Know/Refused")))))))))))))))))))))))))))))
+nplacedata$Mode <-
+  ifelse(nplacedata$MODE==1,"Walk",
+  ifelse(nplacedata$MODE==2,"Bike",
+  ifelse(nplacedata$MODE==3,"Wheelchair/Mobility Scooter",
+  ifelse(nplacedata$MODE==4,"Other Non-Motorized",
+  ifelse(nplacedata$MODE==5,"Auto/Van/Truck Driver",
+  ifelse(nplacedata$MODE==6,"Auto /Van/Truck Passenger",
+  ifelse(nplacedata$MODE==7,"Carpool/Vanpool",
+  ifelse(nplacedata$MODE==8,"Motorcycle/Scooter/Moped",
+  ifelse(nplacedata$MODE==9,"Taxi/Hired Car/Limo",
+  ifelse(nplacedata$MODE==10,"Rental Car/Vehicle",
+  ifelse(nplacedata$MODE==11,"Private shuttle ",
+  ifelse(nplacedata$MODE==12,"Greyhound Bus",
+  ifelse(nplacedata$MODE==13,"Plane",
+  ifelse(nplacedata$MODE==14,"Other Private Transit",
+  ifelse(nplacedata$MODE==15,"Local Bus,Rapid Bus",
+  ifelse(nplacedata$MODE==16,"Express Bus/Commuter Bus",
+  ifelse(nplacedata$MODE==17,"Premium Bus",
+  ifelse(nplacedata$MODE==18,"School Bus",
+  ifelse(nplacedata$MODE==19,"Public Transit Shuttle",
+  ifelse(nplacedata$MODE==20,"Air BART/LAX Fly Away",
+  ifelse(nplacedata$MODE==21,"Dial-a-Ride/Paratransit", 
+  ifelse(nplacedata$MODE==22,"Amtrak Bus", 
+  ifelse(nplacedata$MODE==23,"Other Bus ", 
+  ifelse(nplacedata$MODE==24,"BART,Metro Red/Purple Line",
+  ifelse(nplacedata$MODE==25,"ACE, Amtrak, Cal train",
+  ifelse(nplacedata$MODE==26,"Metro",
+  ifelse(nplacedata$MODE==27,"Street Car/Cable Car",
+  ifelse(nplacedata$MODE==28,"Other Rail",
+  ifelse(nplacedata$MODE==29,"Ferry / Boat","Don't Know/Refused"
+         )))))))))))))))))))))))))))))
 
 ```
 
 
-Now, we first focus on trips ending in Humboldt County.  Here we use different 
-weights depending on the origin of the trip.  Specifically, when the origin is Humboldt 
-County, we use the county-specific weights.  When the origin is outside 
-Humboldt County, we use the statewide weights.
+Now, we first focus on trips ending in Humboldt County.  Here we use
+different weights depending on the origin of the trip.  Specifically,
+when the origin is Humboldt County, we use the county-specific
+weights.  When the origin is outside Humboldt County, we use the
+statewide weights.
 
 ```{r hc-3,cache=TRUE}
 # Trips to Humboldt County
@@ -92,16 +136,22 @@ Humboldt County, we use the statewide weights.
 # Create a subset for trips to Humboldt County 
 place_23<-subset(nplacedata,CTFIP==23)
 names(place_23)
-# Change the weight for non Humboldt County origin (Assign state wide weight for non Humboldt origin)
-place_23$NTCFW <- ifelse((place_23$OCTFIP==23), place_23$NEXPTCFPERWGT, place_23$EXPTCFPERWGT)
+# Change the weight for non Humboldt County origin
+# (Assign state wide weight for non Humboldt origin)
+place_23$NTCFW <-
+    ifelse((place_23$OCTFIP==23),
+           place_23$NEXPTCFPERWGT,
+           place_23$EXPTCFPERWGT)
 head(place_23)
 ```
 
-So `place_23$NTCFW` now contains the trips ending in Humboldt county with appropriate 
-expansion weights appended.  Now we can generate observations for modal split for trips 
-to Humboldt based on these weights.
+So `place_23$NTCFW` now contains the trips ending in Humboldt county
+with appropriate expansion weights appended.  Now we can generate
+observations for modal split for trips to Humboldt based on these
+weights.
 
-Notes: In the tables: Ob = Observations, Per = Percent, UW = Unweighted and W = Weighted.
+Notes: In the tables: Ob = Observations, Per = Percent, UW =
+Unweighted and W = Weighted.
 
 ```{r hc-4,cache=TRUE}
 ## Generate frequency for trip Mode
@@ -154,9 +204,8 @@ rm(temp3)
 SEC('###','Trip duration by mode')
 ```
 
-
-Next, we perform a similar computation for Total Trip duration for all trips ending 
-in Humboldt, by mode.
+Next, we perform a similar computation for Total Trip duration for all
+trips ending in Humboldt, by mode.
 
 ```{r hc-7,cache=TRUE}
 ## Generate frequency for trip Mode
@@ -187,7 +236,6 @@ colnames(temp2)[c(1:3)] <- c("Mode","TDu_W","Per_W")
 temp2
 ```
 
-
 And as before, we save the results for later use. 
 
 ```{r hc-9,cache=TRUE}
@@ -215,8 +263,8 @@ rm(temp)
 SEC('###','Trip distance by mode')
 ```
 
-
-Moving on, we determine Total Trip distance for all trips ending in Humboldt, by mode.
+Moving on, we determine Total Trip distance for all trips ending in
+Humboldt, by mode.
 
 ```{r hc-10,cache=TRUE}
 ## Generate frequency for trip Mode
@@ -274,13 +322,15 @@ rm(temp)
 SEC('###','Modal split for driving alone')
 ```
 
-
-The next question was the modal split for Drive Alone.  To compute this, we
-subset the data based on `TOTTR` (Total travelers) and `MODE={5, 6, 7, 8, 10}` 
-(basically, the driver of a car, truck, or motorcycle)
+The next question was the modal split for Drive Alone.  To compute
+this, we subset the data based on `TOTTR` (Total travelers) and
+`MODE={5, 6, 7, 8, 10}` (basically, the driver of a car, truck, or
+motorcycle)
 
 ```{r hc-13}
-place_23d<-subset(place_23,(TOTTR==1 & (MODE==5|MODE==6|MODE==7|MODE==8|MODE==10)))
+place_23d <-subset(
+    place_23,
+    (TOTTR==1 & (MODE==5|MODE==6|MODE==7|MODE==8|MODE==10)))
 head(place_23d)
 ```
 
@@ -339,8 +389,9 @@ SEC('##','Trips from Humboldt County')
 ```
 
 
-Now we perform a similar computation for trips *from* Humboldt County.  As before, we
-subset the place data, but this time for trips originating in Humboldt County.
+Now we perform a similar computation for trips *from* Humboldt County.
+As before, we subset the place data, but this time for trips
+originating in Humboldt County.
 
 ```{r hc-17,cache=TRUE}
 
@@ -531,12 +582,15 @@ SEC('###','Modal split for driving alone')
 ```
 
 
-And lastly for the Humboldt origins, here is the drive alone modal split.  As before, 
-we subset the data based on `TOTTR` (Total travelers) and `MODE={5, 6, 7, 8, 10}`
-(the driver of a car, truck, or motorcycle) 
+And lastly for the Humboldt origins, here is the drive alone modal
+split.  As before, we subset the data based on `TOTTR` (Total
+travelers) and `MODE={5, 6, 7, 8, 10}` (the driver of a car, truck, or
+motorcycle)
 
 ```{r hc-27,cache=TRUE} 
-place_23dO<-subset(place_23O,(TOTTR==1 & (MODE==5|MODE==6|MODE==7|MODE==8|MODE==10)))
+place_23dO <- subset(
+    place_23O,
+    (TOTTR==1 & (MODE==5|MODE==6|MODE==7|MODE==8|MODE==10)))
 head(place_23dO)
 ```
 
@@ -597,9 +651,8 @@ Now we need trip purpose breakdown, so we need to import activity level data wit
 appropriate weights.  Here we load and merge them.
 
 ```{r hc-31,cache=TRUE}
-#Import the activity level variables csv file and give a new name
+#Import the activity level variables data frame and give a new name
 library(chts2011)
-#act_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_activity.csv", header=TRUE)
 act_data <- chts_act
 names(act_data)
 
@@ -611,85 +664,48 @@ names(act_place)
 For display purposes, we convert the purpose codes into readable strings.
 
 ```{r hc-32, cache=TRUE}
-act_place$Actpur<-ifelse(
-  act_place$APURP==1," Personal Activities",
-  ifelse
-  (act_place$APURP==2," Preparing Meals/Eating",
-   ifelse
-   (act_place$APURP==3," Hosting Visitors/Entertaining Guests",
-    ifelse
-    (act_place$APURP==4," Exercise ",
-     ifelse
-     (act_place$APURP==5," Study/Schoolwork ",
-      ifelse
-      (act_place$APURP==6," Work For Pay At Home Using ",
-       ifelse
-       (act_place$APURP==7," Using Computer/Telephone/Cell Or Smart Phone",
-        ifelse
-        (act_place$APURP==8," All Other Activities At My Home ",
-         ifelse
-         (act_place$APURP==9," Work/Job Duties ",
-          ifelse
-          (act_place$APURP==10," Training",
-           ifelse
-           (act_place$APURP==11," Meals At Work ",
-            ifelse
-            (act_place$APURP==12," Work-Sponsored Social Activities ",
-                                                                                                                                                      ifelse
-             (act_place$APURP==13," Non-Work Related Activities",
-              ifelse
-              (act_place$APURP==14," Exercise/Sports ",
-               ifelse
-               (act_place$APURP==15," Volunteer Work/Activities",
-                ifelse
-                (act_place$APURP==16," All Other Work-Related Activities At My Work ",
-                 ifelse
-                 (act_place$APURP==17," In School/Classroom/Laboratory ",
-                  ifelse
-                  (act_place$APURP==18," Meals At School/College ",
-                   ifelse
-                   (act_place$APURP==19," After School Sports/Physical Activity ",
-                    ifelse
-                    (act_place$APURP==20," All Other After School Related Activities ",
-                     ifelse
-                     (act_place$APURP==21," Change Type Of Transportation/Transfer ", 
-                      ifelse
-                      (act_place$APURP==22," Pickup/Drop Off Passenger(S)", 
-                       ifelse
-                       (act_place$APURP==23," Drive Through Meals ", 
-                        ifelse
-                        (act_place$APURP==24," Drive Through Other (ATM, Bank) ",
-                         ifelse
-                         (act_place$APURP==25," Work-Related",
-                          ifelse
-                          (act_place$APURP==26," Service Private Vehicle",
-                           ifelse
-                           (act_place$APURP==27," Routine Shopping ",
-                            ifelse
-                            (act_place$APURP==28," Shopping For Major Purchases",
-                             ifelse
-                             (act_place$APURP==29," Household Errands", 
-                              ifelse
-                              (act_place$APURP==30," Personal Business ", 
-                               ifelse
-                               (act_place$APURP==31," Eat Meal at Restaurant/Diner", 
-                                ifelse
-                                (act_place$APURP==32," Health Care", 
-                                 ifelse
-                                 (act_place$APURP==33," Civic/Religious Activities", 
-                                  ifelse
-                                  (act_place$APURP==34," Outdoor Exercise", 
-                                   ifelse
-                                   (act_place$APURP==35," Indoor Exercise", 
-                                    ifelse
-                                    (act_place$APURP==36," Entertainment ", 
-                                     ifelse
-                                     (act_place$APURP==37," Social/Visit Friends/Relatives", 
-                                      ifelse
-                                      (act_place$APURP==38," Other ", 
-                                       ifelse
-                                       (act_place$APURP==39," Loop Trip", 
-                                        " Don't Know/Refused")))))))))))))))))))))))))))))))))))))))
+act_place$Actpur <-
+  ifelse(act_place$APURP==1," Personal Activities",
+  ifelse(act_place$APURP==2," Preparing Meals/Eating",
+  ifelse(act_place$APURP==3," Hosting Visitors/Entertaining Guests",
+  ifelse(act_place$APURP==4," Exercise ",
+  ifelse(act_place$APURP==5," Study/Schoolwork ",
+  ifelse(act_place$APURP==6," Work For Pay At Home Using ",
+  ifelse(act_place$APURP==7," Using Computer/Telephone/Cell Or Smart Phone",
+  ifelse(act_place$APURP==8," All Other Activities At My Home ",
+  ifelse(act_place$APURP==9," Work/Job Duties ",
+  ifelse(act_place$APURP==10," Training",
+  ifelse(act_place$APURP==11," Meals At Work ",
+  ifelse(act_place$APURP==12," Work-Sponsored Social Activities ",
+  ifelse(act_place$APURP==13," Non-Work Related Activities",
+  ifelse(act_place$APURP==14," Exercise/Sports ",
+  ifelse(act_place$APURP==15," Volunteer Work/Activities",
+  ifelse(act_place$APURP==16," All Other Work-Related Activities At My Work ",
+  ifelse(act_place$APURP==17," In School/Classroom/Laboratory ",
+  ifelse(act_place$APURP==18," Meals At School/College ",
+  ifelse(act_place$APURP==19," After School Sports/Physical Activity ",
+  ifelse(act_place$APURP==20," All Other After School Related Activities ",
+  ifelse(act_place$APURP==21," Change Type Of Transportation/Transfer ", 
+  ifelse(act_place$APURP==22," Pickup/Drop Off Passenger(S)", 
+  ifelse(act_place$APURP==23," Drive Through Meals ", 
+  ifelse(act_place$APURP==24," Drive Through Other (ATM, Bank) ",
+  ifelse(act_place$APURP==25," Work-Related",
+  ifelse(act_place$APURP==26," Service Private Vehicle",
+  ifelse(act_place$APURP==27," Routine Shopping ",
+  ifelse(act_place$APURP==28," Shopping For Major Purchases",
+  ifelse(act_place$APURP==29," Household Errands", 
+  ifelse(act_place$APURP==30," Personal Business ", 
+  ifelse(act_place$APURP==31," Eat Meal at Restaurant/Diner", 
+  ifelse(act_place$APURP==32," Health Care", 
+  ifelse(act_place$APURP==33," Civic/Religious Activities", 
+  ifelse(act_place$APURP==34," Outdoor Exercise", 
+  ifelse(act_place$APURP==35," Indoor Exercise", 
+  ifelse(act_place$APURP==36," Entertainment ", 
+  ifelse(act_place$APURP==37," Social/Visit Friends/Relatives", 
+  ifelse(act_place$APURP==38," Other ", 
+  ifelse(act_place$APURP==39," Loop Trip", 
+         " Don't Know/Refused"
+         )))))))))))))))))))))))))))))))))))))))
 head(act_place)
 ```
 
@@ -698,8 +714,8 @@ head(act_place)
 SEC('###','Trip Purposes from Humboldt County')
 ```
 
-
-We start with trips from Humboldt County, subsetting based open the origin county `OCTFIP=23`.
+We start with trips from Humboldt County, subsetting based open the
+origin county `OCTFIP=23`.
 
 ```{r hc-33, cache=TRUE}
 # Now we are interested in trips from Humboldt county (OCTFIP=23) 
@@ -709,7 +725,8 @@ names(act_23O)
 head(act_23O)
 ```
 
-Next, we compute the observations for trip purpose for trips from Humboldt based on new weights.
+Next, we compute the observations for trip purpose for trips from
+Humboldt based on new weights.
 
 ```{r hc-34,cache=TRUE}
 ## Generate frequency for trip Mode
@@ -771,9 +788,9 @@ The last sub question wanted work trips by Mode for Humboldt County.
 SEC('###','Work Trips Originating in Humboldt County')
 ```
 
-
-First, we reuse the merged activity table from above for trips activities (and associated trips) originating in Humboldt 
-County, and subset it for work trips only.
+First, we reuse the merged activity table from above for trips
+activities (and associated trips) originating in Humboldt County, and
+subset it for work trips only.
 
 ```{r hc-37}
 # Create a subset for work trips
@@ -833,9 +850,10 @@ SEC('###','Work Trips Ending in Humboldt County')
 ```
 
 
-Now we want to find trips ending in Humboldt county `(CTFIP=23)`.  Again, we subset
-the place table and adjust the weights to be Humboldt weights if the origins are in
-Humboldt, and to use statewide weights if the origins are outside Humboldt.
+Now we want to find trips ending in Humboldt county `(CTFIP=23)`.
+Again, we subset the place table and adjust the weights to be Humboldt
+weights if the origins are in Humboldt, and to use statewide weights
+if the origins are outside Humboldt.
 
 
 ```{r hc-41,cache=TRUE}
@@ -843,8 +861,12 @@ Humboldt, and to use statewide weights if the origins are outside Humboldt.
 act_23D<-subset(act_place,CTFIP==23)
 names(act_23D)
 head(act_23D)
-# Change the weight for non Humboldt county origin (Assign state wide weight for non Humboldt origin)
-act_23D$NTCFW <- ifelse((act_23D$OCTFIP==23), act_23D$NEXPTCFPERWGT, act_23D$EXPTCFPERWGT.y)
+# Change the weight for non Humboldt county origin
+# (Assign state wide weight for non Humboldt origin)
+act_23D$NTCFW <-
+  ifelse((act_23D$OCTFIP==23),
+         act_23D$NEXPTCFPERWGT,
+         act_23D$EXPTCFPERWGT.y)
 names(act_23D)
 head(act_23D)
 ```
@@ -897,8 +919,8 @@ rm(temp2)
 rm(temp3)
 ```
 
-Finally, we compute the frequencies of various Modes used for work trips ending
-in Humboldt County.
+Finally, we compute the frequencies of various Modes used for work
+trips ending in Humboldt County.
 
 ```{r hc-45,cache=TRUE}
 # We want only work trips (APURP=9)

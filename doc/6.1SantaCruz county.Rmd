@@ -6,8 +6,9 @@ output: html_document
 ---
 
 ```{r scc-setup-0,echo=FALSE,cache=FALSE}
-if ( !exists("rd") ) { rd <- gsub("(.*?chts-book).*","\\1",getwd()) }
-source(paste(rd,'R/setup-hooks.R',sep="/"))
+if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
+source(paste(rd,"R/setup-hooks.R",sep="/"))
+write(paste("Using Root Directory",rd,"\n"),stderr())
 ```
 
 1. Trips by Mode
@@ -22,7 +23,23 @@ source(paste(rd,'R/setup-hooks.R',sep="/"))
 SEC('#','Summary and Methodology')
 ```
 
-We generate tables by mode for the following: total number of trips, total trip distance, average trip distance, total trip duration, average trip duration, and total number of trips for driving alone.  To calculate the drive alone numbers we extract data for total travelers (`TOTTR=1`) and `MODE={5, 6, 7, 8, 10}` (basically, drivers of cars, trucks, or motorcycles). We also generate tables for the total number of trips by trip purpose and for work trips by mode. Here, we actually generate tables for total number of trips by activity purpose since the trip purpose is given in the database as activity purpose and there is more than one activity in many single trips. We consider each activity as a trip. We only consider the purpose code (`APURP=9`) for work trips.  We generate every table for both trips originating in and ending in Santa Cruz County. We use the new county wide weights of the Santa Cruz County to generate weighted results for trips that originated in Santa Cruz County and statewide weights to generate weighted results for trips that originated outside of Santa Cruz County. 
+We generate tables by mode for the following: total number of trips,
+total trip distance, average trip distance, total trip duration,
+average trip duration, and total number of trips for driving alone.
+To calculate the drive alone numbers we extract data for total
+travelers (`TOTTR=1`) and `MODE={5, 6, 7, 8, 10}` (basically, drivers
+of cars, trucks, or motorcycles). We also generate tables for the
+total number of trips by trip purpose and for work trips by
+mode. Here, we actually generate tables for total number of trips by
+activity purpose since the trip purpose is given in the database as
+activity purpose and there is more than one activity in many single
+trips. We consider each activity as a trip. We only consider the
+purpose code (`APURP=9`) for work trips.  We generate every table for
+both trips originating in and ending in Santa Cruz County. We use the
+new county wide weights of the Santa Cruz County to generate weighted
+results for trips that originated in Santa Cruz County and statewide
+weights to generate weighted results for trips that originated outside
+of Santa Cruz County.
 
 
 ```{r results='asis',echo=FALSE,cache=FALSE}
@@ -45,7 +62,8 @@ SEC('###','Mode split calculations')
 ```
 
 
-To answer the questions we need the place level table (with weights) that we computed in the section 4.
+To answer the questions we need the place level table (with weights)
+that we computed in our earlier chapter on [Calculating Weights].
 
 ```{r scc-0,echo=FALSE}
 if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
@@ -72,17 +90,52 @@ text descriptions.
 # Create trip origin county 
 # Need dplyr
 library("dplyr")
-nplacedata <- nplace %>% group_by(SAMPN,PERNO)%>% arrange(SAMPN,PERNO,PLANO) %>% mutate(OCTFIP=lag(CTFIP))
+nplacedata <- nplace %>%
+    group_by(SAMPN,PERNO) %>%
+    arrange(SAMPN,PERNO,PLANO) %>%
+    mutate(OCTFIP=lag(CTFIP))
 
 # For recoding Mode
-nplacedata$Mode<-ifelse(nplacedata$MODE==1,"Walk",ifelse(nplacedata$MODE==2,"Bike",ifelse(nplacedata$MODE==3,"Wheelchair/Mobility Scooter",ifelse(nplacedata$MODE==4,"Other Non-Motorized",ifelse(nplacedata$MODE==5,"Auto/Van/Truck Driver",ifelse(nplacedata$MODE==6,"Auto /Van/Truck Passenger",ifelse(nplacedata$MODE==7,"Carpool/Vanpool",ifelse(nplacedata$MODE==8,"Motorcycle/Scooter/Moped",ifelse(nplacedata$MODE==9,"Taxi/Hired Car/Limo",ifelse(nplacedata$MODE==10,"Rental Car/Vehicle",ifelse(nplacedata$MODE==11,"Private shuttle ",ifelse(nplacedata$MODE==12,"Greyhound Bus",ifelse(nplacedata$MODE==13,"Plane",ifelse(nplacedata$MODE==14,"Other Private Transit",ifelse(nplacedata$MODE==15,"Local Bus,Rapid Bus",ifelse(nplacedata$MODE==16,"Express Bus/Commuter Bus",ifelse(nplacedata$MODE==17,"Premium Bus",ifelse(nplacedata$MODE==18,"School Bus",ifelse(nplacedata$MODE==19,"Public Transit Shuttle",ifelse(nplacedata$MODE==20,"Air BART/LAX Fly Away",ifelse(nplacedata$MODE==21,"Dial-a-Ride/Paratransit", ifelse(nplacedata$MODE==22,"Amtrak Bus", ifelse(nplacedata$MODE==23,"Other Bus ", ifelse(nplacedata$MODE==24,"BART,Metro Red/Purple Line",ifelse(nplacedata$MODE==25,"ACE, Amtrak, Cal train",ifelse(nplacedata$MODE==26,"Metro",ifelse(nplacedata$MODE==27,"Street Car/Cable Car",ifelse(nplacedata$MODE==28,"Other Rail",ifelse(nplacedata$MODE==29,"Ferry / Boat","Don't Know/Refused")))))))))))))))))))))))))))))
+nplacedata$Mode <-
+  ifelse(nplacedata$MODE==1,"Walk",
+  ifelse(nplacedata$MODE==2,"Bike",
+  ifelse(nplacedata$MODE==3,"Wheelchair/Mobility Scooter",
+  ifelse(nplacedata$MODE==4,"Other Non-Motorized",
+  ifelse(nplacedata$MODE==5,"Auto/Van/Truck Driver",
+  ifelse(nplacedata$MODE==6,"Auto /Van/Truck Passenger",
+  ifelse(nplacedata$MODE==7,"Carpool/Vanpool",
+  ifelse(nplacedata$MODE==8,"Motorcycle/Scooter/Moped",
+  ifelse(nplacedata$MODE==9,"Taxi/Hired Car/Limo",
+  ifelse(nplacedata$MODE==10,"Rental Car/Vehicle",
+  ifelse(nplacedata$MODE==11,"Private shuttle ",
+  ifelse(nplacedata$MODE==12,"Greyhound Bus",
+  ifelse(nplacedata$MODE==13,"Plane",
+  ifelse(nplacedata$MODE==14,"Other Private Transit",
+  ifelse(nplacedata$MODE==15,"Local Bus,Rapid Bus",
+  ifelse(nplacedata$MODE==16,"Express Bus/Commuter Bus",
+  ifelse(nplacedata$MODE==17,"Premium Bus",
+  ifelse(nplacedata$MODE==18,"School Bus",
+  ifelse(nplacedata$MODE==19,"Public Transit Shuttle",
+  ifelse(nplacedata$MODE==20,"Air BART/LAX Fly Away",
+  ifelse(nplacedata$MODE==21,"Dial-a-Ride/Paratransit", 
+  ifelse(nplacedata$MODE==22,"Amtrak Bus", 
+  ifelse(nplacedata$MODE==23,"Other Bus ", 
+  ifelse(nplacedata$MODE==24,"BART,Metro Red/Purple Line",
+  ifelse(nplacedata$MODE==25,"ACE, Amtrak, Cal train",
+  ifelse(nplacedata$MODE==26,"Metro",
+  ifelse(nplacedata$MODE==27,"Street Car/Cable Car",
+  ifelse(nplacedata$MODE==28,"Other Rail",
+  ifelse(nplacedata$MODE==29,"Ferry / Boat",
+         "Don't Know/Refused"
+         )))))))))))))))))))))))))))))
 
 ```
 
-
-Now, we first focus on trips ending in  Santa Cruz County.  Here we use different 
-weights depending on the origin of the trip.  Specifically, when the origin is  Santa Cruz 
-County, we use the county-specific weights.  When the origin is outside Santa Cruz County, we use the statewide weights.
+Now, we first focus on trips ending in Santa Cruz County.  Here we use
+different weights depending on the origin of the trip.  Specifically,
+when the origin is Santa Cruz County, we use the county-specific
+weights.  When the origin is outside Santa Cruz County, we use the
+statewide weights.
 
 ```{r scc-3}
 # Trips to  Santa Cruz County
@@ -91,16 +144,23 @@ County, we use the county-specific weights.  When the origin is outside Santa Cr
 # Create a subset for trips to  Santa Cruz County 
 place_87<-subset(nplacedata,CTFIP==87)
 names(place_87)
-# Change the weight for non  Santa Cruz County origin (Assign state wide weight for non  Santa Cruz origin)
-place_87$NTCFW <- ifelse((place_87$OCTFIP==87), place_87$NEXPTCFPERWGT, place_87$EXPTCFPERWGT)
+
+# Change the weight for non Santa Cruz County origin
+# (Assign state wide weight for non  Santa Cruz origin)
+place_87$NTCFW <-
+    ifelse((place_87$OCTFIP==87),
+           place_87$NEXPTCFPERWGT,
+           place_87$EXPTCFPERWGT)
 head(place_87)
 ```
 
-So `place_87$NTCFW` now contains the trips ending in  Santa Cruz county with appropriate 
-expansion weights appended.  Now we can generate observations for modal split for trips 
-to  Santa Cruz based on these weights.
+So `place_87$NTCFW` now contains the trips ending in Santa Cruz county
+with appropriate expansion weights appended.  Now we can generate
+observations for modal split for trips to Santa Cruz based on these
+weights.
 
-Notes: In the tables: Ob = Observations, Per = Percent, UW = Unweighted and W = Weighted.
+Notes: In the tables: Ob = Observations, Per = Percent, UW =
+Unweighted and W = Weighted.
 
 ```{r scc-4}
 ## Generate frequency for trip Mode
@@ -154,8 +214,8 @@ SEC('###','Trip duration by mode')
 ```
 
 
-Next, we perform a similar computation for Total Trip duration for all trips ending 
-in  Santa Cruz, by mode.
+Next, we perform a similar computation for Total Trip duration for all
+trips ending in Santa Cruz, by mode.
 
 ```{r scc-7}
 ## Generate frequency for trip Mode
@@ -215,7 +275,8 @@ SEC('###','Trip distance by mode')
 ```
 
 
-Moving on, we determine Total Trip distance for all trips ending in  Santa Cruz, by mode.
+Moving on, we determine Total Trip distance for all trips ending in
+Santa Cruz, by mode.
 
 ```{r scc-10}
 ## Generate frequency for trip Mode
@@ -274,12 +335,16 @@ SEC('###','Modal split for driving alone')
 ```
 
 
-The next question was the modal split for Drive Alone.  To compute this, we
-subset the data based on `TOTTR` (Total travelers) and `MODE={5, 6, 7, 8, 10}` 
-(basically, the driver of a car, truck, or motorcycle)
+The next question was the modal split for Drive Alone.  To compute
+this, we subset the data based on `TOTTR` (Total travelers) and
+`MODE={5, 6, 7, 8, 10}` (basically, the driver of a car, truck, or
+motorcycle)
 
 ```{r scc-13}
-place_87d<-subset(place_87,(TOTTR==1 & (MODE==5|MODE==6|MODE==7|MODE==8|MODE==10)))
+place_87d <-
+    subset(
+      place_87,
+      (TOTTR==1 & (MODE==5|MODE==6|MODE==7|MODE==8|MODE==10)))
 head(place_87d)
 ```
 
@@ -338,8 +403,9 @@ SEC('##','Trips from  Santa Cruz County')
 ```
 
 
-Now we perform a similar computation for trips *from*  Santa Cruz County.  As before, we
-subset the place data, but this time for trips originating in  Santa Cruz County.
+Now we perform a similar computation for trips *from* Santa Cruz
+County.  As before, we subset the place data, but this time for trips
+originating in Santa Cruz County.
 
 ```{r scc-17}
 
@@ -356,7 +422,8 @@ SEC('###','Trips by mode')
 ```
 
 
-Now we generate the mode frequency table for all trips from  Santa Cruz County.
+Now we generate the mode frequency table for all trips from Santa Cruz
+County.
 
 ```{r scc-18}
 # Generate observations for modal split for trips from  Santa Cruz based on new weights
@@ -466,8 +533,8 @@ rm(temp)
 SEC('###','Trip distance by Mode')
 ```
 
-
-Here is the trip distance calculation for all trips from  Santa Cruz, by Mode.
+Here is the trip distance calculation for all trips from Santa Cruz,
+by Mode.
 
 ```{r scc-24}
 ## Generate frequency for trip Mode
@@ -526,12 +593,16 @@ SEC('###','Modal split for driving alone')
 ```
 
 
-And lastly for the  Santa Cruz origins, here is the drive alone modal split.  As before, 
-we subset the data based on `TOTTR` (Total travelers) and `MODE={5, 6, 7, 8, 10}`
-(the driver of a car, truck, or motorcycle) 
+And lastly for the Santa Cruz origins, here is the drive alone modal
+split.  As before, we subset the data based on `TOTTR` (Total
+travelers) and `MODE={5, 6, 7, 8, 10}` (the driver of a car, truck, or
+motorcycle)
 
 ```{r scc-27} 
-place_87dO<-subset(place_87O,(TOTTR==1 & (MODE==5|MODE==6|MODE==7|MODE==8|MODE==10)))
+place_87dO <-
+  subset(
+    place_87O,
+    (TOTTR==1 & (MODE==5|MODE==6|MODE==7|MODE==8|MODE==10)))
 head(place_87dO)
 ```
 
@@ -593,8 +664,7 @@ appropriate weights.  Here we load and merge them.
 
 ```{r scc-31}
 library(chts2011)
-#Import the activity level variables csv file and give a new name
-#act_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_activity.csv", header=TRUE)
+#Import the activity level data frame and give a new name
 act_data <- chts_act
 names(act_data)
 
@@ -606,85 +676,48 @@ names(act_place)
 For display purposes, we convert the purpose codes into readable strings.
 
 ```{r scc-32 }
-act_place$Actpur<-ifelse(
-  act_place$APURP==1," Personal Activities",
-  ifelse
-  (act_place$APURP==2," Preparing Meals/Eating",
-   ifelse
-   (act_place$APURP==3," Hosting Visitors/Entertaining Guests",
-    ifelse
-    (act_place$APURP==4," Exercise ",
-     ifelse
-     (act_place$APURP==5," Study/Schoolwork ",
-      ifelse
-      (act_place$APURP==6," Work For Pay At Home Using ",
-       ifelse
-       (act_place$APURP==7," Using Computer/Telephone/Cell Or Smart Phone",
-        ifelse
-        (act_place$APURP==8," All Other Activities At My Home ",
-         ifelse
-         (act_place$APURP==9," Work/Job Duties ",
-          ifelse
-          (act_place$APURP==10," Training",
-           ifelse
-           (act_place$APURP==11," Meals At Work ",
-            ifelse
-            (act_place$APURP==12," Work-Sponsored Social Activities ",
-                                                                                                                                                      ifelse
-             (act_place$APURP==13," Non-Work Related Activities",
-              ifelse
-              (act_place$APURP==14," Exercise/Sports ",
-               ifelse
-               (act_place$APURP==15," Volunteer Work/Activities",
-                ifelse
-                (act_place$APURP==16," All Other Work-Related Activities At My Work ",
-                 ifelse
-                 (act_place$APURP==17," In School/Classroom/Laboratory ",
-                  ifelse
-                  (act_place$APURP==18," Meals At School/College ",
-                   ifelse
-                   (act_place$APURP==19," After School Sports/Physical Activity ",
-                    ifelse
-                    (act_place$APURP==20," All Other After School Related Activities ",
-                     ifelse
-                     (act_place$APURP==21," Change Type Of Transportation/Transfer ", 
-                      ifelse
-                      (act_place$APURP==22," Pickup/Drop Off Passenger(S)", 
-                       ifelse
-                       (act_place$APURP==23," Drive Through Meals ", 
-                        ifelse
-                        (act_place$APURP==24," Drive Through Other (ATM, Bank) ",
-                         ifelse
-                         (act_place$APURP==25," Work-Related",
-                          ifelse
-                          (act_place$APURP==26," Service Private Vehicle",
-                           ifelse
-                           (act_place$APURP==27," Routine Shopping ",
-                            ifelse
-                            (act_place$APURP==28," Shopping For Major Purchases",
-                             ifelse
-                             (act_place$APURP==29," Household Errands", 
-                              ifelse
-                              (act_place$APURP==30," Personal Business ", 
-                               ifelse
-                               (act_place$APURP==31," Eat Meal at Restaurant/Diner", 
-                                ifelse
-                                (act_place$APURP==32," Health Care", 
-                                 ifelse
-                                 (act_place$APURP==33," Civic/Religious Activities", 
-                                  ifelse
-                                  (act_place$APURP==34," Outdoor Exercise", 
-                                   ifelse
-                                   (act_place$APURP==35," Indoor Exercise", 
-                                    ifelse
-                                    (act_place$APURP==36," Entertainment ", 
-                                     ifelse
-                                     (act_place$APURP==37," Social/Visit Friends/Relatives", 
-                                      ifelse
-                                      (act_place$APURP==38," Other ", 
-                                       ifelse
-                                       (act_place$APURP==39," Loop Trip", 
-                                        " Don't Know/Refused")))))))))))))))))))))))))))))))))))))))
+act_place$Actpur<-
+  ifelse(act_place$APURP==1," Personal Activities",
+  ifelse(act_place$APURP==2," Preparing Meals/Eating",
+  ifelse(act_place$APURP==3," Hosting Visitors/Entertaining Guests",
+  ifelse(act_place$APURP==4," Exercise ",
+  ifelse(act_place$APURP==5," Study/Schoolwork ",
+  ifelse(act_place$APURP==6," Work For Pay At Home Using ",
+  ifelse(act_place$APURP==7," Using Computer/Telephone/Cell Or Smart Phone",
+  ifelse(act_place$APURP==8," All Other Activities At My Home ",
+  ifelse(act_place$APURP==9," Work/Job Duties ",
+  ifelse(act_place$APURP==10," Training",
+  ifelse(act_place$APURP==11," Meals At Work ",
+  ifelse(act_place$APURP==12," Work-Sponsored Social Activities ",
+  ifelse(act_place$APURP==13," Non-Work Related Activities",
+  ifelse(act_place$APURP==14," Exercise/Sports ",
+  ifelse(act_place$APURP==15," Volunteer Work/Activities",
+  ifelse(act_place$APURP==16," All Other Work-Related Activities At My Work ",
+  ifelse(act_place$APURP==17," In School/Classroom/Laboratory ",
+  ifelse(act_place$APURP==18," Meals At School/College ",
+  ifelse(act_place$APURP==19," After School Sports/Physical Activity ",
+  ifelse(act_place$APURP==20," All Other After School Related Activities ",
+  ifelse(act_place$APURP==21," Change Type Of Transportation/Transfer ", 
+  ifelse(act_place$APURP==22," Pickup/Drop Off Passenger(S)", 
+  ifelse(act_place$APURP==23," Drive Through Meals ", 
+  ifelse(act_place$APURP==24," Drive Through Other (ATM, Bank) ",
+  ifelse(act_place$APURP==25," Work-Related",
+  ifelse(act_place$APURP==26," Service Private Vehicle",
+  ifelse(act_place$APURP==27," Routine Shopping ",
+  ifelse(act_place$APURP==28," Shopping For Major Purchases",
+  ifelse(act_place$APURP==29," Household Errands", 
+  ifelse(act_place$APURP==30," Personal Business ", 
+  ifelse(act_place$APURP==31," Eat Meal at Restaurant/Diner", 
+  ifelse(act_place$APURP==32," Health Care", 
+  ifelse(act_place$APURP==33," Civic/Religious Activities", 
+  ifelse(act_place$APURP==34," Outdoor Exercise", 
+  ifelse(act_place$APURP==35," Indoor Exercise", 
+  ifelse(act_place$APURP==36," Entertainment ", 
+  ifelse(act_place$APURP==37," Social/Visit Friends/Relatives", 
+  ifelse(act_place$APURP==38," Other ", 
+  ifelse(act_place$APURP==39," Loop Trip", 
+         " Don't Know/Refused"
+         )))))))))))))))))))))))))))))))))))))))
 head(act_place)
 ```
 
@@ -693,8 +726,8 @@ head(act_place)
 SEC('##','Trip Purposes from  Santa Cruz County')
 ```
 
-
-We start with trips from  Santa Cruz County, subsetting based open the origin county `OCTFIP=87`.
+We start with trips from Santa Cruz County, subsetting based open the
+origin county `OCTFIP=87`.
 
 ```{r scc-33 }
 # Now we are interested in trips from  Santa Cruz county (OCTFIP=87) 
@@ -704,7 +737,8 @@ names(act_87O)
 head(act_87O)
 ```
 
-Next, we compute the observations for trip purpose for trips from  Santa Cruz based on new weights.
+Next, we compute the observations for trip purpose for trips from
+Santa Cruz based on new weights.
 
 ```{r scc-34}
 ## Generate frequency for trip Mode
@@ -758,17 +792,18 @@ SEC('##','Work Trips by Mode')
 ```
 
 
-The last sub question wanted work trips by Mode for  Santa Cruz County.  
+The last sub question wanted work trips by Mode for Santa Cruz County.
 
 
 ```{r results='asis',echo=FALSE,cache=FALSE}
 ############################################################ NESTABLE SECTION
-SEC('###','Work Trips Originating in  Santa Cruz County')
+SEC('###','Work Trips Originating in Santa Cruz County')
 ```
 
 
-First, we reuse the merged activity table from above for trips activities (and associated trips) originating in  Santa Cruz 
-County, and subset it for work trips only.
+First, we reuse the merged activity table from above for trips
+activities (and associated trips) originating in Santa Cruz County,
+and subset it for work trips only.
 
 ```{r scc-37}
 # Create a subset for work trips
@@ -790,7 +825,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
 temp1
 ```
 
-Given those, we can expand them with the weights for  Santa Cruz.
+Given those, we can expand them with the weights for Santa Cruz.
 
 ```{r scc-39}
 ## Create weighted frequency
@@ -828,9 +863,10 @@ SEC('###','Work Trips Ending in  Santa Cruz County')
 ```
 
 
-Now we want to find trips ending in  Santa Cruz county `(CTFIP=87)`.  Again, we subset
-the place table and adjust the weights to be  Santa Cruz weights if the origins are in
- Santa Cruz, and to use statewide weights if the origins are outside  Santa Cruz.
+Now we want to find trips ending in Santa Cruz county `(CTFIP=87)`.
+Again, we subset the place table and adjust the weights to be Santa
+Cruz weights if the origins are in Santa Cruz, and to use statewide
+weights if the origins are outside Santa Cruz.
 
 
 ```{r scc-41}
@@ -838,8 +874,12 @@ the place table and adjust the weights to be  Santa Cruz weights if the origins 
 act_87D<-subset(act_place,CTFIP==87)
 names(act_87D)
 head(act_87D)
-# Change the weight for non  Santa Cruz county origin (Assign state wide weight for non  Santa Cruz origin)
-act_87D$NTCFW <- ifelse((act_87D$OCTFIP==87), act_87D$NEXPTCFPERWGT, act_87D$EXPTCFPERWGT.y)
+# Change the weight for non  Santa Cruz county origin
+# (Assign state wide weight for non  Santa Cruz origin)
+act_87D$NTCFW <-
+  ifelse((act_87D$OCTFIP==87),
+         act_87D$NEXPTCFPERWGT,
+         act_87D$EXPTCFPERWGT.y)
 names(act_87D)
 head(act_87D)
 ```
@@ -892,8 +932,8 @@ rm(temp2)
 rm(temp3)
 ```
 
-Finally, we compute the frequencies of various Modes used for work trips ending
-in  Santa Cruz County.
+Finally, we compute the frequencies of various Modes used for work
+trips ending in Santa Cruz County.
 
 ```{r scc-45}
 # We want only work trips (APURP=9)

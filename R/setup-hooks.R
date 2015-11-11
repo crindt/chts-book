@@ -31,7 +31,7 @@ qfmt <- function(val) { return(format(big.mark=",",val)) }
 pp <- function(n) { return(paste(rd,n,sep="/")) }
 p <- function(ps) { return(paste(rd,ps,sep="/")) }
 
-if ( !exists("lev") ) { lev <- 0 }  # section nesting
+if ( !exists("lev") ) { lev <<- 0 }  # section nesting
 SEC <- function(level,text,as.string=FALSE) {
     head <- gsub("^\\s*(#+)\\s*$","\\1",level)
     ret <- paste("\n",paste(rep('#',nchar(head)+lev),collapse="")," ",text,"\n\n",sep="")
@@ -41,5 +41,27 @@ SEC <- function(level,text,as.string=FALSE) {
       cat(ret)
     }
 }
-NESTLEV <- function(depth=1) { lev <- lev + depth; return("") }
-UNNESTLEV <- function(depth=1) { lev <- lev - depth; return("") }
+NESTLEV <- function(depth=1) { lev <<- lev + depth; return("") }
+UNNESTLEV <- function(depth=1) { lev <<- lev - depth; return("") }
+
+suppressMessages(require(chts2011))
+suppressMessages(require(dplyr))
+var.values <<- function(vn) {
+    return(strsplit((chts_md %>% filter(VAR.NAME==vn))[1,'VALUES'],'\n')[[1]])
+}
+
+suppressMessages(require(pander))
+var.value.summary <<- function(vn,tab='hh',head='###',val.list=TRUE,desc=NA) {
+    vlist <- var.values(vn)
+    vdesc <- desc
+    if ( is.na(vdesc) ) {
+        vdesc <- chts_md %>% filter(VAR.NAME==vn & TABLE==tab) %>% select(Variable.Description)
+    }
+
+    SEC(head,paste(vn,': ',vdesc,"\n",sep=""))
+    cat("\n")
+    if( val.list ) {
+        cat(paste("Valid values for ",vdesc," (`",vn,"`) are as follows:\n",sep=""))
+        pandoc.list(vlist)
+    }
+}

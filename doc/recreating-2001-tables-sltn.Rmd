@@ -20,29 +20,43 @@ output:
 ---
 
 
-```{r rt-setup-0,echo=FALSE,cache=FALSE}
-if ( !exists("rd") ) { rd <- gsub("(.*?chts-book).*","\\1",getwd()) }
+```{r rt-setup-0,echo=FALSE,cache=TRUE}
+if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
 source(paste(rd,'R/setup-hooks.R',sep="/"))
+# remove chts data from namespace
 null<-lapply(
   c("chts_hh","chts_per","chts_pla","chts_act","chts_veh","chts_lt","chts_lu_lt"),
   function(v) { if (exists(v)) { rm(v) } }
 )
+write(paste("Using Root Directory",rd,"\n"),stderr())
 ```
 
 \ifmydocumentation
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('#','Using R to Generate Summary Tables')
 ```
 
+In this section, we describe the creation of a set of summary tables
+that provide statistics about household travel behavior as derived
+from the CHTS dataset.  The tables generated were requested by
+Caltrans staff.  The table referencing (table A, table B, etc.) is
+defined in order to correspond with similar tables produced for the
+2001 dataset.  This is true for all tables described herein except for
+table 50 and greater, which represent requests from Caltrans staff
+that don't have an analogue in the 2001 report.
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+In the sections below, we provide the `R` code for generating each
+table as well as some discussion of the general methods used.
+
+
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Setup')
 ```
 
-```{r rt-recreating-2001-tables-setup,cache=FALSE,echo=TRUE}
+```{r rt-recreating-2001-tables-setup,cache=TRUE,echo=TRUE}
 # Set the working directory so we can access libraries
 write(paste("Setting working directory to",rd,"\n"),stderr())
 setwd(rd)
@@ -89,22 +103,22 @@ single.family <- c(1)   # RESTY values: single family homes
 multi.family  <- c(2:6) # RESTY values
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Weighting Calculations')
 ```
 
-Weights used in the calculations of the following tables were generated
-separately.
-
-Here we load in various weights used in the calculations below, including
-weekday weights and county weights (and county weekday weights).
+Weights used in the calculations of the following tables were
+generated separately and included in the `chts2011wgt` package.  See
+the documentation of that package for details.  Here we load in
+various weights used in the calculations below, including weekday
+weights and county weights (and county weekday weights).
 
 ```{r rt-load-weights}
 library(chts2011wgt)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Table A: Key 2011-2012 Travel Survey Data for California')
 ```
@@ -238,12 +252,14 @@ median.category <- weighted.median(chts_hh$INCOM,chts_hh$EXPHHWGT)
 catvals <- assign_factors(c(median.category),'hh','INCOM')  # get factor label
 
 # Convert "$1,234 to $12,345" to c(1234,12345)
-lohi <- as.integer(gsub("[$,]","",(unlist(strsplit(as.character(catvals[[1]])," to ")))))
+lohi <- as.integer(
+  gsub("[$,]","",
+  (unlist(strsplit(as.character(catvals[[1]])," to ")))))
 
 
 # Determine parameters for pareto interpolation
-a <- lohi[1]  # income value at the lower limit of the category containing the median
-b <- lohi[2]  # income value at the upper limit of the category containing the median
+a <- lohi[1]  # income value at the lower limit of the cat. containing the median
+b <- lohi[2]  # income value at the upper limit of the cat. containing the median
 Pa <- (chts_hh %>% filter(INCOM < median.category) %>% 
          summarise(n=sum(EXPHHWGT)))[1,'n']/tothh
 Pb <- (chts_hh %>% filter(INCOM < (median.category+1)) %>% 
@@ -305,7 +321,8 @@ Now, we can compute the table.  Note that throughout this documentation, we are
 using the `pander` package to generate markdown tables that can be processed by
 `pandoc` to create tables in a variety of formats.  The `pandoc.table.return`
 function generates the table in markdown format and returns it as a string.  We
-are storing these strings so we can output all of the tables in the Appendix.
+are storing these strings so we can output all of the tables in the Appendix.  
+We also write the data to a CSV file for use with external programs.
 
 ```{r rt-table-a_1} 
 res <- list()
@@ -337,7 +354,7 @@ vd <- chts_hh %>% transmute(HHVEHg=ifelse(HHVEH>2,3,HHVEH),EXPHHWGT)
 Then, we use the `wtd.table` function from the `Hmisc` package to
 generate a weighted frequency table from that transformed data.
 
-```{r rt-table-a_2b,results='asis',cache=FALSE}
+```{r rt-table-a_2b,results='asis',cache=TRUE}
 # apply wtd.table, whose output needs to be converted into a dataframe that can be 
 # used by pandoc.table
 res.a.2 <- as.data.frame(wtd.table(vd$HHVEHg,weights=vd$EXPHHWGT)$sum.of.weights)
@@ -359,14 +376,17 @@ res.a.2.str <- pandoc.table.return(res.a.2,
 
 ```{r rt-res-a-cat,echo=FALSE,results='asis'}
 cat(res.a.2.str)
-res[["res.a"]] <- list()
-res[["res.a"]]$title  <- "TABLE A: Household Vehicle Availability"
-res[["res.a"]]$data.1 <- res.a.1
-res[["res.a"]]$data.2 <- res.a.2
-res[["res.a"]]$tabtxt <- paste(res.a.1.str,res.a.2.str,sep="\n\n\n")
+res[["res.a.1"]] <- list()
+res[["res.a.1"]]$title  <- "TABLE A: Household Vehicle Availability"
+res[["res.a.1"]]$data <- res.a.1
+res[["res.a.1"]]$tabtxt <- res.a.1.str
+res[["res.a.2"]] <- list()
+res[["res.a.2"]]$title  <- "TABLE A: Household Vehicle Availability (cont)"
+res[["res.a.2"]]$data <- res.a.2
+res[["res.a.2"]]$tabtxt <- res.a.2.str
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Table B: Weekday Trip Information')
 ```
@@ -523,7 +543,7 @@ b.0.str <- pandoc.table.return(
   )
 ```
 
-```{r rt-results-b-0,results='asis',cache=FALSE,echo=FALSE}
+```{r rt-results-b-0,results='asis',cache=TRUE,echo=FALSE}
 cat(b.0.str)
 ```
 
@@ -809,7 +829,7 @@ bdat[["&nbsp;&nbsp;Weekday 'All Trips', Vehicle Modes, Trip Duration (min)"]] <-
 Next, we compute weighted mean trip duration for home-work trips and
 all modes.
 
-```{r rt-table-b-11_3,cache=FALSE}
+```{r rt-table-b-11_3,cache=TRUE}
 #  Weekday 'Home-Work Trips' Trip Length 27 minutes
 
 # Weekday home to work trips (all modes)
@@ -825,7 +845,7 @@ bdat[["&nbsp;&nbsp;Weekday 'Home-Work Trips' Trip Duration (min)"]] <-
 Next, we compute weighted mean trip duration for home-work trips and
 vehicle modes.
 
-```{r rt-table-b-11_4,cache=FALSE}
+```{r rt-table-b-11_4,cache=TRUE}
 #  Weekday 'Home-Work Trips' Trip Length 27 minutes
 
 bdat[["&nbsp;&nbsp;Weekday 'Home-Work Trips', Vehicle Modes Trip Duration (min)"]] <-
@@ -850,7 +870,7 @@ res.b.str<-pandoc.table.return(res.b,
              caption="TABLE B: Weekday Trip Information")
 ```
 
-```{r rt-table-b-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-table-b-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.b.str)
 res[["res.b"]] <- list()
 res[["res.b"]]$title  <- "TABLE B: Weekday Trip Information"
@@ -859,7 +879,7 @@ res[["res.b"]]$tabtxt <- res.b.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Table C - Travel Mode Distribution')
 ```
@@ -941,7 +961,7 @@ res.c.str<-pandoc.table.return(res.c,
              caption="TABLE C: Travel Mode Distribution")
 ```
 
-```{r rt-table-c-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-table-c-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.c.str)
 res[["res.c"]] <- list()
 res[["res.c"]]$title  <- "TABLE C: Travel Mode Distribution"
@@ -950,7 +970,7 @@ res[["res.c"]]$tabtxt <- res.c.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Table D: Weekday Commute Mode Share Information')
 ```
@@ -1053,7 +1073,7 @@ res.d.str <- pandoc.table.return(res.d,
              emphasize.strong.cols = 1) 
 ```
 
-```{r rt-table-d-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-table-d-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res[['d.str']])
 res[["res.d"]] <- list()
 res[["res.d"]]$title  <- "TABLE D: Weekday Mode Share Information"
@@ -1062,7 +1082,7 @@ res[["res.d"]]$tabtxt <- res.d.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','Table 1: Persons/Vehicle per Household By County')
 ```
@@ -1124,7 +1144,7 @@ res.1.str <- pandoc.table.return(
   ) 
 ```
 
-```{r rt-table-1-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-table-1-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.1.str)
 res[["res.1"]] <- list()
 res[["res.1"]]$title  <- "TABLE 1: Persons/Vehicle per Household by County"
@@ -1133,7 +1153,7 @@ res[["res.1"]]$tabtxt <- res.1.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','TABLE 5: Licensed Drivers Per Household')
 ```
@@ -1179,7 +1199,7 @@ res.5.str <- pandoc.table.return(
   )
 ```
 
-```{r rt-table-5-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-table-5-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.5.str)
 res[["res.5"]] <- list()
 res[["res.5"]]$title  <- "TABLE 5: Licensed Drivers per Household by County"
@@ -1188,7 +1208,7 @@ res[["res.5"]]$tabtxt <- res.5.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','TABLE 6: Employees Per Household')
 ```
@@ -1234,7 +1254,7 @@ res.6.str <- pandoc.table.return(
   )
 ```
 
-```{r rt-table-6-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-table-6-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.6.str)
 res[["res.6"]] <- list()
 res[["res.6"]]$title  <- "TABLE 6: Employees per Household by County"
@@ -1243,7 +1263,7 @@ res[["res.6"]]$tabtxt <- res.6.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','TABLE 9: Weekday Trip-Type Distribution')
 ```
@@ -1307,7 +1327,7 @@ res.9.1.str <-
     emphasize.strong.rows=which(res.9.1$Trip.Type=='TOTAL',arr.ind=TRUE)
   )
 ```
-```{r rt-table-9-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-table-9-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.9.1.str)
 ```
 
@@ -1342,6 +1362,7 @@ did with the state.  In this case, we're using the household county
 weights.
 
 ```{r rt-t9-2-trip-dist-by-county}
+rm(res.9.2) 
 res.9.2.str <- 
   paste(  # paste will concatenate the results of the lapply function
     lapply(
@@ -1369,6 +1390,12 @@ res.9.2.str <-
           arrange(ifelse(Trip.Type=='TOTAL',999,1),desc(Percent))
 
         # generate and return the table
+        if(exists("res.9.2")) {
+          res.9.2 <<- rbind(res.9.2,
+                            cbind(data.frame(County=cty),tabtot))
+        } else {
+            res.9.2 <<- cbind(data.frame(County=cty),tabtot)
+        }
         return(
           pandoc.table.return(
             tabtot,
@@ -1384,18 +1411,18 @@ res.9.2.str <-
     collapse="\n\n"  # put two blank lines between each county table
   )
 ```
-```{r rt-t9-2-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-t9-2-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.9.2.str)
 res.9.str <- paste(res.9.1.str,res.9.2.str,sep="\n\n\n")
 res[["res.9"]] <- list()
 res[["res.9"]]$title  <- "TABLE 9: Weekday Trip Type Distribution"
-res[["res.9"]]$data.1 <- res.9.1
-res[["res.9"]]$data.2 <- NA
+res[["res.9"]]$data <- rbind(cbind(data.frame(County="California"),res.9.1),
+                             res.9.2)
 res[["res.9"]]$tabtxt <- res.9.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','TABLE 10a: Weekday Person Trips Per Household')
 ```
@@ -1632,7 +1659,7 @@ res.10a.str <-
   )
 ```
 
-```{r rt-t10a-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-t10a-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.10a.str) 
 res[["res.10a"]] <- list()
 res[["res.10a"]]$title  <- "TABLE 10a: Weekday Person Trips Per Household"
@@ -1641,7 +1668,7 @@ res[["res.10a"]]$tabtxt <- res.10a.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','TABLE 11: Weekday Driver Trips Per Household')
 ```
@@ -1783,12 +1810,12 @@ res[["res.11"]]$data.1 <- res.11
 res[["res.11"]]$tabtxt <- res.11.str
 ```
 
-```{r rt-t11-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-t11-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.11.str) 
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','TABLE 13a: Weekday Person and Driver Trips Per Household')
 ```
@@ -1969,12 +1996,12 @@ res[["res.13"]]$data <- res.13
 res[["res.13"]]$tabtxt <- res.13.str
 ```
 
-```{r rt-t13a-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-t13a-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.13.str)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','TABLE 15: Weekday Driver Trips Per Vehicle By County, HH Income, and Housing Unit')
 ```
@@ -2131,12 +2158,12 @@ res[["res.15"]]$tabtxt <- res.15.str
 ```
 
 
-```{r rt-table15-output,results='asis',cache=FALSE}
+```{r rt-table15-output,results='asis',cache=TRUE}
 cat(res.15.str)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','TABLE 15a: Weekday Person and Vehicle Miles Traveled per Vehicle by County and HH Income')
 ```
@@ -2219,12 +2246,12 @@ res[["res.15a"]]$tabtxt <- res.15a.str
 ```
 
 
-```{r rt-table15a-output,results='asis',cache=FALSE}
+```{r rt-table15a-output,results='asis',cache=TRUE}
 cat(res.15a.str)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','TABLE 17a: Weekday Unlinked and Linked Trips Distributed by Particular Travel Mode and Group')
 ```
@@ -2335,7 +2362,7 @@ res.17a.st.str <- pandoc.table.return(res.17a.st,
              #,emphasize.strong.rows=which(fftab.all$MODE=='TOTAL',arr.ind=TRUE)
              )
 ```
-```{r rt-table-17a-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-table-17a-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.17a.st.str)
 ```
 
@@ -2381,6 +2408,8 @@ tab.raw <- lt.wd.cty %>%
     left_join(chts_pla %>% select(SAMPN,PERNO,PLANO,dCTFIP=CTFIP),
               by=c("SAMPN"="SAMPN","PERNO"="PERNO",
                    "dplano"="PLANO"))
+
+rm(res.17a.cty)
 
 res.17a.cty.str <- 
   paste(
@@ -2464,6 +2493,14 @@ res.17a.cty.str <-
                                             `TRAVEL MODE GROUP`, "&nbsp;")) %>%
           select(-SORT.ORDER)
         
+        if( exists("res.17a.cty") ) {
+          res.17a.cty <<- rbind(res.17a.cty,
+                                cbind(data.frame(County=cty),
+                                      fftab.all))
+        } else {
+          res.17a.cty <<- cbind(data.frame(County=cty),fftab.all)
+        }
+        
         return(
           pandoc.table.return(fftab.all,
                               caption=paste("TABLE 17a: Weekday Linked and Unlinked Trips Distributed by Particular Travel Mode and Group (",cty,")",sep=""),
@@ -2479,17 +2516,16 @@ res.17a.cty.str <-
   )
 ```
 
-```{r rt-t17a-cty-results,echo=FALSE,results='asis',cache=FALSE}
+```{r rt-t17a-cty-results,echo=FALSE,results='asis',cache=TRUE}
 cat(res.17a.cty.str)
 res[["res.17a"]] <- list()
 res[["res.17a"]]$title  <- "TABLE 17a: Weekday Linked and Unlinked Trips Distributed by Particular Travel Mode and Group"
-res[["res.17a"]]$data.1 <- res.17a.st
-res[["res.17a"]]$data.2 <- NA
+res[["res.17a"]]$data <- rbind(cbind(County="California",res.17a.st),res.17a.cty)
 res[["res.17a"]]$tabtxt <- paste(res.17a.st.str,res.17a.cty.str,sep="\n\n\n")
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##',"Table 17B and 17C: Weekday Commuters' Directional Travel Mode Split")
 ```
@@ -2556,6 +2592,7 @@ All.lt <- lt.wd.trips %>%
 
 Am.lt <- All.lt %>% filter(DEP_HR %in% c(7,8))
 
+rm(res.17bc)
 res.17bc.str <- 
   paste(
     lapply(
@@ -2604,9 +2641,12 @@ res.17bc.str <-
           ) %>%
           mutate(County=cty)
         if ( !exists("res.17bc") ) {
-          res.17bc <- fftab.all
+          res.17bc <<- cbind(data.frame(County=cty),
+                             fftab.all %>% arrange(order) %>% select(-order,-County))
         } else {
-          res.17bc <- rbind(res.17bc,fftab.all)
+          res.17bc <<- rbind(res.17bc,
+                             cbind(data.frame(County=cty),
+                                   fftab.all %>% arrange(order) %>% select(-order,-County)))
         }
         
         return(
@@ -2624,16 +2664,16 @@ res.17bc.str <-
     collapse="\n\n\n"
   )
 ```
-```{r rt-table-17bc-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-table-17bc-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.17bc.str)
 res[["res.17bc"]] <- list()
 res[["res.17bc"]]$title  <- "TABLES 17b and 17c: Weekday Commuters' Directional Travel Mode by County"
-res[["res.17bc"]]$data <- NA #res.17bc
+res[["res.17bc"]]$data <- res.17bc
 res[["res.17bc"]]$tabtxt <- res.17bc.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','TABLE 22: Age of Vehicle in Use on Travel Day by County and Vehicle Type')
 ```
@@ -2650,6 +2690,7 @@ Vehdat <- chts_veh %>%
   mutate(WD=ifelse(DOW<6,1,2)) %>%
   filter(WD==1)
 
+res.22.data <<- NULL 
 res.22.str <- 
   paste(
     lapply(
@@ -2691,6 +2732,12 @@ res.22.str <-
                                                      `Num of Veh in Use`=round(sum(rest.2$n),0),
                                                      `Percent of Vehicles`=NA,
                                                      `Cumulative Percent`=NA))
+        
+        if ( is.null(res.22.data) ) {
+          res.22.data <<- cbind(data.frame(County=cty),res.22)
+          } else {
+            res.22.data <<- rbind(res.22.data,cbind(data.frame(County=cty),res.22))
+            }
         return(
           pandoc.table.return(
             res.22,
@@ -2707,16 +2754,17 @@ res.22.str <-
     collapse="\n\n\n"
   )
 ```
-```{r rt-table-22-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-table-22-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.22.str) 
+res[["res.22"]] <- NULL
 res[["res.22"]] <- list()
 res[["res.22"]]$title  <- "TABLE 22: Vehicles in Use on Average Weekday Distributed by Age of Vehicle and by County"
-res[["res.22"]]$data <- NA
+res[["res.22"]]$data <- res.22.data
 res[["res.22"]]$tabtxt <- res.22.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','TABLE 22a: Vehicle Trips, Person Trips by County by Mode and Purpose')
 ```
@@ -2725,7 +2773,7 @@ SEC('##','TABLE 22a: Vehicle Trips, Person Trips by County by Mode and Purpose')
 How to define VT?  By definition, Transit trips will have zero VMT, so having both VMT and mode split doesn't make sense to me.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','TABLE 50: Mode Share for Short Trips by County')
 ```
@@ -2777,7 +2825,7 @@ res.50.str <-
     collapse="\n\n"
   )
 ```
-```{r rt-table-50-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-table-50-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.50.str)
 res[["res.50"]] <- list()
 res[["res.50"]]$title  <- "TABLE 50: Mode Share for Short Distance Trips by county"
@@ -2786,7 +2834,7 @@ res[["res.50"]]$tabtxt <- res.50.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##','TABLE 51: Mode Share for Millennials Versus Older Age Groups')
 ```
@@ -2846,7 +2894,7 @@ res.51.str <-
     big.mark = ','
   )
 ```
-```{r rt-table-51-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-table-51-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.51.str)
 res[["res.51"]] <- list()
 res[["res.51"]]$title  <- "TABLE 51: Driver trips, bike, walk and transit for millennial versus older age groups"
@@ -2856,7 +2904,7 @@ res[["res.51"]]$tabtxt <- res.51.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##',"TABLE 52: Statewide Commute trips by Mode and Distance Ranges")
 ```
@@ -2937,7 +2985,7 @@ res.52.str <-
     big.mark = ','
   )
 ```
-```{r rt-table-52-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-table-52-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.52.str)
 res[["res.52"]] <- list()
 res[["res.52"]]$title  <- "TABLE 52: Statewide Commute trips (HW) by Mode (Walk, Bike, Drive/Passenger, Transit) and other by Mode and Distance ranges"
@@ -2946,7 +2994,7 @@ res[["res.52"]]$tabtxt <- res.52.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('##',"TABLE 53: Statewide School Trips by Mode and Distance Ranges")
 ```
@@ -3028,7 +3076,7 @@ res.53.str <-
     big.mark = ','
   )
 ```
-```{r rt-table-53-results,results='asis',echo=FALSE,cache=FALSE}
+```{r rt-table-53-results,results='asis',echo=FALSE,cache=TRUE}
 cat(res.53.str)
 res[["res.53"]] <- list()
 res[["res.53"]]$title  <- "TABLE 53: Statewide School Trips (HW) by Mode (Walk, Bike, Drive/Passenger, Transit) and other by Mode and Distance ranges"
@@ -3037,7 +3085,35 @@ res[["res.53"]]$tabtxt <- res.53.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
+SEC("#","Writing Tables for Use with Other Programs")
+```
+
+We have saved the data for all tables in the `res` list.  Now we will write them all out to 
+CSV files so they may be imported into other programs as needed.
+
+```{r rt-write-csv,cache=TRUE}
+# Set CSV output dir
+csvout <- paste(rd,"csvout",sep="/")
+for (tname in names(res)) {
+  fname <- paste(csvout,paste(tname,"csv",sep="."),sep="/")
+  rn <- sum(as.integer(rownames(res[[tname]]$data)),na.rm=TRUE)==0 # see if rows are named
+  write(paste("Writing",fname,rn,"\n"),stderr())
+
+  # Table title
+  write.table(res[[tname]]$title,file=fname,row.names=FALSE,col.names=FALSE)            
+
+  # blank row
+  write.table("",file=fname,append=TRUE,row.names=FALSE,col.names=FALSE)
+
+  # data
+  suppressMessages(
+      write.table(res[[tname]]$data,file=fname,append=TRUE,
+                  sep=",",col.names=TRUE,row.names=rn))  
+}
+```
+
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC("#","Complete Tables")
 if ( rmarkdown::metadata$documentation == "true" ) 
@@ -3045,7 +3121,7 @@ if ( rmarkdown::metadata$documentation == "true" )
 ```
 \fi
 
-```{r rt-dump-all,echo=FALSE,results='asis',cache=FALSE}
+```{r rt-dump-all,echo=FALSE,results='asis',cache=TRUE}
 cat(
   paste(
     lapply(

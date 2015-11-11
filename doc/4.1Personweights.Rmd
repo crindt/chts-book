@@ -5,50 +5,71 @@ date: "September 1, 2015"
 output: html_document
 ---
 
-```{r pw-setup-0,echo=FALSE,cache=FALSE}
-if ( !exists("rd") ) { rd <- gsub("(.*?chts-book).*","\\1",getwd()) }
-source(paste(rd,'R/setup-hooks.R',sep="/"))
+```{r pw-setup-0,echo=FALSE,cache=TRUE}
+if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
+source(paste(rd,"R/setup-hooks.R",sep="/"))
+write(paste("Using Root Directory",rd,"\n"),stderr())
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('#','Overview') 
-```
+This document explains how county-level weights are developed using
+the R statistical software for people who participated in the 2012
+CHTS. The purpose of these weights is to scale up information provided
+by respondents to the population of each county based on the
+socio-economic variables listed below. The person level weights were
+developed at the county level. Users of these weights are cautioned
+that these weights should not be applied to lower-level geographies
+such as cities or zip codes. Similar weights can be developed for
+these geographies if they contain enough CHTS respondents.
 
-This document explains how county-level weights are developed using the R statistical software for people who participated in the 2012 CHTS. The purpose of these weights is to scale up information provided by respondents to the population of each county based on the socio-economic variables listed below. The person level weights were developed at the county level. Users of these weights are cautioned that these weights should not be applied to lower-level geographies such as cities or zip codes. Similar weights can be developed for these geographies if they contain enough CHTS respondents.
-
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('#','Methodology')
 ```
 
-Person-level county weights are calculated by raking at the person level. These weights adjust the relative importance of responses to reflect the different probabilities of selecting respondents, and align the sample distributions to population distributions based on the 2010 Census. In particular, person-level weights were adjusted so that the sum of these weights equals known population totals for certain subgroups of the population of each county.  Variables used for raking at the person level are:
+Person-level county weights are calculated by raking at the person
+level. These weights adjust the relative importance of responses to
+reflect the different probabilities of selecting respondents, and
+align the sample distributions to population distributions based on
+the 2010 Census. In particular, person-level weights were adjusted so
+that the sum of these weights equals known population totals for
+certain subgroups of the population of each county.  Variables used
+for raking at the person level are:
 
-  * Hispanic Status (Hispanic, Non-Hispanic) - County-wide distribution;
-  * Ethnicity (White, African American, Asian, Other) - County-wide distribution;
-  * Age (less than 20 years, 20 - 24 years, 25 - 34 years, 35 - 54 years, 55 - 64 years, 65 years or older) - County -wide distribution;
-  * Employment Status (Part-time or full-time Employed, Not-employed)- County-wide distribution; and
+  * Hispanic Status (Hispanic, Non-Hispanic) - County-wide
+    distribution;
+
+  * Ethnicity (White, African American, Asian, Other) - County-wide
+    distribution;
+
+  * Age (less than 20 years, 20 - 24 years, 25 - 34 years, 35 - 54
+    years, 55 - 64 years, 65 years or older) - County -wide
+    distribution;
+
+  * Employment Status (Part-time or full-time Employed, Not-employed)-
+    County-wide distribution; and
+
   * Gender (Male, Female)- County-wide distribution
 
-After the raking procedure, very large weights are capped to be no more than five times the mean of weight. To check whether the new weights represent the total population of the counties, we perform some random checks for different variables and the results show that the new weights align with the county populations.
+After the raking procedure, very large weights are capped to be no
+more than five times the mean of weight. To check whether the new
+weights represent the total population of the counties, we perform
+some random checks for different variables and the results show that
+the new weights align with the county populations.
 
-We use this new county wide person weight to calculate the final  trip weight which is an outcome of Trip Correction Factor (TCF) * New County Wide Person Weight. 
+We use this new county wide person weight to calculate the final trip
+weight which is an outcome of `Trip Correction Factor (TCF) * New
+County Wide Person Weight`.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
+```{r results='asis',echo=FALSE,cache=TRUE}
 ############################################################ NESTABLE SECTION
 SEC('#','R Code and Implementation')
 ```
 
 The following commands are used to generate county wide person weight.
 
-
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Generate Person level weight')
-```
-
-First we need to import the person data file and corresponding lookup file (containing location information) and then we merge them.
+First we need to import the person data file and corresponding lookup
+file (containing location information) and then we merge them.
 
 ```{r pw-1,echo=FALSE}
 if ( !exists("rd") ) { rd <- "/Users/crindt/chts-book" }
@@ -61,10 +82,9 @@ library(dplyr)
 # Set the working directory
 setwd(p("Weight/PersonWeight_County"))
 # Import the person level variables csv file and give a new name
-#persondata <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_per.csv", header=TRUE)
 persondata <- chts_per
-# Import the lookup variable csv file and give a new name (containing x, y coordinate data)
-#lookup_hh <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/lookup_hh.csv", header=TRUE)
+# Import the lookup variable csv file and give a new name
+# (containing x, y coordinate data)
 lookup_hh <- chts_hh %>% mutate(HCTFIPx=CTFIP)
 lookup_hh$HCTFIP <- as.integer(lookup_hh$HCTFIPx) %% 1000
 # Merging two data set to get the county information
@@ -75,7 +95,7 @@ names(perdata2)
 
 Now we have new merged file which is used to generate new person weight. We need to recode the raking variables to make them similar to the census data (Here we are using American Community Survey, 2010 five year estimate data). 
 
-First we will assign zero for 'NA' observations of raking variables because the code we will use later for raking can't read 'NA'. 
+First we will assign zero for `NA` observations of raking variables because the code we will use later for raking can't read `NA`. 
 
 ```{r pw-3,cache=TRUE}
 # Assign 0 for all NA observations
@@ -99,12 +119,20 @@ Next, we recode the age and race variable.
 
 ```{r pw-5,cache=TRUE}
 # For recoding AGE
-perdata2$AGEn<-ifelse(perdata2$AGE<20,1,ifelse((perdata2$AGE>=20 & perdata2$AGE<=24),2,ifelse((perdata2$AGE>=25 & perdata2$AGE<=34),3,ifelse((perdata2$AGE>=35 & perdata2$AGE<=54),4,ifelse((perdata2$AGE>=55 & perdata2$AGE<=64),5,6)))))
+perdata2$AGEn <- 
+  ifelse(perdata2$AGE<20,1,
+         ifelse((perdata2$AGE>=20 & perdata2$AGE<=24),2,
+                ifelse((perdata2$AGE>=25 & perdata2$AGE<=34),3,
+                       ifelse((perdata2$AGE>=35 & perdata2$AGE<=54),4,
+                              ifelse((perdata2$AGE>=55 &
+                                      perdata2$AGE<=64),5,6)))))
 # Show values
 head(perdata2$AGE,10)
 
 # For recoding race
-perdata2$RACEn<-ifelse(perdata2$RACE1==1,1,ifelse(perdata2$RACE1==2,2,ifelse(perdata2$RACE1==4,3,4)))
+perdata2$RACEn<-ifelse(perdata2$RACE1==1,1,
+                       ifelse(perdata2$RACE1==2,2,
+                              ifelse(perdata2$RACE1==4,3,4)))
 # Show values
 head(perdata2$RACEn,10)
 ```
@@ -114,7 +142,9 @@ Here, we recode employmnet (EMPLY) and Gender variable.
 
 ```{r pw-6,cache=TRUE}
 # For recoding EMPLY
-perdata2$EMPLYn<-ifelse(perdata2$EMPLY==1,1,ifelse(perdata2$EMPLY==2,2,ifelse(perdata2$EMPLY==8,1,2)))
+perdata2$EMPLYn<-ifelse(perdata2$EMPLY==1,1,
+                        ifelse(perdata2$EMPLY==2,2,
+                               ifelse(perdata2$EMPLY==8,1,2)))
 # Show values
 head(perdata2$EMPLYn,10)
 
@@ -131,7 +161,8 @@ We need county wide total population data which we collect from census and save 
 ```{r pw-7,cache=TRUE}
 # Assgin county wide total population into perdata2 file
 # Import the countywise total population csv file and give a new name
-tot.pop <- read.csv(p("Weight/Data_County/Total/county_totpop2.csv"), header=TRUE)
+tot.pop <- read.csv(p("Weight/Data_County/Total/county_totpop2.csv"),
+                    header=TRUE)
 head(tot.pop)
 
 # Merging two data set
@@ -156,14 +187,19 @@ First, we do it for hispanic data.
 
 ```{r pw-9,cache=TRUE}
 # Hispanic data
-hisp.county <- read.csv(p("Weight/Data_County/Hispanic/Hisp_county.csv"), header=TRUE)
+hisp.county <- read.csv(p("Weight/Data_County/Hispanic/Hisp_county.csv"),
+                        header=TRUE)
 head(hisp.county)
 
-# Generate a list of seperate datafrmaes containing hispanic data for each county
+# Generate a list of seperate datafrmaes containing hispanic data
+# for each county
 hisp.county$id <- 1:nrow(hisp.county)
-hisp.data <- lapply(split(hisp.county, hisp.county$id), function(x){data.frame(HISPn = c(1,2),  Freq  = c(x$Hispanic, x$Non.Hispanic))                                                           
-}
-)
+hisp.data <- lapply(
+  split(hisp.county, hisp.county$id), 
+  function(x){
+    data.frame(HISPn = c(1,2),  Freq  = c(x$Hispanic, x$Non.Hispanic))                                                           
+    }
+  )
 # Show
 head(hisp.data[1])
 ```
@@ -172,11 +208,17 @@ Here, we import the race data.
 
 ```{r pw-10,cache=TRUE}
 # Race
-race.county <- read.csv(p("Weight/Data_County/Race/Race_county.csv"), header=TRUE)
+race.county <- read.csv(p("Weight/Data_County/Race/Race_county.csv"),
+                        header=TRUE)
 race.county$id <- 1:nrow(race.county)
-race.data <- lapply(split(race.county, race.county$id), function(x){data.frame(RACEn = c(1:4),  Freq  = c(x$White, x$African.American,x$Asian,x$Others))                                                             
-}
-)
+race.data <- lapply(
+  split(race.county, race.county$id), 
+  function(x){
+    data.frame(
+        RACEn = c(1:4),
+        Freq  = c(x$White, x$African.American,x$Asian,x$Others))
+    }
+  )
 head(race.data[1])
 ```
 
@@ -184,12 +226,17 @@ Then, we repeat the process for employment data.
 
 ```{r pw-11,cache=TRUE}
 ## Employment data
-emply.county <- read.csv(p("Weight/Data_County/Employment/Employment_county.csv"), header=TRUE)
+emply.county <-
+    read.csv(p("Weight/Data_County/Employment/Employment_county.csv"),
+             header=TRUE)
 
 emply.county$id <- 1:nrow(emply.county)
-emply.data <- lapply(split(emply.county, emply.county$id), function(x){data.frame(EMPLYn = c(1,2),  Freq  = c(x$Employed, x$Unemployed))                                                             
-}
-)
+emply.data <- lapply(
+  split(emply.county, emply.county$id), 
+  function(x){
+    data.frame(EMPLYn = c(1,2),  Freq  = c(x$Employed, x$Unemployed))                                                             
+    }
+  )
 head(emply.data[1])
 ```
 
@@ -197,20 +244,28 @@ Finally, we import gender and age data.
 
 ```{r pw-12,cache=TRUE}
 #Gender
-gend.county <- read.csv(p("Weight/Data_County/Gender/Gender_county.csv"), header=TRUE) 
+gend.county <- read.csv(p("Weight/Data_County/Gender/Gender_county.csv"),
+                        header=TRUE) 
 
 gend.county$id <- 1:nrow(gend.county)
-gend.data <- lapply(split(gend.county, gend.county$id), function(x){data.frame(GENDn = c(1,2),  Freq  = c(x$Male, x$Female))                                                             
-}
-)
+gend.data <- lapply(
+  split(gend.county, gend.county$id), 
+  function(x){
+    data.frame(GENDn = c(1,2),  Freq  = c(x$Male, x$Female))                                                             
+    }
+  )
 head(gend.data[1])
 
 # Age
 age.county <- read.csv(p("Weight/Data_County/Age/Age_county.csv"), header=TRUE)
 head(age.county)
 age.county$id <- 1:nrow(age.county)
-age.data <- lapply(split(age.county, age.county$id), function(x){data.frame(AGEn = c(1:6),  Freq  = c(x$x1, x$x2,x$x3,x$x4,x$x5,x$x6))                                                             
-}
+age.data <- lapply(
+  split(age.county, age.county$id), 
+  function(x){
+      data.frame(AGEn = c(1:6),
+                 Freq  = c(x$x1, x$x2,x$x3,x$x4,x$x5,x$x6))                                                             
+  }
 )
 head(age.data[48])
 ```
@@ -232,19 +287,47 @@ As our data is ready for raking, we proceed for raking next. We  do it in a for 
 #Need library "survey"
 library (survey)
 # Loop function
-for (i in 1:length(hisp.data)){ #length must be equal to 58=total number of county
-  tryCatch({ #If there is any error it will give error message but still continue the loop 
-  f=seq(6001, 6115, by=2)
-  s<-as.character(f[i])
-  name=paste('perweight_',s, '.CSV',sep="")
-  name=p(paste("Weight/PersonWeight_County",name,sep="/"))
-  temp1<- svydesign(id=~1, weights=~PERWGT,data=percnty_list[[i]], fpc=~fpc,pps="brewer") # Survey design 
-  temp3<- rake(temp1, list(~RACEn,~HISPn,~AGEn,~EMPLYn,~GENDn), list(race.data[[i]],hisp.data[[i]],age.data[[i]],emply.data[[i]],gend.data[[i]]),control = list(maxit = 100)) # Raking
-  temp4<-trimWeights(temp3,lower=(min(weights(temp3))),upper=(5*mean(weights(temp3))))# Trim the weights (max value no greater than 5 times the mean)
-  temp5<-cbind(temp4$variables[1:3],weights(temp4))# Combine weight with sample no and person no
-  colnames(temp5)[4] <- "NEXPPERWGT" # change the column name of weight variable
-  write.table(temp5, file =name,sep=",", row.names=FALSE, col.names=TRUE) # Save as csv file
-  }, error=function(e){cat("ERROR :",conditionMessage(e), "\n",finally=print(name))}) # Show the errors and the file names
+# NOTE: length must be equal to 58=total number of county
+for (i in 1:length(hisp.data)) {
+  tryCatch({
+    # If there is any error it will give error message
+    # but still continue the loop 
+    f=seq(6001, 6115, by=2)
+    s<-as.character(f[i])
+    name=paste('perweight_',s, '.CSV',sep="")
+    name=p(paste("Weight/PersonWeight_County",name,sep="/"))
+    temp1<- svydesign(
+      id=~1, 
+      weights=~PERWGT,data=percnty_list[[i]], 
+      fpc=~fpc,pps="brewer") # Survey design 
+    
+    # Perform raking
+    temp3<- rake(
+      temp1, 
+      list(~RACEn,~HISPn,~AGEn,~EMPLYn,~GENDn), 
+      list(
+        race.data[[i]], hisp.data[[i]], age.data[[i]],
+        emply.data[[i]], gend.data[[i]]),
+      control = list(maxit = 100)
+    )
+    
+    # Trim the weights (max value no greater than 5 times the mean)
+    temp4<-trimWeights(
+      temp3,
+      lower=(min(weights(temp3))),
+      upper=(5*mean(weights(temp3))))
+    
+    # Combine weight with sample no and person no
+    temp5<-cbind(temp4$variables[1:3],weights(temp4))
+    
+    # change the column name of weight variable
+    colnames(temp5)[4] <- "NEXPPERWGT" 
+    
+    # Save as csv file
+    write.table(temp5, file =name,sep=",", row.names=FALSE, col.names=TRUE) 
+  }, error=function(e){
+    # Show the errors and the file names
+    cat("ERROR :",conditionMessage(e), "\n",finally=print(name))}) 
 }
 ```
 
@@ -252,22 +335,46 @@ After running the codes, we get nine errors for nine county data sets and we nee
 
 ```{r pw-15,cache=TRUE}
 # Loop function for the rest of the counties
-d=c(2,8,11,14,25,26,46,52,53) # # only for counties which gave error for previous cases (HCTFIP=3(i=2);HCTFIP=15(i=8);HCTFIP=21(i=11) and so on)
+# only for counties which gave error for previous cases 
+#(HCTFIP=3(i=2);HCTFIP=15(i=8);HCTFIP=21(i=11) and so on)
+d=c(2,8,11,14,25,26,46,52,53) # 
 for (i in d){ 
   tryCatch({ 
     f=seq(6001, 6115, by=2)
     s<-as.character(f[i])
     name=paste('perweight_',s, '.CSV',sep="")
     name=p(paste("Weight/PersonWeight_County",name,sep="/"))
-    temp1<- svydesign(id=~1, weights=~EXPPERWGT,data=percnty_list[[i]], fpc=~fpc,pps="brewer") # Survey design 
+    
+    # Survey design 
+    temp1<- svydesign(id=~1, weights=~EXPPERWGT,data=percnty_list[[i]], 
+                      fpc=~fpc,pps="brewer") 
+    
     # Raking
-    temp3<- rake(temp1, list(~HISPn,~AGEn,~EMPLYn,~GENDn), list(hisp.data[[i]],age.data[[i]],emply.data[[i]],gend.data[[i]]),control = list(maxit = 100)) 
-    temp4<-trimWeights(temp3,lower=(min(weights(temp3))),upper=(5*mean(weights(temp3))))# Trim the weights (max value no greater than 5 times the mean)
-    temp5<-cbind(temp4$variables[1:3],weights(temp4))# Combine weight with sample no and person no
-    colnames(temp5)[4] <- "NEXPPERWGT" # change the column name of weight variable
-    write.table(temp5, file =name,sep=",", row.names=FALSE, col.names=TRUE) # Save as csv file
-  }, error=function(e){cat("ERROR :",conditionMessage(e), "\n",finally=print(name))})# Show the errors and the file names
-}
+    temp3<- rake(
+      temp1, 
+      list(~HISPn,~AGEn,~EMPLYn,~GENDn), 
+      list(hisp.data[[i]],age.data[[i]],emply.data[[i]],gend.data[[i]]),
+      control = list(maxit = 100)) 
+    
+    # Trim the weights (max value no greater than 5 times the mean)
+    temp4<-trimWeights(
+      temp3,
+      lower=(min(weights(temp3))),
+      upper=(5*mean(weights(temp3))))
+    
+    # Combine weight with sample no and person no
+    temp5<-cbind(temp4$variables[1:3],weights(temp4))
+    
+    # change the column name of weight variable
+    colnames(temp5)[4] <- "NEXPPERWGT" 
+    
+    # Save as csv file
+    write.table(temp5, file =name,sep=",", row.names=FALSE, col.names=TRUE) 
+    }, error=function(e){
+      # Show the errors and the file names
+      cat("ERROR :",conditionMessage(e), "\n",finally=print(name))
+      })
+  }
 ```
 
 There is no error now. So, we have expanded person weights for all 58 counties and these weights are saved in the directory we specified earlier. We need to combine these weights of 58 counties into one file. The following codes are used to import and combine them.
@@ -321,9 +428,9 @@ head(nperweight2)
 Now we have a file with new county wide expaned and unexpanded person weights. Here we save it in our desired directory.
 
 ```{r pw-20,cache=TRUE}
-# Save 
+# Save as csv
 setwd(p("Weight/NewWeightData"))
-write.csv(nperweight2, file="nperweight922015.csv",row.names = FALSE) # save as csv
+write.csv(nperweight2, file="nperweight922015.csv",row.names = FALSE) 
 ```
 
 We want to merge the new weight with person data file.

@@ -6,8 +6,9 @@ output: pdf_document
 ---
 
 ```{r sr1-setup-0,echo=FALSE,cache=FALSE}
-if ( !exists("rd") ) { rd <- gsub("(.*?chts-book).*","\\1",getwd()) }
-source(paste(rd,'R/setup-hooks.R',sep="/"))
+if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
+source(paste(rd,"R/setup-hooks.R",sep="/"))
+write(paste("Using Root Directory",rd,"\n"),stderr())
 ```
 
 ```{r results='asis',echo=FALSE,cache=FALSE}
@@ -16,7 +17,19 @@ SEC('#','Summary and Methodology')
 ```
 
 
-We found 269 household respondents (622 person respondents) including 98 GPS respondents within 1 km on each side of the SR1 (San Francisco Golden Gate Bridge to Pacifica). We generated tables by mode for the following: total number of trips, total trip distance, average trip distance, total trip duration, average trip duration.  We also generated tables for the total number of trips by trip purpose and for work trips by mode. Here, we actually generated tables for total number of trips by activity purpose since the trip purpose is given in the database as activity purpose and there is more than one activity in many single trips. We considered each activity as a trip. We only considered the purpose code (APURP) 9 for work trips.  We generated every table for both weighted and unweighted results. We used county wide weights to generate weighted results. 
+We found 269 household respondents (622 person respondents) including
+98 GPS respondents within 1 km on each side of the SR1 (San Francisco
+Golden Gate Bridge to Pacifica). We generated tables by mode for the
+following: total number of trips, total trip distance, average trip
+distance, total trip duration, average trip duration.  We also
+generated tables for the total number of trips by trip purpose and for
+work trips by mode. Here, we actually generated tables for total
+number of trips by activity purpose since the trip purpose is given in
+the database as activity purpose and there is more than one activity
+in many single trips. We considered each activity as a trip. We only
+considered the purpose code (APURP) 9 for work trips.  We generated
+every table for both weighted and unweighted results. We used county
+wide weights to generate weighted results.
 
 
 ```{r results='asis',echo=FALSE,cache=FALSE}
@@ -25,14 +38,16 @@ SEC('#','R Code and Implementation')
 ```
 
 
-The following commands are used to generate the results.
-
-To answer the questions we need the place file with new county wide person weight that we computed in the section 4.1.
-
 ```{r sr1-0,echo=FALSE}
 if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
 p <- function(ps) { return(paste(rd,ps,sep="/")) }
 ```
+
+The following commands are used to generate the results.
+
+To answer the questions we need the place file with new county wide
+person weight that we computed in the section on
+[County Level Person Weights].
 
 
 ```{r sr1-1, }
@@ -40,14 +55,76 @@ p <- function(ps) { return(paste(rd,ps,sep="/")) }
 nplace<- read.csv(p("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
 ```
 
-Next, we  convert the `MODE` codes into text descriptions.
+Next, we convert the `MODE` codes into text descriptions.
 
 ```{r sr1-2, }
 # For recoding Mode
-nplace$Mode<-ifelse(nplace$MODE==1,"Walk",ifelse(nplace$MODE==2,"Bike",ifelse(nplace$MODE==3,"Wheelchair/Mobility Scooter",ifelse(nplace$MODE==4,"Other Non-Motorized",ifelse(nplace$MODE==5,"Auto/Van/Truck Driver",ifelse(nplace$MODE==6,"Auto /Van/Truck Passenger",ifelse(nplace$MODE==7,"Carpool/Vanpool",ifelse(nplace$MODE==8,"Motorcycle",ifelse(nplace$MODE==9,"Taxi/Hired Car/Limo",ifelse(nplace$MODE==10,"Rental Car/Vehicle",ifelse(nplace$MODE==11,"Private shuttle ",ifelse(nplace$MODE==12,"Greyhound Bus",ifelse(nplace$MODE==13,"Plane",ifelse(nplace$MODE==14,"Other Private Transit",ifelse(nplace$MODE==15,"Local Bus,Rapid Bus",ifelse(nplace$MODE==16,"Express Bus",ifelse(nplace$MODE==17,"Premium Bus",ifelse(nplace$MODE==18,"School Bus",ifelse(nplace$MODE==19,"Public Transit Shuttle",ifelse(nplace$MODE==20,"Air BART/LAX Fly Away",ifelse(nplace$MODE==21,"Dial-a-Ride/Paratransit", ifelse(nplace$MODE==22,"Amtrak Bus", ifelse(nplace$MODE==23,"Other Bus ", ifelse(nplace$MODE==24,"BART,Metro",ifelse(nplace$MODE==25,"ACE, Amtrak etc",ifelse(nplace$MODE==26,"Metro",ifelse(nplace$MODE==27,"Street Car",ifelse(nplace$MODE==28,"Other Rail",ifelse(nplace$MODE==29,"Ferry / Boat","Don't Know/Refused")))))))))))))))))))))))))))))
+nplace$Mode<-
+  ifelse(
+    nplace$MODE==1,"Walk",
+  ifelse(
+      nplace$MODE==2,"Bike",
+  ifelse(
+    nplace$MODE==3,"Wheelchair/Mobility Scooter",
+  ifelse(
+    nplace$MODE==4,"Other Non-Motorized",
+  ifelse(
+    nplace$MODE==5,"Auto/Van/Truck Driver",
+  ifelse(
+    nplace$MODE==6,"Auto /Van/Truck Passenger",
+  ifelse(
+    nplace$MODE==7,"Carpool/Vanpool",
+  ifelse(
+    nplace$MODE==8,"Motorcycle",
+  ifelse(
+    nplace$MODE==9,"Taxi/Hired Car/Limo",
+  ifelse(
+    nplace$MODE==10,"Rental Car/Vehicle",
+  ifelse(
+    nplace$MODE==11,"Private shuttle ",
+  ifelse(
+    nplace$MODE==12,"Greyhound Bus",
+  ifelse(
+    nplace$MODE==13,"Plane",
+  ifelse(
+    nplace$MODE==14,"Other Private Transit",
+  ifelse(
+    nplace$MODE==15,"Local Bus,Rapid Bus",
+  ifelse(
+    nplace$MODE==16,"Express Bus",
+  ifelse(
+    nplace$MODE==17,"Premium Bus",
+  ifelse(
+    nplace$MODE==18,"School Bus",
+  ifelse(
+    nplace$MODE==19,"Public Transit Shuttle",
+  ifelse(
+    nplace$MODE==20,"Air BART/LAX Fly Away",
+  ifelse(
+    nplace$MODE==21,"Dial-a-Ride/Paratransit", 
+  ifelse(
+    nplace$MODE==22,"Amtrak Bus", 
+  ifelse(
+    nplace$MODE==23,"Other Bus ", 
+  ifelse(
+    nplace$MODE==24,"BART,Metro",
+  ifelse(
+    nplace$MODE==25,"ACE, Amtrak etc",
+  ifelse(
+    nplace$MODE==26,"Metro",
+  ifelse(
+    nplace$MODE==27,"Street Car",
+  ifelse(
+    nplace$MODE==28,"Other Rail",
+  ifelse(
+    nplace$MODE==29,"Ferry / Boat","Don't Know/Refused"
+  )))))))))))))))))))))))))))))
 ```
 
-We  found 269 household respondents (622 person respondents) including 98 GPS respondents within 1 km on each side of the SR1 (San Francisco Golden Gate Bridge to Pacifica) using ArcGis and we saved it in a 'csv' file. Now we need to import that file. 
+We found 269 household respondents (622 person respondents) including
+98 GPS respondents within 1 km on each side of the SR1 (San Francisco
+Golden Gate Bridge to Pacifica) using ArcGis and we saved it in a
+'csv' file. Now we need to import that file.
 
 ```{r sr1-3, }
 # Import SR1 sample households (obtained from GIS) 
@@ -133,7 +210,8 @@ SEC('##','Total Trip duration for all trips by mode for SR1 corridor')
 ```
 
 
-Next, we perform a similar computation for Total Trip duration for all trips for SR1 corridor, by mode.
+Next, we perform a similar computation for Total Trip duration for all
+trips for SR1 corridor, by mode.
 
 ```{r sr1-8, }
 ## Generate frequency for trip Mode
@@ -271,8 +349,7 @@ appropriate weights.  Here we load and merge them.
 
 
 ```{r sr1-16,}
-#Import the activity level variables csv file and give a new name
-#act_data <- read.csv("c:/Users/user/Documents/Suman_research/Caltrans Project/Data/deliv_activity.csv", header=TRUE)
+#Import the activity level data frame and give a new name
 library(chts2011)
 act_data <- chts_act
 names(act_data)
@@ -285,7 +362,86 @@ For display purposes, we convert the purpose codes into readable strings.
 
 ```{r sr1-17,}
 # Recoding activity purpose
-act_place$Actpur<-ifelse(act_place$APURP==1," Personal Activities",ifelse(act_place$APURP==2," Preparing Meals/Eating ",ifelse(act_place$APURP==3," Hosting Visitors",ifelse(act_place$APURP==4," Exercise ",ifelse(act_place$APURP==5," Study/Schoolwork ",ifelse(act_place$APURP==6," Work For Pay At Home",ifelse(act_place$APURP==7,"Using Computer/Telephone/Cell",ifelse(act_place$APURP==8," All Other Activities At My Home ",ifelse(act_place$APURP==9," Work/Job Duties ",ifelse(act_place$APURP==10," Training",ifelse(act_place$APURP==11," Meals At Work ",ifelse(act_place$APURP==12," Work-Sponsored Social Activities ",ifelse(act_place$APURP==13," Non-Work Related Activities",ifelse(act_place$APURP==14," Exercise/Sports ",ifelse(act_place$APURP==15," Volunteer Work/Activities ",ifelse(act_place$APURP==16," All Other Work-Related Activities",ifelse(act_place$APURP==17," In School/Classroom/Laboratory ",ifelse(act_place$APURP==18," Meals At School/College ",ifelse(act_place$APURP==19," After School Sports/Physical Activity ",ifelse(act_place$APURP==20," All Other After SchoolActivities ",ifelse(act_place$APURP==21," Change Type Of Transportation/Transfer ", ifelse(act_place$APURP==22," Pickup/Drop Off Passenger(S) ", ifelse(act_place$APURP==23," Drive Through Meals", ifelse(act_place$APURP==24," Drive Through Other (ATM, Bank) ",ifelse(act_place$APURP==25," Work-Related",ifelse(act_place$APURP==26," Service Private Vehicle",ifelse(act_place$APURP==27," Routine Shopping ",ifelse(act_place$APURP==28," Shopping For Major Purchases",ifelse(act_place$APURP==29," Household Errands", ifelse(act_place$APURP==30," Personal Business", ifelse(act_place$APURP==31," Eat Meal at Restaurant/Diner", ifelse(act_place$APURP==32," Health Care", ifelse(act_place$APURP==33," Civic/Religious Activities", ifelse(act_place$APURP==34," Outdoor Exercise", ifelse(act_place$APURP==35," Indoor Exercise ", ifelse(act_place$APURP==36," Entertainment ", ifelse(act_place$APURP==37," Social/Visit Friends/Relatives", ifelse(act_place$APURP==38," Other ", ifelse(act_place$APURP==39," Loop Trip", " Don't Know/Refused")))))))))))))))))))))))))))))))))))))))
+act_place$Actpur<-
+  ifelse(
+    act_place$APURP==1," Personal Activities",
+  ifelse(
+    act_place$APURP==2," Preparing Meals/Eating ",
+  ifelse(
+    act_place$APURP==3," Hosting Visitors",
+  ifelse(
+    act_place$APURP==4," Exercise ",
+  ifelse(
+    act_place$APURP==5," Study/Schoolwork ",
+  ifelse(
+    act_place$APURP==6," Work For Pay At Home",
+  ifelse(
+    act_place$APURP==7,"Using Computer/Telephone/Cell",
+  ifelse(
+    act_place$APURP==8," All Other Activities At My Home ",
+  ifelse(
+    act_place$APURP==9," Work/Job Duties ",
+  ifelse(
+    act_place$APURP==10," Training",
+  ifelse(
+    act_place$APURP==11," Meals At Work ",
+  ifelse(
+    act_place$APURP==12," Work-Sponsored Social Activities ",
+  ifelse(
+    act_place$APURP==13," Non-Work Related Activities",
+  ifelse(
+    act_place$APURP==14," Exercise/Sports ",
+  ifelse(
+    act_place$APURP==15," Volunteer Work/Activities ",
+  ifelse(
+    act_place$APURP==16," All Other Work-Related Activities",
+  ifelse(
+    act_place$APURP==17," In School/Classroom/Laboratory ",
+  ifelse(
+    act_place$APURP==18," Meals At School/College ",
+  ifelse(
+    act_place$APURP==19," After School Sports/Physical Activity ",
+  ifelse(
+    act_place$APURP==20," All Other After SchoolActivities ",
+  ifelse(
+    act_place$APURP==21," Change Type Of Transportation/Transfer ", 
+  ifelse(
+    act_place$APURP==22," Pickup/Drop Off Passenger(S) ", 
+  ifelse(
+    act_place$APURP==23," Drive Through Meals", 
+  ifelse(
+    act_place$APURP==24," Drive Through Other (ATM, Bank) ",
+  ifelse(
+    act_place$APURP==25," Work-Related",
+  ifelse(
+    act_place$APURP==26," Service Private Vehicle",
+  ifelse(
+    act_place$APURP==27," Routine Shopping ",
+  ifelse(
+    act_place$APURP==28," Shopping For Major Purchases",
+  ifelse(
+    act_place$APURP==29," Household Errands", 
+  ifelse(
+    act_place$APURP==30," Personal Business", 
+  ifelse(
+    act_place$APURP==31," Eat Meal at Restaurant/Diner", 
+  ifelse(
+    act_place$APURP==32," Health Care", 
+  ifelse(
+    act_place$APURP==33," Civic/Religious Activities", 
+  ifelse(
+    act_place$APURP==34," Outdoor Exercise", 
+  ifelse(
+    act_place$APURP==35," Indoor Exercise ", 
+  ifelse(
+    act_place$APURP==36," Entertainment ", 
+  ifelse(
+    act_place$APURP==37," Social/Visit Friends/Relatives", 
+  ifelse(
+    act_place$APURP==38," Other ", 
+  ifelse(
+    act_place$APURP==39," Loop Trip", " Don't Know/Refused"
+  )))))))))))))))))))))))))))))))))))))))
 ```
 
 Now, merge the this data with SR1 data table.
@@ -294,7 +450,8 @@ Now, merge the this data with SR1 data table.
 # Merge the SR1 sample data with activity level data
 sr1_act<-merge(act_place,sr1, by ="SAMPN", all = FALSE)
 
-# Check the Length of the sampn number of new file (it should be 269)
+# Check the Length of the sampn number of the new data frame
+# (it should be 269)
 length(unique(sr1_act$SAMPN))
 names(sr1_act)
 head(sr1_act)
@@ -306,7 +463,8 @@ SEC('##','Trip Purposes for trips along SR1 Corridor')
 ```
 
 
-We compute the observations for trip purpose for trips of SR1 corridor based on new weights.
+We compute the observations for trip purpose for trips of SR1 corridor
+based on new weights.
 
 ```{r sr1-19,}
 ## Generate frequency for trip purpose
@@ -360,9 +518,10 @@ SEC('##','Work Trips by Mode')
 ```
 
 
-We want to generate work trips by Mode for  SR1 Corridor.
+We want to generate work trips by Mode for SR1 Corridor.
 
-First, we reuse the merged activity table from above for trips activities (and associated trips), and subset it for work trips only.
+First, we reuse the merged activity table from above for trips
+activities (and associated trips), and subset it for work trips only.
 
 ```{r sr1-22,}
 # Create a subset for work trips
