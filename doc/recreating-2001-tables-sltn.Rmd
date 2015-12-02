@@ -142,8 +142,7 @@ adat[['Vehicles Available']] <- round(sum(chts_hh$HHVEH*chts_hh$EXPHHWGT),0)
 
 The next element is vehicles in use on the average weekday.  This requires
 weights based upon the subsample of households whose data was collected on a
-weekday.  We loaded these weights earlier.  **FIXME: Technically, this should
-omit holidays, which is a step we leave for later improvement.**
+weekday.  We loaded these weights earlier.
 
 To compute the vehicles in use, we filter all `place` records for those in which
 `VEHNO` is between 1 and 8.  This indicates that a household vehicle was used
@@ -1166,7 +1165,7 @@ household (`HHLIC`), first computing the weighted mean for the state.
 # Statewide
 lic.ca <- chts_hh %>% summarise(
   County='California',  
-  Licensed=round(wtd.mean(HHLIC,weights=EXPHHWGT),1)
+  Licensed=round(wtd.mean(HHLIC,weights=EXPHHWGT,na.rm=TRUE),1)
   )
 ```
 
@@ -1221,7 +1220,7 @@ variable by state and county.  Here is the state computation.
 ```{r rt-table-6}
 emp.ca <- chts_hh %>% summarise(
   County='California',
-  Employed=round(wtd.mean(HHEMP,weights=EXPHHWGT),1)
+  Employed=round(wtd.mean(HHEMP,weights=EXPHHWGT,na.rm=TRUE),1)
   )
 ```
 
