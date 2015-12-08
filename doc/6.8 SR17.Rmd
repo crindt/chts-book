@@ -20,8 +20,18 @@ write(paste("Using Root Directory",rd,"\n"),stderr())
 SEC('#','Summary and Methodology')
 ```
 
-
-We found 74 household respondents (177 person respondents) including 8 GPS respondents within 1 km buffer of each side of sr177 (see Map 1). We took the same length of SR 17 as it is in the TCR for SR 17 (provided by Caltrans). We generated tables by mode for the following: total number of trips, total trip distance, average trip distance, total trip duration, average trip duration.  We also generated tables for the total number of trips by trip purpose and for work trips by mode. Here, we actually generated tables for total number of trips by activity purpose since the trip purpose is given in the database as activity purpose and there is more than one activity in many single trips. We considered each activity as a trip. We only considered the purpose code (APURP) 9 for work trips.  We generated every table for both weighted and unweighted results. We used county wide weight to generate weighted results. 
+In this subsection, we show how 2012 CHTS data can be used to generate useful statistics in the SR-17 corridor. 
+This is another illustration of how to put the 2012 CHTS data for Caltrans. 
+Steps of this analysis are similar to those for the analysis of the SR-1.
+We found 74 household respondents (177 person respondents) including 8 GPS respondents within a 1 km buffer 
+on each side of the SR-17. To delineate the SR-17 corridor, we relied on Caltrans' definition. 
+We generated tables by mode for 1) total number of trips; 2) total trip duration; 3) average trip duration;  
+4) total trip distance; and 5) average trip distance. We also generated tables for the total number of trips 
+by trip purpose (task 6) and for work trips by mode (task 7). For these, we generated tables for 
+total number of trips by activity purpose since trip purpose is given in the data as activity purpose 
+and there is more than one activity for many single trips. We considered each activity as a trip. For work trips, 
+we only considered purpose code (APURP) 9. We generated every table for both weighted and unweighted results. 
+We used countywide weights to generate weighted results. 
 
 
 ```{r results='asis',echo=FALSE,cache=FALSE}
@@ -30,9 +40,7 @@ SEC('#','R Code and Implementation')
 ```
 
 
-The following commands are used to generate the results.
-
-To answer the questions we need the place file with new county wide person weight that we computed in the section 4.1.
+To perform the 7 tasks outlined above, we need the place file with the new countywide person weights that were computed in Section 4.1.
 
 ```{r sr17-0,echo=FALSE}
 if ( !exists("rd") ) { rd <- "/Users/crindt/chts-book" }
@@ -45,21 +53,22 @@ source(p("R/setup-hooks.R"))
 nplace<- read.csv(p("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
 ```
 
-Next, we  convert the `MODE` codes into text descriptions.
+Next, we convert the `MODE` codes into text descriptions:
 
 ```{r sr17-2, } 
 # For recoding Mode 
 nplace$Mode<-ifelse(nplace$MODE==1,"Walk",ifelse(nplace$MODE==2,"Bike",ifelse(nplace$MODE==3,"Wheelchair/Mobility Scooter",ifelse(nplace$MODE==4,"Other Non-Motorized",ifelse(nplace$MODE==5,"Auto/Van/Truck Driver",ifelse(nplace$MODE==6,"Auto /Van/Truck Passenger",ifelse(nplace$MODE==7,"Carpool/Vanpool",ifelse(nplace$MODE==8,"Motorcycle",ifelse(nplace$MODE==9,"Taxi/Hired Car/Limo",ifelse(nplace$MODE==10,"Rental Car/Vehicle",ifelse(nplace$MODE==11,"Private shuttle ",ifelse(nplace$MODE==12,"Greyhound Bus",ifelse(nplace$MODE==13,"Plane",ifelse(nplace$MODE==14,"Other Private Transit",ifelse(nplace$MODE==15,"Local Bus,Rapid Bus",ifelse(nplace$MODE==16,"Express Bus",ifelse(nplace$MODE==17,"Premium Bus",ifelse(nplace$MODE==18,"School Bus",ifelse(nplace$MODE==19,"Public Transit Shuttle",ifelse(nplace$MODE==20,"Air BART/LAX Fly Away",ifelse(nplace$MODE==21,"Dial-a-Ride/Paratransit", ifelse(nplace$MODE==22,"Amtrak Bus", ifelse(nplace$MODE==23,"Other Bus ", ifelse(nplace$MODE==24,"BART,Metro",ifelse(nplace$MODE==25,"ACE, Amtrak etc",ifelse(nplace$MODE==26,"Metro",ifelse(nplace$MODE==27,"Street Car",ifelse(nplace$MODE==28,"Other Rail",ifelse(nplace$MODE==29,"Ferry / Boat","Don't Know/Refused")))))))))))))))))))))))))))))
 ```
 
-We  found 74 household respondents (177 person respondents) including 8 GPS respondents within 1 km on each side of the SR 17 using ArcGis and we saved it in a 'csv' file. Now we need to import that file. 
+We  found 74 household respondents (177 person respondents) including 8 GPS respondents within 1 km 
+on each side of the SR 17 using ArcGis and we saved it in a 'csv' file. Let us import that file: 
 
 ```{r sr17-3, }
 #Import SR17 sample households (obtained from GIS) 
 sr17 <- read.csv(p("District 4/SR 17/SR17_block1km.csv"), header=TRUE)
 ```
 
-And, we merge this file with place file.
+And, let us merge it with the place file:
 
 ```{r sr17-4, }
 # Merge the SR1 sample data with place level data
@@ -78,7 +87,7 @@ SEC('##','Modal split for SR 17 corridor')
 ```
 
 
-First, we generate trip frequency by mode.
+Task 1: Let us generate trip frequencies by mode:
 
 ```{r sr17-5, }
 ## Generate frequency for trip Mode
@@ -95,7 +104,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
 temp1
 ```
 
-Then, we compute the weighted trip frequency.
+Now, compute weighted trip frequencies:
 
 ```{r sr17-6, }
 ## Create weighted frequency
@@ -110,8 +119,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
 temp2
 ```
 
-Now we can save these results in a `csv` file for later use.
-
+Finally, save these results in a `csv` file for later use:
 
 ```{r sr17-7, }
 ## Merge the two files and save
@@ -136,7 +144,7 @@ SEC('##','Total Trip duration for all trips by mode for SR 17 corridor')
 ```
 
 
-Next, we perform a similar computation for Total Trip duration for all trips for SR 17 corridor, by mode.
+Task 2: Let us apply a similar procedure to find Total Trip duration for all trips, by mode:
 
 ```{r sr17-8, }
 ## Generate frequency for trip Mode
@@ -151,7 +159,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","TDu_UW","Per_UW")
 temp1
 ```
 
-Again, we compute the weighted frequency.
+Compute weighted frequencies:
 
 ```{r sr17-9, }
 ## Create weighted frequency
@@ -167,7 +175,8 @@ colnames(temp2)[c(1:3)] <- c("Mode","TDu_W","Per_W")
 temp2
 ```
 
-Now, we compute the average trip duration.
+
+Task 3: Let us find average trip durations:
 
 ```{r sr17-10,}
 ## Merge the two files and save
@@ -184,7 +193,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ```
 
-And as before, we save the results for later use.
+Now, save the results for later use:
 
 ```{r sr17-11,}
 ## Save as csv file
@@ -202,7 +211,7 @@ SEC('###','Trip distance by mode')
 ```
 
 
-Moving on, we determine Total Trip distance for SR 17 Corridor, by mode.
+Task 4: Total Trip distance, by mode.
 
 
 ```{r sr17-12,}
@@ -218,7 +227,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","TDis_UW","Per_UW")
 temp1
 ```
 
-Again, we compute the weighted frequency.
+Now compute weighted frequencies:
 
 ```{r sr17-13,}
 ## Create weighted frequency
@@ -234,7 +243,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","TDis_W","Per_W")
 temp2
 ```
 
-Now, we compute the average trip distance.
+Task 5: Average trip distances:
 
 ```{r sr17-14,}
 ## Merge the two files and save
@@ -251,7 +260,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ```
 
-And, we save the results for later use.
+Save the results for later use:
 
 ```{r sr17-15,}
 ## Save as csv file
@@ -269,9 +278,8 @@ SEC('##','Trip Purpose Calculations')
 ```
 
 
-Now we need trip purpose breakdown, so we need to import activity level data with the 
-appropriate weights.  Here we load and merge them.
-
+Task 6: Trip purpose breakdown. For this task, we need to import activity level data with appropriate weights.
+Let us load and merge these two datasets:
 
 ```{r sr17-16,}
 #Import the activity level variables dataframe and give a new name
@@ -369,7 +377,7 @@ act_place$Actpur <-
   )))))))))))))))))))))))))))))))))))))))
 ```
 
-Now, merge the this data with SR 17 data table.
+Now, merge the these data with the SR 17 data table:
 
 ```{r sr17-18,}
 # Merge the sr17 sample data with activity level data
@@ -387,7 +395,7 @@ SEC('##','Trip Purposes for trips along SR 17 Corridor')
 ```
 
 
-We compute the observations for trip purpose for trips of SR 17 corridor based on new weights.
+Let us compute weighted trip purpose results for the SR-17 corridor based on new county weights:
 
 ```{r sr17-19,}
 ## Generate frequency for trip purpose
@@ -402,7 +410,7 @@ colnames(temp1)[c(1:3)] <- c("Apurp","Ob_UW","Per_UW")
 temp1
 ```
 
-This is followed by the weighted trip purpose frequencies.
+Next, let us find weighted trip purpose frequencies:
 
 ```{r sr17-20,}
 ## Create weighted frequency
@@ -417,7 +425,7 @@ colnames(temp2)[c(1:3)] <- c("Apurp","Ob_W","Per_W")
 temp2
 ```
 
-And here we save the results.
+And here we save the results in a csv file:
 
 ```{r sr17-21,}
 ## Merge the two files and save
@@ -441,9 +449,9 @@ SEC('##','Work Trips by Mode')
 ```
 
 
-We want to generate work trips by Mode for  SR 17 Corridor.
+Task 7. Finally, let us calculate the number of work trips by Mode for the SR-17 Corridor.
 
-First, we reuse the merged activity table from above for trips activities (and associated trips), and subset it for work trips only.
+First, we reuse the merged activity table from above for trips activities (and associated trips), and subset it for work trips only:
 
 ```{r sr17-22,}
 # Create a subset for work trips
@@ -451,7 +459,7 @@ actw_sr17<-subset(sr17_act,APURP==9)
 head(actw_sr17$Mode)
 ```
 
-Now, we can determine the observations of each Mode used for work trips.
+Second, we find the nu,ber of work trips by mode: 
 
 ```{r sr17-23,}
 ## Generate frequency for trip Mode
@@ -466,7 +474,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
 temp1
 ```
 
-Given those, we can expand them with the county wide weights.
+We can now expand these results using the new countywide weights:
 
 ```{r sr17-24,}
 ## Create weighted frequency
@@ -481,7 +489,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
 temp2
 ```
 
-And again, we finish by saving the results.
+Finally, let us save our results:
 
 ```{r sr17-25,}
 ## Merge the two files and save
@@ -497,3 +505,5 @@ rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
+
+We are done with our 7 tasks.
