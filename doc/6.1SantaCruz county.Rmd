@@ -23,20 +23,20 @@ write(paste("Using Root Directory",rd,"\n"),stderr())
 SEC('#','Summary and Methodology')
 ```
 
-We generate tables by mode for the following: total number of trips,
+In this sub-section, We learn how to generate tables by mode for the following: total number of trips,
 total trip distance, average trip distance, total trip duration,
 average trip duration, and total number of trips for driving alone.
-To calculate the drive alone numbers we extract data for total
+To calculate the "drive alone"" numbers we extract data for total
 travelers (`TOTTR=1`) and `MODE={5, 6, 7, 8, 10}` (basically, drivers
 of cars, trucks, or motorcycles). We also generate tables for the
 total number of trips by trip purpose and for work trips by
-mode. Here, we actually generate tables for total number of trips by
-activity purpose since the trip purpose is given in the database as
-activity purpose and there is more than one activity in many single
-trips. We consider each activity as a trip. We only consider the
+mode. Here, we actually generate tables for the total number of trips by
+activity purpose since the trip purpose is given in the database as the
+activity purpose and although many trips are associated with more than one activity, 
+We consider each activity as a trip. We only consider the
 purpose code (`APURP=9`) for work trips.  We generate every table for
 both trips originating in and ending in Santa Cruz County. We use the
-new county wide weights of the Santa Cruz County to generate weighted
+new county wide weights of Santa Cruz County to generate weighted
 results for trips that originated in Santa Cruz County and statewide
 weights to generate weighted results for trips that originated outside
 of Santa Cruz County.
@@ -62,8 +62,8 @@ SEC('###','Mode split calculations')
 ```
 
 
-To answer the questions we need the place level table (with weights)
-that we computed in our earlier chapter on [Calculating Weights].
+To get started we need the place level table with weights
+that we computed in Chapter 4.
 
 ```{r scc-0,echo=FALSE}
 if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
@@ -83,7 +83,7 @@ head(nplace)# Show first ten observations
 
 ```
 
-Next, we do some manipulations to determine origin county and convert the `MODE` codes into 
+Next, we look for the origin county and convert the `MODE` codes into 
 text descriptions.
 
 ```{r scc-2}
@@ -131,10 +131,10 @@ nplacedata$Mode <-
 
 ```
 
-Now, we first focus on trips ending in Santa Cruz County.  Here we use
-different weights depending on the origin of the trip.  Specifically,
-when the origin is Santa Cruz County, we use the county-specific
-weights.  When the origin is outside Santa Cruz County, we use the
+Let us now focus on trips ending in Santa Cruz County.  We use
+different weights depending on the origin of a trip.  Specifically,
+when the origin is Santa Cruz County, we use county-specific
+weights and when the origin is outside Santa Cruz County, we use the
 statewide weights.
 
 ```{r scc-3}
@@ -154,7 +154,7 @@ place_87$NTCFW <-
 head(place_87)
 ```
 
-So `place_87$NTCFW` now contains the trips ending in Santa Cruz county
+At this point, `place_87$NTCFW` contains the trips ending in Santa Cruz County
 with appropriate expansion weights appended.  Now we can generate
 observations for modal split for trips to Santa Cruz based on these
 weights.
@@ -175,7 +175,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
 temp1
 ```
 
-Now we compute the weighted frequency.
+Now we compute weighted frequencies:
 
 ```{r scc-5}
 ## Create weighted frequency
@@ -190,7 +190,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
 temp2
 ```
 
-Now we can save these results in a `csv` file for later use.
+Let us save these results in a `csv` file for later use:
 
 ```{r scc-6}
 ## Merge the two files and save
@@ -214,7 +214,7 @@ SEC('###','Trip duration by mode')
 ```
 
 
-Next, we perform a similar computation for Total Trip duration for all
+Next, we perform similar computations for Total Trip duration for all
 trips ending in Santa Cruz, by mode.
 
 ```{r scc-7}
@@ -230,7 +230,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","TDu_UW","Per_UW")
 temp1
 ```
 
-Again, we compute the weighted frequency.
+Let us compute weighted frequencies:
 
 ```{r scc-8}
 ## Create weighted frequency
@@ -247,7 +247,7 @@ temp2
 ```
 
 
-And as before, we save the results for later use. 
+Now save the results for later use:
 
 ```{r scc-9}
 ## Merge the two files and save
@@ -275,8 +275,8 @@ SEC('###','Trip distance by mode')
 ```
 
 
-Moving on, we determine Total Trip distance for all trips ending in
-Santa Cruz, by mode.
+Moving on, let us calculate Total Trip distance for all trips ending in
+Santa Cruz, by mode:
 
 ```{r scc-10}
 ## Generate frequency for trip Mode
@@ -291,7 +291,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","TDis_UW","Per_UW")
 temp1
 ```
 
-Next, we compute the weighted trip distance by mode.
+Next, let us compute weighted trip distances by mode:
 
 ```{r scc-11}
 ## Create weighted frequency
@@ -307,7 +307,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","TDis_W","Per_W")
 temp2
 ```
 
-And, we save the results for later use.
+Save the results for later use in a csv file:
 
 ```{r scc-12}
 ## Merge the two files and save
@@ -335,10 +335,10 @@ SEC('###','Modal split for driving alone')
 ```
 
 
-The next question was the modal split for Drive Alone.  To compute
+The next question was the modal split for Drive Alone.  To estimate
 this, we subset the data based on `TOTTR` (Total travelers) and
 `MODE={5, 6, 7, 8, 10}` (basically, the driver of a car, truck, or
-motorcycle)
+motorcycle):
 
 ```{r scc-13}
 place_87d <-
@@ -348,7 +348,7 @@ place_87d <-
 head(place_87d)
 ```
 
-Now we compute the frequency of modes for this subset.
+Now let us find mode frequency for this subset of the data:
 
 ```{r scc-14}
 ## Create frequency for different Mode category for drive alone
@@ -363,7 +363,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
 temp1
 ```
 
-Following the pattern, we compute the weighted frequency.
+Following the same approach as above, let us find weighted frequencies:
 
 ```{r scc-15}
 ## Create weighted frequency
@@ -378,7 +378,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
 temp2
 ```
 
-Then, once again, we save the results for later use.
+Let us now save the results in a csv file for later use:
 
 ```{r scc-16}
 
@@ -403,8 +403,8 @@ SEC('##','Trips from  Santa Cruz County')
 ```
 
 
-Now we perform a similar computation for trips *from* Santa Cruz
-County.  As before, we subset the place data, but this time for trips
+We proceed the same way for trips *from* Santa Cruz County.  
+As before, we subset the place data, but this time for trips
 originating in Santa Cruz County.
 
 ```{r scc-17}
@@ -423,7 +423,7 @@ SEC('###','Trips by mode')
 
 
 Now we generate the mode frequency table for all trips from Santa Cruz
-County.
+County:
 
 ```{r scc-18}
 # Generate observations for modal split for trips from  Santa Cruz based on new weights
@@ -439,7 +439,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
 temp1
 ```
 
-This should be looking familiar now.  Here is the weighted frequency.
+This should look familiar now. Here are the weighted frequencies:
 
 ```{r scc-19}
 ## Create weighted frequency
@@ -454,7 +454,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
 temp2
 ```
 
-And again, we save for later use.
+And again, we save the results in a csv file for later use:
 
 ```{r scc-20}
 ## Merge the two files and save
@@ -474,7 +474,7 @@ rm(temp3)
 
 #### Trip duration by Mode
 
-Now we repeat the trip duration calculation for  Santa Cruz Origins.
+Let us repeat the trip duration calculation for Santa Cruz Origins:
 
 ```{r scc-21}
 ## Total Trip duration for all trips from  Santa Cruz, by Mode
@@ -490,7 +490,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","TDu_UW","Per_UW")
 temp1
 ```
 
-Here is the weighted frequency calculation.
+Here are the calculations for weighted frequencies:
 
 ```{r scc-22}
 ## Create weighted frequency
@@ -506,7 +506,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","TDu_W","Per_W")
 temp2
 ```
 
-And we save again.
+Save the results in "TripDUrm_O.csv":"
 
 ```{r scc-23}
 ## Merge the two files and save
@@ -533,8 +533,8 @@ rm(temp)
 SEC('###','Trip distance by Mode')
 ```
 
-Here is the trip distance calculation for all trips from Santa Cruz,
-by Mode.
+Here are the trip distance calculations for all trips from Santa Cruz,
+by Mode:
 
 ```{r scc-24}
 ## Generate frequency for trip Mode
@@ -549,7 +549,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","TDis_UW","Per_UW")
 temp1
 ```
 
-Followed again by the weighted frequency calculation.
+This is followed by the weighted frequency calculations:
 
 ```{r scc-25}
 ## Create weighted frequency
@@ -565,7 +565,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","TDis_W","Per_W")
 temp2
 ```
 
-And our now familiar save of the data.
+and by commands to save the data in "TripDistanceM_O.csv":
 
 ```{r scc-26}
 ## Merge the two files and save
@@ -593,10 +593,10 @@ SEC('###','Modal split for driving alone')
 ```
 
 
-And lastly for the Santa Cruz origins, here is the drive alone modal
+Lastly for Santa Cruz origins, let us generate the drive alone modal
 split.  As before, we subset the data based on `TOTTR` (Total
 travelers) and `MODE={5, 6, 7, 8, 10}` (the driver of a car, truck, or
-motorcycle)
+motorcycle):
 
 ```{r scc-27} 
 place_87dO <-
@@ -606,7 +606,7 @@ place_87dO <-
 head(place_87dO)
 ```
 
-The raw frequency table is here.
+The raw frequency table is created below:
 
 ```{r scc-28}
 ## Create frequency for different mode category for drive alone
@@ -621,7 +621,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Observations_UW","Percent_UW")
 temp1
 ```
 
-This is followed by the weighted frequency table.
+We now generate the weighted frequency table:
 
 ```{r scc-29}
 ## Create weighted frequency
@@ -636,7 +636,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","Observations_W","Percent_W")
 temp2
 ```
 
-And here we again save the results.
+and save the results in "Mode_87Odrialn.csv":
 
 ```{r scc-30}
 ## Merge the two files and save
@@ -659,8 +659,8 @@ SEC('##','Trip Purpose Calculations')
 ```
 
 
-Now we need trip purpose breakdown, so we need to import activity level data with the 
-appropriate weights.  Here we load and merge them.
+Now we need the trip purpose breakdown, so we import the activity level data with the 
+appropriate weights. Let us load and merge tthese two datasets:
 
 ```{r scc-31}
 library(chts2011)
@@ -673,7 +673,7 @@ act_place<-merge(act_data,nplacedata, by =c("SAMPN","PERNO","PLANO"), all = FALS
 names(act_place)
 ```
 
-For display purposes, we convert the purpose codes into readable strings.
+For display purposes, we convert the purpose codes into readable strings:
 
 ```{r scc-32 }
 act_place$Actpur<-
@@ -726,8 +726,7 @@ head(act_place)
 SEC('##','Trip Purposes from  Santa Cruz County')
 ```
 
-We start with trips from Santa Cruz County, subsetting based open the
-origin county `OCTFIP=87`.
+We start with trips from Santa Cruz County, subsetting based on origin county `OCTFIP=87`.
 
 ```{r scc-33 }
 # Now we are interested in trips from  Santa Cruz county (OCTFIP=87) 
@@ -738,7 +737,7 @@ head(act_87O)
 ```
 
 Next, we compute the observations for trip purpose for trips from
-Santa Cruz based on new weights.
+Santa Cruz and use new weights:
 
 ```{r scc-34}
 ## Generate frequency for trip Mode
@@ -753,7 +752,7 @@ colnames(temp1)[c(1:3)] <- c("Actpur","Ob_UW","Per_UW")
 temp1
 ```
 
-This is followed by the weighted trip purpose frequencies.
+Next let us generate weighted trip purpose frequencies:
 
 ```{r scc-35}
 ## Create weighted frequency
@@ -768,7 +767,7 @@ colnames(temp2)[c(1:3)] <- c("Actpur","Ob_W","Per_W")
 temp2
 ```
 
-And here we save the results.
+And now let us save the results in "Actpur_87O.csv":
 
 ```{r scc-36}
 ## Merge the two files and save
@@ -792,7 +791,7 @@ SEC('##','Work Trips by Mode')
 ```
 
 
-The last sub question wanted work trips by Mode for Santa Cruz County.
+In the remainder of this sub question, let us generate work trips by Mode for Santa Cruz County:
 
 
 ```{r results='asis',echo=FALSE,cache=FALSE}
@@ -803,14 +802,14 @@ SEC('###','Work Trips Originating in Santa Cruz County')
 
 First, we reuse the merged activity table from above for trips
 activities (and associated trips) originating in Santa Cruz County,
-and subset it for work trips only.
+and subset it for work trips only:
 
 ```{r scc-37}
 # Create a subset for work trips
 actw_87O<-subset(act_87O,APURP==9)
 ```
 
-Now, we can determine the observations of each Mode used for work trips.
+From this information we can find observations of each Mode used for work trips:
 
 ```{r scc-38}
 ## Generate frequency for trip Mode
@@ -825,7 +824,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
 temp1
 ```
 
-Given those, we can expand them with the weights for Santa Cruz.
+Given those, we can expand them with the weights for Santa Cruz County:
 
 ```{r scc-39}
 ## Create weighted frequency
@@ -840,7 +839,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
 temp2
 ```
 
-And again, we finish by saving the results.
+And again, we finish by saving the results in a csv file:
 
 ```{r scc-40}
 ## Merge the two files and save
@@ -863,10 +862,10 @@ SEC('###','Work Trips Ending in  Santa Cruz County')
 ```
 
 
-Now we want to find trips ending in Santa Cruz county `(CTFIP=87)`.
-Again, we subset the place table and adjust the weights to be Santa
-Cruz weights if the origins are in Santa Cruz, and to use statewide
-weights if the origins are outside Santa Cruz.
+Now let us find trips ending in Santa Cruz county `(CTFIP=87)`.
+Again, we subset the place table and use Santa
+Cruz County weights if trip origins are in Santa Cruz, and statewide
+weights if origins are outside of Santa Cruz County.
 
 
 ```{r scc-41}
@@ -884,7 +883,7 @@ names(act_87D)
 head(act_87D)
 ```
 
-Again, we generate a frequency table by purpose.
+Below, we generate a frequency table by purpose:
 
 ```{r scc-42}
 # Generate observations by trip purpose from  Santa Cruz based on new weights
@@ -900,7 +899,7 @@ colnames(temp1)[c(1:3)] <- c("Actpur","Ob_UW","Per_UW")
 temp1
 ```
 
-We follow this with the weighted frequency table.
+Now we create a weighted frequency table:
 
 ```{r scc-43}
 ## Create weighted frequency
@@ -915,7 +914,7 @@ colnames(temp2)[c(1:3)] <- c("Actpur","Ob_W","Per_W")
 temp2
 ```
 
-And again we save the result.
+And now we save the results in a csv file:
 
 ```{r scc-44}
 ## Merge the two files and save
@@ -932,8 +931,8 @@ rm(temp2)
 rm(temp3)
 ```
 
-Finally, we compute the frequencies of various Modes used for work
-trips ending in Santa Cruz County.
+Finally, we compute the frequencies of various modes used for work
+trips ending in Santa Cruz County:
 
 ```{r scc-45}
 # We want only work trips (APURP=9)
@@ -951,7 +950,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
 temp1
 ```
 
-Here is the weighted frequency table.
+Here is the weighted frequency table:
 
 ```{r scc-46}
 ## Create weighted frequency
@@ -973,7 +972,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ```
 
-...and one last time we save it.
+...and here we save it:
 
 ```{r scc-47}
 ## Save as csv file
@@ -983,3 +982,4 @@ rm(temp2)
 rm(temp3)
 ```
 
+We are done generating tables by mode for Santa Cruz County.
