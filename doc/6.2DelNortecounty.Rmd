@@ -25,20 +25,20 @@ SEC('#','Summary and Methodology')
 ```
 
 
-We generate tables by mode for the following: total number of trips,
+In this subsection We generate tables by mode for total number of trips,
 total trip distance, average trip distance, total trip duration,
 average trip duration, and total number of trips for driving alone.
 To calculate the drive alone numbers we extract data for total
-travelers (`TOTTR=1`) and `MODE={5, 6, 7, 8, 10}` (basically, drivers
+travelers (`TOTTR=1`) and `MODE={5, 6, 7, 8, 10}` (i.e., drivers
 of cars, trucks, or motorcycles). We also generate tables for the
 total number of trips by trip purpose and for work trips by
-mode. Here, we actually generate tables for total number of trips by
+mode. More specifically, we generate tables for total number of trips by
 activity purpose since the trip purpose is given in the database as
 activity purpose and there is more than one activity in many single
-trips. We consider each activity as a trip. We only consider the
+trips. We consider each activity as a trip and only consider the
 purpose code (`APURP=9`) for work trips.  We generate every table for
 both trips originating in and ending in Del Norte County. We use the
-new county wide weights of the Del Norte County to generate weighted
+new county wide weights for Del Norte County to generate weighted
 results for trips that originated in Del Norte County and statewide
 weights to generate weighted results for trips that originated outside
 of Del Norte County.
@@ -64,7 +64,8 @@ SEC('###','Mode split calculations')
 ```
 
 
-To answer the questions we need the place level table (with weights) that we computed in the section 4.
+To obtain our results we need the place level table (with weights) that we computed in Section 4, 
+so let us retrieve it.
 
 ```{r dnc-0,echo=FALSE}
 if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
@@ -88,8 +89,8 @@ nplace$CTFIP <- as.integer(nplace$CTFIP) %% 1000
 
 ```
 
-Next, we do some manipulations to determine origin county and convert the `MODE` codes into 
-text descriptions.
+Next, we find the origin county for each trip and convert the `MODE` codes into 
+text descriptions:
 
 ```{r dnc-2,cache=TRUE}
 # Create trip origin county 
@@ -136,10 +137,10 @@ nplacedata$Mode<-
 ```
 
 
-Now, we first focus on trips ending in Del Norte County.  Here we use
-different weights depending on the origin of the trip.  Specifically,
-when the origin is Del Norte County, we use the county-specific
-weights.  When the origin is outside Del Norte County, we use the
+Now, let us focus on trips ending in Del Norte County.  Here we use
+different weights depending on the origin of the trip: 
+when the origin is Del Norte County, we use the Del Norte County 
+weights, and when the origin is outside Del Norte County, we use the
 statewide weights.
 
 ```{r dnc-3,cache=TRUE}
@@ -158,10 +159,9 @@ place_15$NTCFW <-
 head(place_15)
 ```
 
-So `place_15$NTCFW` now contains the trips ending in Del Norte county
-with appropriate expansion weights appended.  Now we can generate
-observations for modal split for trips to Del Norte based on these
-weights.
+The file `place_15$NTCFW` now contains the trips ending in Del Norte county
+with appropriate expansion weights appended.  Now let us generate
+observations for modal split for trips to Del Norte:
 
 Notes: In the tables: Ob = Observations, Per = Percent, UW =
 Unweighted and W = Weighted.
@@ -179,7 +179,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
 temp1
 ```
 
-Now we compute the weighted frequency.
+Let us compute the weighted frequencies:
 
 ```{r dnc-5,cache=TRUE}
 ## Create weighted frequency
@@ -194,7 +194,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
 temp2
 ```
 
-Now we can save these results in a `csv` file for later use.
+Let us save our results in a `csv` file (Mode_15d.csv) for later use.
 
 ```{r dnc-6,cache=TRUE}
 ## Merge the two files and save
@@ -218,8 +218,8 @@ SEC('###','Trip duration by mode')
 ```
 
 
-Next, we perform a similar computation for Total Trip duration for all
-trips ending in Del Norte, by mode.
+We proceed similarly to find Total Trip duration for all
+trips ending in Del Norte, by mode:
 
 ```{r dnc-7,cache=TRUE}
 ## Generate frequency for trip Mode
@@ -234,7 +234,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","TDu_UW","Per_UW")
 temp1
 ```
 
-Again, we compute the weighted frequency.
+Let us compute weighted frequencies:
 
 ```{r dnc-8,cache=TRUE}
 ## Create weighted frequency
@@ -251,7 +251,7 @@ temp2
 ```
 
 
-And as before, we save the results for later use. 
+And as before, we save the results for later use: 
 
 ```{r dnc-9,cache=TRUE}
 ## Merge the two files and save
@@ -278,8 +278,8 @@ rm(temp)
 SEC('###','Trip distance by mode')
 ```
 
-Moving on, we determine Total Trip distance for all trips ending in
-Del Norte, by mode.
+Moving on, we find Total Trip distance for all trips ending in
+Del Norte County, by mode.
 
 ```{r dnc-10,cache=TRUE}
 ## Generate frequency for trip Mode
@@ -294,7 +294,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","TDis_UW","Per_UW")
 temp1
 ```
 
-Next, we compute the weighted trip distance by mode.
+Next, we compute weighted trip distances by mode:
 
 ```{r dnc-11,cache=TRUE}
 ## Create weighted frequency
@@ -310,7 +310,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","TDis_W","Per_W")
 temp2
 ```
 
-And, we save the results for later use.
+And, we save the results in a csv file for later use:
 
 ```{r dnc-12,cache=TRUE}
 ## Merge the two files and save
@@ -337,17 +337,17 @@ rm(temp)
 SEC('###','Modal split for driving alone')
 ```
 
-The next question was the modal split for Drive Alone.  To compute
-this, we subset the data based on `TOTTR` (Total travelers) and
-`MODE={5, 6, 7, 8, 10}` (basically, the driver of a car, truck, or
-motorcycle)
+The next task is to find the modal split for "Drive Alone". To perform this task, 
+we first subset the data based on `TOTTR` (Total travelers) and
+`MODE={5, 6, 7, 8, 10}` (essentially drivers of cars, trucks, or
+motorcycles):
 
 ```{r dnc-13}
 place_15d<-subset(place_15,(TOTTR==1 & (MODE==5|MODE==6|MODE==7|MODE==8|MODE==10)))
 head(place_15d)
 ```
 
-Now we compute the frequency of modes for this subset.
+We then compute the frequency of each mode:
 
 ```{r dnc-14}
 ## Create frequency for different Mode category for drive alone
@@ -362,7 +362,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
 temp1
 ```
 
-Following the pattern, we compute the weighted frequency.
+And now we compute weighted frequencies:
 
 ```{r dnc-15}
 ## Create weighted frequency
@@ -377,7 +377,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
 temp2
 ```
 
-Then, once again, we save the results for later use.
+Save the results in a csv file for later use:
 
 ```{r dnc-16}
 
@@ -401,9 +401,9 @@ rm(temp3)
 SEC('##','Trips from Del Norte County')
 ```
 
-Now we perform a similar computation for trips *from* Del Norte
-County.  As before, we subset the place data, but this time for trips
-originating in Del Norte County.
+We are done with trips to Del Norte so let perform a similar procedure for trips from Del Norte
+County.  We start by subseting the place data, but this time for trips
+originating in Del Norte County:
 
 ```{r dnc-17,cache=TRUE}
 
@@ -420,8 +420,8 @@ SEC('###','Trips by mode')
 ```
 
 
-Now we generate the mode frequency table for all trips from Del Norte
-County.
+Now let us generate the mode frequency table for all trips from Del Norte
+County:
 
 ```{r dnc-18,cache=TRUE}
 # Generate observations for modal split for trips from Del Norte based on new weights
@@ -437,7 +437,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
 temp1
 ```
 
-This should be looking familiar now.  Here is the weighted frequency.
+This should be looking familiar by now. Here are the weighted frequencies:
 
 ```{r dnc-19,cache=TRUE}
 ## Create weighted frequency
@@ -452,7 +452,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
 temp2
 ```
 
-And again, we save for later use.
+Save results in a csv file for later use:
 
 ```{r dnc-20,cache=TRUE}
 ## Merge the two files and save
@@ -476,7 +476,7 @@ SEC('###','Trip duration by Mode')
 ```
 
 
-Now we repeat the trip duration calculation for Del Norte Origins.
+Repeat for trip durations originating in Del Norte:
 
 ```{r dnc-21,cache=TRUE}
 ## Total Trip duration for all trips from Del Norte, by Mode
@@ -492,7 +492,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","TDu_UW","Per_UW")
 temp1
 ```
 
-Here is the weighted frequency calculation.
+Here are the weighted frequency calculations:
 
 ```{r dnc-22,cache=TRUE}
 ## Create weighted frequency
@@ -508,7 +508,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","TDu_W","Per_W")
 temp2
 ```
 
-And we save again.
+Save the results in a csv file:
 
 ```{r dnc-23,cache=TRUE}
 ## Merge the two files and save
@@ -536,7 +536,7 @@ SEC('###','Trip distance by Mode')
 ```
 
 
-Here is the trip distance calculation for all trips from Del Norte, by
+Here are the trip distance calculations for all trips from Del Norte, by
 Mode.
 
 ```{r dnc-24,cache=TRUE}
@@ -552,7 +552,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","TDis_UW","Per_UW")
 temp1
 ```
 
-Followed again by the weighted frequency calculation.
+Following the same blueprint as above, let us now calculate weighted frequencies:
 
 ```{r dnc-25,cache=TRUE}
 ## Create weighted frequency
@@ -568,7 +568,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","TDis_W","Per_W")
 temp2
 ```
 
-And our now familiar save of the data.
+and let us now save results in a csv file:
 
 ```{r dnc-26,cache=TRUE}
 ## Merge the two files and save
@@ -595,17 +595,17 @@ rm(temp)
 SEC('###','Modal split for driving alone')
 ```
 
-And lastly for the Del Norte origins, here is the drive alone modal
+Lastly for trips originating in Del Norte County, here is the drive alone modal
 split.  As before, we subset the data based on `TOTTR` (Total
-travelers) and `MODE={5, 6, 7, 8, 10}` (the driver of a car, truck, or
-motorcycle)
+travelers) and `MODE={5, 6, 7, 8, 10}` (drivers of cars, trucks, or
+motorcycles):
 
 ```{r dnc-27,cache=TRUE} 
 place_15dO<-subset(place_15O,(TOTTR==1 & (MODE==5|MODE==6|MODE==7|MODE==8|MODE==10)))
 head(place_15dO)
 ```
 
-The raw frequency table is here.
+The raw frequency table can be obtained from:
 
 ```{r dnc-28,cache=TRUE}
 ## Create frequency for different mode category for drive alone
@@ -620,7 +620,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Observations_UW","Percent_UW")
 temp1
 ```
 
-This is followed by the weighted frequency table.
+Let us now create a weighted frequency table:
 
 ```{r dnc-29,cache=TRUE}
 ## Create weighted frequency
@@ -635,7 +635,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","Observations_W","Percent_W")
 temp2
 ```
 
-And here we again save the results.
+Let us save the results in a csv file:
 
 ```{r dnc-30,cache=TRUE}
 ## Merge the two files and save
@@ -657,8 +657,8 @@ rm(temp3)
 SEC('##','Trip Purpose Calculations')
 ```
 
-Now we need trip purpose breakdown, so we need to import activity
-level data with the appropriate weights.  Here we load and merge them.
+Now we want to find the trip purpose breakdown, so we import the activity
+level data with the appropriate weights.  Let us load the data and merge them:
 
 ```{r dnc-31,cache=TRUE}
 #Import the activity level data frame and give a new name
@@ -672,7 +672,7 @@ act_place<-merge(act_data,nplacedata,
 names(act_place)
 ```
 
-For display purposes, we convert the purpose codes into readable strings.
+For display purposes, we convert the purpose codes into readable strings:
 
 ```{r dnc-32, cache=TRUE}
 act_place$Actpur <-
@@ -726,8 +726,8 @@ SEC('###','Trip Purposes from Del Norte County')
 ```
 
 
-We start with trips from Del Norte County, subsetting based open the
-origin county `OCTFIP=15`.
+We start with trips from Del Norte County, subsetting based on the
+origin county `OCTFIP=15`:
 
 ```{r dnc-33, cache=TRUE}
 # Now we are interested in trips from Del Norte county (OCTFIP=15) 
@@ -737,8 +737,8 @@ names(act_15O)
 head(act_15O)
 ```
 
-Next, we compute the observations for trip purpose for trips from Del
-Norte based on new weights.
+Next, we combine observations by trip purpose for trips from Del
+Norte with the new county weights:
 
 ```{r dnc-34,cache=TRUE}
 ## Generate frequency for trip Mode
@@ -753,7 +753,7 @@ colnames(temp1)[c(1:3)] <- c("Actpur","Ob_UW","Per_UW")
 temp1
 ```
 
-This is followed by the weighted trip purpose frequencies.
+Let us now calculate weighted trip purpose frequencies:
 
 ```{r dnc-35,cache=TRUE}
 ## Create weighted frequency
@@ -768,7 +768,7 @@ colnames(temp2)[c(1:3)] <- c("Actpur","Ob_W","Per_W")
 temp2
 ```
 
-And here we save the results.
+And here we save our results is a csv file:
 
 ```{r dnc-36}
 ## Merge the two files and save
@@ -792,7 +792,7 @@ SEC('##','Work Trips by Mode')
 ```
 
 
-The last sub question wanted work trips by Mode for Del Norte County.  
+In the remainder of this sub-section, let us find work trips by mode for Del Norte County.  
 
 
 ```{r results='asis',echo=FALSE,cache=FALSE}
@@ -802,15 +802,14 @@ SEC('###','Work Trips Originating in Del Norte County')
 
 First, we reuse the merged activity table from above for trips
 activities (and associated trips) originating in Del Norte County, and
-subset it for work trips only.
+subset it for work trips only:
 
 ```{r dnc-37}
 # Create a subset for work trips
 actw_15O<-subset(act_15O,APURP==9)
 ```
 
-Now, we can determine the observations of each Mode used for work
-trips.
+Now, we can find the observations for each mode used for work trips:
 
 ```{r dnc-38,cache=TRUE}
 ## Generate frequency for trip Mode
@@ -825,7 +824,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
 temp1
 ```
 
-Given those, we can expand them with the weights for Del Norte.
+Let us expand these observations using the weights for Del Norte County:
 
 ```{r dnc-39,cache=TRUE}
 ## Create weighted frequency
@@ -840,7 +839,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
 temp2
 ```
 
-And again, we finish by saving the results.
+We now save our results:
 
 ```{r dnc-40,cache=TRUE}
 ## Merge the two files and save
@@ -863,10 +862,9 @@ SEC('###','Work Trips Ending in Del Norte County')
 ```
 
 
-Now we want to find trips ending in Del Norte county `(CTFIP=15)`.
-Again, we subset the place table and adjust the weights to be Del
-Norte weights if the origins are in Del Norte, and to use statewide
-weights if the origins are outside Del Norte.
+Now let us find trips ending in Del Norte county `(CTFIP=15)`.
+We subset the place table and use Del Norte County weights for origins in Del Norte, and use statewide
+weights for origins outside of Del Norte County.
 
 
 ```{r dnc-41,cache=TRUE}
@@ -880,7 +878,7 @@ names(act_15D)
 head(act_15D)
 ```
 
-Again, we generate a frequency table by purpose.
+Generate a frequency table by purpose:
 
 ```{r dnc-42,cache=TRUE}
 # Generate observations by trip purpose from Del Norte based on new weights
@@ -896,7 +894,7 @@ colnames(temp1)[c(1:3)] <- c("Actpur","Ob_UW","Per_UW")
 temp1
 ```
 
-We follow this with the weighted frequency table.
+Create a weighted frequency table:
 
 ```{r dnc-43,cache=TRUE}
 ## Create weighted frequency
@@ -911,7 +909,7 @@ colnames(temp2)[c(1:3)] <- c("Actpur","Ob_W","Per_W")
 temp2
 ```
 
-And again we save the result.
+And now we save the result in a csv file:
 
 ```{r dnc-44,cache=TRUE}
 ## Merge the two files and save
@@ -928,8 +926,8 @@ rm(temp2)
 rm(temp3)
 ```
 
-Finally, we compute the frequencies of various Modes used for work trips ending
-in Del Norte County.
+Finally, we compute the frequencies of various modes used for work trips ending
+in Del Norte County:
 
 ```{r dnc-45,cache=TRUE}
 # We want only work trips (APURP=9)
@@ -947,7 +945,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
 temp1
 ```
 
-Here is the weighted frequency table.
+Here is the weighted frequency table:
 
 ```{r dnc-46,cache=TRUE}
 ## Create weighted frequency
@@ -969,7 +967,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ```
 
-...and one last time we save it.
+...and one last time we save results:
 
 ```{r dnc-47,cache=TRUE}
 ## Save as csv file
@@ -979,3 +977,33 @@ rm(temp2)
 rm(temp3)
 ```
 
+We have completed the tasks we wanted to acomplish in this subsection.
+
+
+```{r results='asis',echo=FALSE,cache=FALSE}
+############################################################ NESTABLE SECTION
+SEC('##','Generate similar statistics for other counties')
+```
+
+We can generate similar tables for other counties (e.g., Humboldt,
+Lake, and Mendocino County) using the commands above with only a minor
+changes: the data need to be subsetted using the correct county fip
+number.
+
+For example, let us assume we want to generate statistics for Hubmoldt
+County, which has a county fip number of 23.  Where the existing code
+for DelNorte county is `place_15<-subset(nplacedata,CTFIP==15)`, we
+would instead write: `place_23<-subset(nplacedata,CTFIP==23)`.  We
+also need to use the new file `place_23` in the rest of the code. For
+example, to generate the frequency for trip Mode we used the following
+code for DelNorte county:
+`temp1<-as.data.frame(table(place_15$Mode))`.  To obtain trip
+frequencies for Humboldt County, we need to change it to:
+`temp1<-as.data.frame(table(place_23$Mode))`.  We need to make the
+same change when we work with the activity file.  For example,
+`act_15O<-subset(act_place,OCTFIP==15)` needs to be changed to
+`act_23O<-subset(act_place,OCTFIP==23)`.  In short, we simply need to
+change the county fip nubmer everywhere in the R program.  Likewise,
+to generate tables for Lake and Mendocino county, We would change the
+county fip nubmer to 33 and 45 resepectively everywhere in the R
+program where the county fip number appears.

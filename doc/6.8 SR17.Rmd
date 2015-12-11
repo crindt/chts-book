@@ -20,18 +20,24 @@ write(paste("Using Root Directory",rd,"\n"),stderr())
 SEC('#','Summary and Methodology')
 ```
 
-In this subsection, we show how 2012 CHTS data can be used to generate useful statistics in the SR-17 corridor. 
-This is another illustration of how to put the 2012 CHTS data for Caltrans. 
-Steps of this analysis are similar to those for the analysis of the SR-1.
-We found 74 household respondents (177 person respondents) including 8 GPS respondents within a 1 km buffer 
-on each side of the SR-17. To delineate the SR-17 corridor, we relied on Caltrans' definition. 
-We generated tables by mode for 1) total number of trips; 2) total trip duration; 3) average trip duration;  
-4) total trip distance; and 5) average trip distance. We also generated tables for the total number of trips 
-by trip purpose (task 6) and for work trips by mode (task 7). For these, we generated tables for 
-total number of trips by activity purpose since trip purpose is given in the data as activity purpose 
-and there is more than one activity for many single trips. We considered each activity as a trip. For work trips, 
-we only considered purpose code (APURP) 9. We generated every table for both weighted and unweighted results. 
-We used countywide weights to generate weighted results. 
+In this subsection, we show how 2012 CHTS data can be used to generate
+useful statistics in the SR-17 corridor. This is another illustration
+of how to put the 2012 CHTS data for Caltrans. Steps of this analysis
+are similar to those for the analysis of the SR-1. We found 74
+household respondents (177 person respondents) including 8 GPS
+respondents within a 1 km buffer on each side of the SR-17. To
+delineate the SR-17 corridor, we relied on Caltrans’ definition. We
+generated tables by mode for 1) total number of trips; 2) total trip
+duration; 3) average trip duration; 4) total trip distance; and 5)
+average trip distance. We also generated tables for the total number
+of trips by trip purpose (task 6) and for work trips by mode (task
+7). For these, we generated tables for total number of trips by
+activity purpose since trip purpose is given in the data as activity
+purpose and there is more than one activity for many single trips. We
+considered each activity as a trip. For work trips, we only considered
+purpose code (`APURP`) 9. We generated every table for both weighted and
+unweighted results. We used countywide weights to generate weighted
+results.
 
 
 ```{r results='asis',echo=FALSE,cache=FALSE}
@@ -57,11 +63,43 @@ Next, we convert the `MODE` codes into text descriptions:
 
 ```{r sr17-2, } 
 # For recoding Mode 
-nplace$Mode<-ifelse(nplace$MODE==1,"Walk",ifelse(nplace$MODE==2,"Bike",ifelse(nplace$MODE==3,"Wheelchair/Mobility Scooter",ifelse(nplace$MODE==4,"Other Non-Motorized",ifelse(nplace$MODE==5,"Auto/Van/Truck Driver",ifelse(nplace$MODE==6,"Auto /Van/Truck Passenger",ifelse(nplace$MODE==7,"Carpool/Vanpool",ifelse(nplace$MODE==8,"Motorcycle",ifelse(nplace$MODE==9,"Taxi/Hired Car/Limo",ifelse(nplace$MODE==10,"Rental Car/Vehicle",ifelse(nplace$MODE==11,"Private shuttle ",ifelse(nplace$MODE==12,"Greyhound Bus",ifelse(nplace$MODE==13,"Plane",ifelse(nplace$MODE==14,"Other Private Transit",ifelse(nplace$MODE==15,"Local Bus,Rapid Bus",ifelse(nplace$MODE==16,"Express Bus",ifelse(nplace$MODE==17,"Premium Bus",ifelse(nplace$MODE==18,"School Bus",ifelse(nplace$MODE==19,"Public Transit Shuttle",ifelse(nplace$MODE==20,"Air BART/LAX Fly Away",ifelse(nplace$MODE==21,"Dial-a-Ride/Paratransit", ifelse(nplace$MODE==22,"Amtrak Bus", ifelse(nplace$MODE==23,"Other Bus ", ifelse(nplace$MODE==24,"BART,Metro",ifelse(nplace$MODE==25,"ACE, Amtrak etc",ifelse(nplace$MODE==26,"Metro",ifelse(nplace$MODE==27,"Street Car",ifelse(nplace$MODE==28,"Other Rail",ifelse(nplace$MODE==29,"Ferry / Boat","Don't Know/Refused")))))))))))))))))))))))))))))
+nplace$Mode <-
+  ifelse(nplacedata$MODE==1,"Walk",
+  ifelse(nplacedata$MODE==2,"Bike",
+  ifelse(nplacedata$MODE==3,"Wheelchair/Mobility Scooter",
+  ifelse(nplacedata$MODE==4,"Other Non-Motorized",
+  ifelse(nplacedata$MODE==5,"Auto/Van/Truck Driver",
+  ifelse(nplacedata$MODE==6,"Auto /Van/Truck Passenger",
+  ifelse(nplacedata$MODE==7,"Carpool/Vanpool",
+  ifelse(nplacedata$MODE==8,"Motorcycle/Scooter/Moped",
+  ifelse(nplacedata$MODE==9,"Taxi/Hired Car/Limo",
+  ifelse(nplacedata$MODE==10,"Rental Car/Vehicle",
+  ifelse(nplacedata$MODE==11,"Private shuttle ",
+  ifelse(nplacedata$MODE==12,"Greyhound Bus",
+  ifelse(nplacedata$MODE==13,"Plane",
+  ifelse(nplacedata$MODE==14,"Other Private Transit",
+  ifelse(nplacedata$MODE==15,"Local Bus,Rapid Bus",
+  ifelse(nplacedata$MODE==16,"Express Bus/Commuter Bus",
+  ifelse(nplacedata$MODE==17,"Premium Bus",
+  ifelse(nplacedata$MODE==18,"School Bus",
+  ifelse(nplacedata$MODE==19,"Public Transit Shuttle",
+  ifelse(nplacedata$MODE==20,"Air BART/LAX Fly Away",
+  ifelse(nplacedata$MODE==21,"Dial-a-Ride/Paratransit",
+  ifelse(nplacedata$MODE==22,"Amtrak Bus",
+  ifelse(nplacedata$MODE==23,"Other Bus ",
+  ifelse(nplacedata$MODE==24,"BART,Metro Red/Purple Line",
+  ifelse(nplacedata$MODE==25,"ACE, Amtrak, Cal train",
+  ifelse(nplacedata$MODE==26,"Metro",
+  ifelse(nplacedata$MODE==27,"Street Car/Cable Car",
+  ifelse(nplacedata$MODE==28,"Other Rail",
+  ifelse(nplacedata$MODE==29,"Ferry / Boat",
+         "Don't Know/Refused"
+         )))))))))))))))))))))))))))))
 ```
 
-We  found 74 household respondents (177 person respondents) including 8 GPS respondents within 1 km 
-on each side of the SR 17 using ArcGis and we saved it in a 'csv' file. Let us import that file: 
+We found 74 household respondents (177 person respondents) including 8
+GPS respondents within 1 km on each side of the SR 17 using ArcGis and
+we saved it in a 'csv' file. Let us import that file:
 
 ```{r sr17-3, }
 #Import SR17 sample households (obtained from GIS) 

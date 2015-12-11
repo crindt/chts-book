@@ -1,13 +1,15 @@
 ---
-title: "2012 California Household Travel Survey Data Analysis"
-author: "Craig Rindt, Suman Mitra, and Jean-Daniel Saphores"
-date: '`r (function() {f<-dir(); max(file.mtime(f[grepl("^.*\\.Rmd$",f)]))})()`'
+title: "Analyzing the 2012 California Household Travel Survey using R"
+author:
+- name: Craig Rindt
+- name: Suman Mitra
+- name: Jean-Daniel Saphores
+  contact: "Contact information: saphores@uci.edu; Phone: (949) 824 7334"
+date: 'This version: `r (function() {f<-dir(); format(max(file.mtime(f[grepl("^.*\\.Rmd$",f)])), format="%B %d, %Y")})()`'
+institution:
+- Institute of Transportation Studies
+- University of California, Irvine
 output:
-  html_document:
-    fig_caption: yes
-    highlight: tango
-    number_sections: yes
-    toc: yes
   pdf_document:
     highlight: tango
     keep_tex: yes
@@ -16,11 +18,16 @@ output:
     template: custom.latex
     toc: yes
     toc_depth: 5
+  html_document:
+    fig_caption: yes
+    highlight: tango
+    number_sections: yes
+    toc: yes
 fontfamily: inconsolata
 fontsize: 11pt
 geometry: margin=1in
-documentclass: '`r if (exists("documentation")) {"report"}else{"article"}`'
 documentation: '`r if(exists("documentation")){documentation}else{documentation<-"true";documentation}`'
+documentclass: '`r if (exists("documentation")) {"report"}else{"article"}`'
 ---
 
 # Introduction
@@ -81,7 +88,7 @@ chapter 7 describes the solution of a number of statistical queries
 that were answered under task 4 statistical support tasks.
 
 
-# Use of R Program for CHTS Data Analysis
+# Getting Started with R and R Studio
 
 Following review and discussions with Caltrans staff during the
 initial stages of the project a number of decisions were made
@@ -430,36 +437,6 @@ during the course of the project.
 `r NESTLEV(2)`
 
 ```{r child = '6.2DelNortecounty.Rmd'}
-```
-
-`r UNNESTLEV(2)`
-
-## Humboldt for Humboldt County
-
-
-`r NESTLEV(2)`
-
-```{r child = '6.3 Humboldt county.Rmd'}
-```
-
-`r UNNESTLEV(2)`
-
-## Data Request for Lake County
-
-
-`r NESTLEV(2)`
-
-```{r child = '6.4 Lake County.Rmd'}
-```
-
-`r UNNESTLEV(2)`
-
-## Data Request for Mendocino County
-
-
-`r NESTLEV(2)`
-
-```{r child = '6.5 Mendocino County.Rmd'}
 ```
 
 `r UNNESTLEV(2)`

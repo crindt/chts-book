@@ -17,17 +17,32 @@ SEC('#','Summary and Methodology')
 ```
 
 
-The purpose of this subsection is to show how 2012 CHTS data can be used
-to generate useful statistics in a corridor provided enough CHTS observations are available in that coridor.
-For the SR-1 corridor that extends from the Golden Gate in San Francisco to Pacifica, we found 269 household respondents (622 person respondents) including 98 GPS respondents within 1 km on each side of the SR-1.
-The size of this sample i ssufficient to generate tables by mode for 1) total number of trips; 
-2) total trip duration; 3) average trip duration; 4) total trip distance; and 5) average trip distance.
-We also created tables for the total number of trips by trip purpose (task 6) and for
-work trips by mode (task 7). We generated tables for total number of trips by activity purpose since 
-the trip purpose is given in the database as activity purpose and there is more than one activity
-in many single trips. We considered each activity as a trip. We only considered the purpose code (APURP) 9 
-for work trips.  We generated every table for both unweighted and weighted results using countywide
-weights for the latter.
+The purpose of this subsection is to show how 2012 CHTS data can be
+used to generate useful statistics in a corridor provided enough CHTS
+observations are available in that corridor. We used ArcGis 10.2 to
+select the households located within 1 km buffer of each side of
+selected portion of SR 1 corridor (San Francisco Golden Gate Bridge to
+Pacifica). We used Open street map and California road network GIS map
+(downloaded from
+http://www.dot.ca.gov/hq/tsip/gis/datalibrary/#Highway) for GIS
+operations. We imported the x-y coordinates of the location of CHTS
+household respondents to ArcMap and converted it into a shapefile. We
+then created a 1 Km buffer around the SR 1 corridor. Next we did a
+intersect operation in ArcGis to sub set the sample of respondents who
+reside within 1 km of the corridor. We found 269 household respondents
+(622 person respondents) including 98 GPS respondents within 1 km on
+each side of the SR1 (San Francisco Golden Gate Bridge to
+Pacifica). The size of this sample is sufficient to generate tables by
+mode for 1) total number of trips; 2) total trip duration; 3) average
+trip duration; 4) total trip distance; and 5) average trip
+distance. We also created tables for the total number of trips by trip
+purpose (task 6) and for work trips by mode (task 7). We generated
+tables for total number of trips by activity purpose since the trip
+purpose is given in the database as activity purpose and there is more
+than one activity in many single trips. We considered each activity as
+a trip. We only considered the purpose code (`APURP`) 9 for work
+trips. We generated every table for both unweighted and weighted
+results using countywide weights for the latter.
 
 
 ```{r results='asis',echo=FALSE,cache=FALSE}
