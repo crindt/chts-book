@@ -18,10 +18,7 @@ write(paste("Using Root Directory",rd,"\n"),stderr())
 5. Trips by Purpose
 6. Work trips by mode
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('#','Summary and Methodology')
-```
+# Summary and Methodology
 
 
 We generate tables by mode for the following: total number of trips,
@@ -43,41 +40,27 @@ generate weighted results for trips that originated outside of Lake
 County.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('#','R Code and Implementation')
-```
+# R Code and Implementation
 
 
 The following commands are used to generate the results.
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Trips to Lake County')
-```
+## Trips to Lake County
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Mode split calculations')
-```
+### Mode split calculations
 
 
 To answer the questions we need the place level table (with weights)
 that we computed in the section on [County Level Person Weights].
 
-```{r lc-0,echo=FALSE}
-if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
-p <- function(ps) { return(paste(rd,ps,sep="/")) }
-```
-
 ```{r lc-1, cache=TRUE}
 # Set the working directory
-setwd(p("District 1/Lake County"))
+setwd(pd("District 1/Lake County"))
 
 
 #Import the place level with new weight csv file and give a new name
-nplace<- read.csv(p("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
+nplace<- read.csv(pd("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
 names(nplace)
 head(nplace)# Show first ten observations
 
@@ -194,16 +177,13 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_33d.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_33d.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trip duration by mode')
-```
+### Trip duration by mode
 
 
 Next, we perform a similar computation for Total Trip duration for all
@@ -254,17 +234,14 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="TripDUrm_D33.csv",row.names=FALSE)
+write.csv(temp3,file=pto("TripDUrm_D33.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 rm(temp)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trip distance by mode')
-```
+### Trip distance by mode
 
 
 Moving on, we determine Total Trip distance for all trips ending in
@@ -314,17 +291,14 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="TripDistanceM_D33.csv",row.names=FALSE)
+write.csv(temp3,file=pto("TripDistanceM_D33.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 rm(temp)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Modal split for driving alone')
-```
+### Modal split for driving alone
 
 
 The next question was the modal split for Drive Alone.  To compute
@@ -379,17 +353,14 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_33Ddrialn.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_33Ddrialn.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Trips from Lake County')
-```
+## Trips from Lake County
 
 
 Now we perform a similar computation for trips *from* Lake County.  As
@@ -405,10 +376,7 @@ names(place_33O)
 head(place_33O)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trips by mode')
-```
+### Trips by mode
 
 
 Now we generate the mode frequency table for all trips from Lake County.
@@ -454,16 +422,13 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_33O.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_33O.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trip duration by Mode')
-```
+### Trip duration by Mode
 
 
 Now we repeat the trip duration calculation for Lake Origins.
@@ -513,17 +478,14 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="TripDUrm_O.csv",row.names=FALSE)
+write.csv(temp3,file=pto("TripDUrm_O.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 rm(temp)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trip distance by Mode')
-```
+### Trip distance by Mode
 
 
 Here is the trip distance calculation for all trips from Lake, by Mode.
@@ -572,17 +534,14 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="TripDistanceM_O.csv",row.names=FALSE)
+write.csv(temp3,file=pto("TripDistanceM_O.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 rm(temp)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Modal split for driving alone')
-```
+### Modal split for driving alone
 
 
 And lastly for the Lake origins, here is the drive alone modal split.
@@ -635,16 +594,13 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_33Odrialn.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_33Odrialn.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Trip Purpose Calculations')
-```
+## Trip Purpose Calculations
 
 
 Now we need trip purpose breakdown, so we need to import activity
@@ -711,10 +667,7 @@ act_place$Actpur<-
 head(act_place)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trip Purposes from Lake County')
-```
+### Trip Purposes from Lake County
 
 We start with trips from Lake County, subsetting based open the origin
 county `OCTFIP=33`.
@@ -769,25 +722,19 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Actpur_33O.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Actpur_33O.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Work Trips by Mode')
-```
+## Work Trips by Mode
 
 
 The last sub question wanted work trips by Mode for Lake County.
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Work Trips Originating in Lake County')
-```
+### Work Trips Originating in Lake County
 
 
 First, we reuse the merged activity table from above for trips
@@ -840,16 +787,13 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_wact33O.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_wact33O.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Work Trips Ending in Lake County')
-```
+### Work Trips Ending in Lake County
 
 
 Now we want to find trips ending in Lake county `(CTFIP=33)`.  Again,
@@ -911,7 +855,7 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Actpur_33D.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Actpur_33D.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -962,7 +906,7 @@ temp3
 
 ```{r lc-47,cache=TRUE}
 ## Save as csv file
-write.csv(temp3,file="Mode_wact33D.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_wact33D.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)

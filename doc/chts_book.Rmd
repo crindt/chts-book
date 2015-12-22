@@ -265,50 +265,10 @@ downloading the zip file
 https://github.com/crindt/chts-book/archive/master.zip and unzipping
 it.
 
-Once you clone or unzip the source, you can build the documentation in
-two ways.  Both assume you have installed the packages listed above in
-your `R` environment, either using the `RStudio` package installation
-interface or directly using interactive `R` shell.  Also, the
-top-level directory of the book source code must start with the
-text "chts-book".  If you clone repository or unzip the downloaded
-file, this will be the case.
 
-### Using `RStudio`
-
-To generate the document using `RStudio`, you simply load run the
-`RStudio` program, choose `File => Open Project` from the menu, and in
-the file dialogue select the `chts-book.Rproj` file at the top-level
-of the source directory (which should be called `chts-book`).  Once
-you have done that, open the `doc/chts-book.Rmd` file using the
-`files` tab.  Then, you should click the `Knit PDF` button.  This will
-process the source code, re-running the R commands, and weave the
-results into the book you are reading.  The process will generate the
-`chts_book.pdf` file in the `doc` subdirectory.  You can see the
-results of the processing the `RMarkdown` tab.  Producing the final
-document will take anywhere from several to tens of minutes depending
-on your hardware because the program is performing all of the
-statistical calculations necessary to produce the results described in
-the book.
-
-
-### Using the Interactive R Shell 
-
-For `R` purists, you may generate the documentation by opening a
-command shell and changing into the `doc` subdirectory.  From there,
-assuming that the R executable is installed and in your current PATH,
-you can generate the document by issuing the following command:
-
-```{bash eval=FALSE}
-R --vanilla -e 'rmarkdown::render("chts_book.Rmd")'
+```{r readme-child,echo=FALSE,results='asis',cache=FALSE}
+nestedInclude('../README.Rmd',2) 
 ```
-
-Note, the above command is exactly what is executed in the background
-when you click the `Knit PDF` button within `RStudio`.  `RStudio`
-simply hides these details from the user to simplify things.  As with
-the `RStudio` approach, the results of the processing will be printed
-to the command line and the processing will take quite some time as
-computations are performed.
-
 
 ## Where to find help in R?
 
@@ -349,72 +309,51 @@ Happy Learning R!
 
 # Diagnostic Checks of the CHTS
 
-`r NESTLEV(1)`
-
-```{r child = '3.Diagnostic.Rmd',cache=FALSE}
+```{r diag-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('3.Diagnostic.Rmd',1)
 ```
-
-`r UNNESTLEV(1)`
 
 # Calculating Weights
 
 ## County Level Person Weights
 
 
-`r NESTLEV(2)`
-
-```{r child = '4.1Personweights.Rmd',cache=FALSE}
+```{r pw-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('4.1Personweights.Rmd',2)
 ```
-
-`r UNNESTLEV(2)`
 
 ## County Level Household Weights
 
 
-`r NESTLEV(2)`
-
-```{r child = '4.2Householdweights.Rmd'}
+```{r hw-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('4.2Householdweights.Rmd',2)
 ```
-`r UNNESTLEV(2)`
 
 
 ## Weights for Other Geographies
 
-
-`r NESTLEV(2)`
-
-```{r child = '4.3Other Geographies.Rmd'}
+```{r og-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('4.3Other Geographies.Rmd',2)
 ```
-
-`r UNNESTLEV(2)`
 
 ## Weights for Long Distance Trips
 
-
-`r NESTLEV(2)`
-
-```{r child = '4.4Longdistanceweight.Rmd'}
+```{r ldw-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('4.4Longdistanceweight.Rmd',2)
 ```
-
-`r UNNESTLEV(2)`
 
 # Linked Trip Tables
 
-`r NESTLEV()`
-
-```{r child = 'chts-linked-trips.Rmd'}
+```{r lt-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('chts-linked-trips.Rmd',1)
 ```
-`r UNNESTLEV()`
-
 
 #  Creating the CHTS Summary Tables
 
-`r NESTLEV()`
 
-```{r child = 'recreating-2001-tables-sltn.Rmd'}
+```{r rt-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('recreating-2001-tables-sltn.Rmd',1)
 ```
-
-`r UNNESTLEV()`
 
 # Data Analysis Requests
 
@@ -423,50 +362,38 @@ during the course of the project.
 
 ## Data Request for Santa Cruz County
 
-`r NESTLEV(2)`
 
-
-```{r child = '6.1SantaCruz county.Rmd'}
+```{r scc-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('6.1SantaCruz county.Rmd',2)
 ```
 
-`r UNNESTLEV(2)`
 
 ## Data Request for Del Norte County
 
 
-`r NESTLEV(2)`
-
-```{r child = '6.2DelNortecounty.Rmd'}
+```{r dnc-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('6.2DelNortecounty.Rmd',2)
 ```
 
-`r UNNESTLEV(2)`
 
 ## Long Distance Trips Questions
 
-`r NESTLEV(2)`
 
-```{r child = '6.6 Long Distance Trips questions.Rmd'}
+```{r ld-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('6.6 Long Distance Trips questions.Rmd',2)
 ```
-
-`r UNNESTLEV(2)`
 
 ## Travel Statistics along the SR-1 Corridor
 
 
-`r NESTLEV(2)`
-
-```{r child = '6.7 SR1.Rmd'}
+```{r sr1-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('6.7 SR1.Rmd',2)
 ```
-
-`r UNNESTLEV(2)`
 
 ## Travel Statistics along the SR-17 Corridor
 
 
-`r NESTLEV(2)`
-
-```{r child = '6.8 SR17.Rmd'}
+```{r sr17-cild,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('6.8 SR17.Rmd',2)
 ```
-
-`r UNNESTLEV(2)`
 

@@ -24,10 +24,7 @@ source(paste(rd,"R/setup-hooks.R",sep="/"))
 write(paste("Using Root Directory",rd,"\n"),stderr())
 ```
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('#','Introduction')
-```
+# Introduction
 
 
 This document describes the method used to determine the linked trip
@@ -112,10 +109,7 @@ pandoc.table(
     )
 ```
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('#','Methodological Overview')
-```
+# Methodological Overview
 
 
 In the 2001 CHTS, linked trips were defined as follows:
@@ -148,10 +142,7 @@ Thus, there is potential for a trip to have multiple trip purposes
 depending on the number and purposes of the activities performed at
 the destination place.
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Identifying linked trips')
-```
+## Identifying linked trips
 
 
 By the definitions above, any trip whose purpose is a linkable purpose
@@ -168,10 +159,7 @@ order the activities reported for each person and increment a the
 observed.  This defines a mapping between unlinked trips (i.e. places)
 and linked trips.
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Linked trip MODE (Identifying the principal trip)')
-```
+## Linked trip MODE (Identifying the principal trip)
 
 
 For a linked trip, we need some heuristic to determine which mode is
@@ -187,10 +175,7 @@ characteristics, to describe the corresponding attribute of the linked
 trip.
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Linked trip origin and destination')
-```
+## Linked trip origin and destination
 
 
 In the 2001 linked trip table, there are records of the origin place
@@ -226,10 +211,7 @@ This will be converted into two linked trips:
 
 Places 2 and 4 will be attached to LTNO = 2 and 4 respectively.
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Trip type (or purpose)')
-```
+## Trip type (or purpose)
 
 
 The trip purposes reported for linked trips in 2001 are designed to
@@ -300,10 +282,7 @@ un-linked trips to capture travel demand that would otherwise go
 unanalyzed.
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Linked Trip Statistics')
-```
+## Linked Trip Statistics
 
 
 In the last step of our linked-trip computation, we compute various
@@ -327,19 +306,13 @@ all trips making up the linked trip.  The relevant values are as follows:
 * `ARR_MIN`: The arrival minute to the destination of this linked trip
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('#','Generating Linked Trip Tables Using R')
-```
+# Generating Linked Trip Tables Using R
 
 
 The following sections describe how we implemented the methods described 
 above using `R`.
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Setup')
-```
+## Setup
 
 
 The following sets up the R environment for generating the linked trip
@@ -378,10 +351,7 @@ testhh5 <- 1041305  # PERNO 1 has chain that starts and ends in the same locatio
 
 ```
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Accessing the data')
-```
+## Accessing the data
 
 
 For simplicity, we'll use the `chts2011` and `chts2011pvt` R packages.
@@ -391,8 +361,6 @@ variables to factors.
 
 ```{r lt-load-chts-data,echo=TRUE}
 library(chts2011)
-#load(paste(rd,'data','chts_act.rda',sep="/"))
-#load(paste(rd,'data','chts_pla.rda',sep="/"))
 library(chts2011pvt)
 ```
 
@@ -430,10 +398,7 @@ dfp <- chts_pla %>% arrange(SAMPN,PERNO,PLANO)
 print(dim(dfp))
 ```
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Identifying linked trips')
-```
+## Identifying linked trips
 
 
 With the data loaded in, we can turn to computing the unique linked
@@ -560,10 +525,7 @@ we need to associate a single mode with that linked trip for analysis
 purposes.  We'll tackle that first.
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Linked trip MODE (and Trip Correction Factor [TCF])')
-```
+## Linked trip MODE (and Trip Correction Factor [TCF])
 
 
 For a linked trip, we need some heuristic to determine which mode is
@@ -648,10 +610,7 @@ ltrm <- select(ltrm2,SAMPN,PERNO,PLANO,ACTNO,LTNO,mmrank,ltmode,ltmodeplano,ltTC
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Linked trip origin')
-```
+## Linked trip origin
 
 
 Next, we'll perform a similar manipulation to compute the origin
@@ -728,10 +687,7 @@ passenger trip (`APURP=21`), as is `(8,1)` in row 9.  Thus, we need to
 tag the linked-trip-end destinations too.
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Linked trip destinations')
-```
+## Linked trip destinations
 
 
 We'll use a similar approach to identify the destinations, with one
@@ -799,10 +755,7 @@ in row 6 is the *second* activity at `PLANO==6` and therefore
 shouldn't be the destnation).  Similarly, for `LTNO==86`, we
 see that we've chosen `(dpla,dact)=(9,1)` (row 9).
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Determining trip type')
-```
+## Determining trip type
 
 
 The 2001 data were organized slightly differently from the 2010 data.
@@ -863,7 +816,9 @@ activity definitions.
 ```{r lt-activity-type}
 # activity-type-map.csv contains mappings between activities and trip types per
 # the definitions above
-actmap <- read.csv(paste(rd,'linked-trips/data','activity-type-map-2.csv',sep="/"),header=TRUE) %>% 
+actmap <- read.csv(pd(paste('linked-trips/data',
+                            'activity-type-map-2.csv',
+                            sep="/")),header=TRUE) %>% 
   # we want both the codes and the labels, so we create a DESCR col
   # we also rename the CODE column to APURP, so we can join it to lt above
   transmute(
@@ -926,7 +881,7 @@ four_step_types <- distinct_ltno %>%
                   ifelse(grepl("S",types),"S","O"))))
 ```
 
-Now we can join these trip ends for each linked trip to give us the `TripType value`.  
+Now we can join these trip ends for each linked trip to give us the `TripType value`. 
 To do this, we simply lag order the `four_step_types` by `SAMPN, PERNO, PLANO`, and
 create a new TripType column that joins the previous trip-end type to the target type.
 
@@ -959,10 +914,11 @@ the day; there are the same number of activities with `PLANO==1` and
 filter(chts_act) %>% filter(PLANO==1,ACTNO==1) %>% dim()
 ```
 
-All the others look reasonable except the 8706 `HH` trips and 915 `WW` trips, which don't make 
-any sense on the surface.  However, if we look at an example, we can see that these 
-are the result of imperfect mapping between activity purpose and trip types.  
-Let's find an example:
+All the others look reasonable except the 8706 `HH` trips and 915 `WW`
+trips, which don't make any sense on the surface.  However, if we look
+at an example, we can see that these are the result of imperfect
+mapping between activity purpose and trip types.  Let's find an
+example:
 
 ```{r lt-unique-trips-questions}
 res <- four_step_types %>% filter(TripType=="HH") %>% head()
@@ -1087,10 +1043,7 @@ pandoc.table(oo,caption="Other to Other",
 
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Bringing it all together')
-```
+## Bringing it all together
 
 
 We how have data frames tagging the linked trips, the linked trip
@@ -1241,10 +1194,7 @@ And indeed it is, as we can see that `LTNO==231` (row==2) has
 identical.  We leave it to the analyst to decide whether this is
 important for his or her application of the data.
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Linked trip departure and arrival times')
-```
+## Linked trip departure and arrival times
 
 
 This one is a little tricky.  Examining the 2001 linked trip table, it
@@ -1292,10 +1242,7 @@ chts_pla %>% filter(SAMPN==testhh2 & PLANO<7) %>% select(PLANO,ARR_HR,ARR_MIN,DE
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Write the table')
-```
+## Write the table
 
 
 Finally, let's write the table, omitting the private coordinates, but
@@ -1303,10 +1250,8 @@ keeping the sameod flag.
 
 ```{r lt-write-csv-table, echo=TRUE, cache=TRUE}
 chts_lt <- select(ltf3, -oXCORD,-oYCORD,-dXCORD,-dYCORD)
-#save(chts_lt,file=paste(rd,'linked-trips/chts_lt.rda',sep="/"))
-#save(chts_lu_lt,file=paste(rd,'linked-trips/chts_lu_lt.rda',sep="/"))
-write.csv(chts_lt,file=paste(rd,'linked-trips/chts_lt.csv',sep="/"))  # as csv too, for non-R users
-write.csv(chts_lu_lt,file=paste(rd,'linked-trips/chts_lu_lt.csv',sep="/")) # ...
+write.csv(chts_lt,file=pd('linked-trips/chts_lt.csv'))  # as csv too, for non-R users
+write.csv(chts_lu_lt,file=pd('linked-trips/chts_lu_lt.csv')) # ...
 ```
 
 The final table contains the following data:

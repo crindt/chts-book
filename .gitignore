@@ -5,6 +5,16 @@ doc/*.CSV
 doc/*.csv
 doc/*_cache/
 doc/*_files/
+doc/cache/
 *~
 *.zip
 doc/*.html
+.#*
+*.CSV
+doc/figure/
+*.aux
+*.log
+*.out
+*.tex
+*.toc
+output/temp/*.csv

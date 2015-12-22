@@ -11,11 +11,7 @@ source(paste(rd,"R/setup-hooks.R",sep="/"))
 write(paste("Using Root Directory",rd,"\n"),stderr())
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('#','Summary and Methodology')
-```
-
+# Summary and Methodology
 
 The purpose of this subsection is to show how 2012 CHTS data can be
 used to generate useful statistics in a corridor provided enough CHTS
@@ -45,17 +41,7 @@ trips. We generated every table for both unweighted and weighted
 results using countywide weights for the latter.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('#','R Code and Implementation')
-```
-
-
-```{r sr1-0,echo=FALSE}
-if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
-p <- function(ps) { return(paste(rd,ps,sep="/")) }
-```
-
+# R Code and Implementation
 
 To create these tables, we need the place file with the new countywide
 person weights that were computed in the section on
@@ -64,7 +50,7 @@ person weights that were computed in the section on
 
 ```{r sr1-1, }
 #Import the place level with new weight csv file and give a new name
-nplace<- read.csv(p("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
+nplace<- read.csv(pd("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
 ```
 
 Next, we convert the `MODE` codes into text descriptions:
@@ -140,7 +126,7 @@ Golden Gate Bridge to Pacifica using ArcGis and we saved it in a
 
 ```{r sr1-3, }
 # Import SR1 sample households (obtained from GIS) 
-sr1 <- read.csv(p("District 4/SR1/SR1_block1km.csv"), header=TRUE)
+sr1 <- read.csv(pd("District 4/SR1/SR1_block1km.csv"), header=TRUE)
 ```
 
 Now let us merge this file with the place file:
@@ -156,11 +142,7 @@ head(sr1_place)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Modal split for SR1 corridor')
-```
-
+## Modal split for SR1 corridor
 
 Task 1: Now, let us generate trip frequencies by mode:
 
@@ -206,18 +188,14 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_sr1.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_sr1.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Total Trip duration for all trips by mode for SR1 corridor')
-```
-
+## Total Trip duration for all trips by mode for SR1 corridor
 
 Task 2: Next, we apply a similar procedure to computate Total Trip durations for all
 trips in the SR1 corridor, by mode:
@@ -272,7 +250,7 @@ Let us save results for later use:
 
 ```{r sr1-11,}
 ## Save as csv file
-write.csv(temp3,file="TripDUrm_sr1.csv",row.names=FALSE)
+write.csv(temp3,file=pto("TripDUrm_sr1.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -280,11 +258,7 @@ rm(temp)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trip distance by mode')
-```
-
+### Trip distance by mode
 
 Task 4: Next, let us calculate Total Trip distance for SR1 Corridor trips, by mode:
 
@@ -339,18 +313,14 @@ And let us save results for later use in "TripDistanceM_sr1.csv":
 
 ```{r sr1-15,}
 ## Save as csv file
-write.csv(temp3,file="TripDistanceM_sr1.csv",row.names=FALSE)
+write.csv(temp3,file=pto("TripDistanceM_sr1.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 rm(temp)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Trip Purpose Calculations')
-```
-
+## Trip Purpose Calculations
 
 
 NTask 6: for trip purpose data, we need to import activity level data with the 
@@ -466,11 +436,7 @@ names(sr1_act)
 head(sr1_act)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Trip Purposes for trips along SR1 Corridor')
-```
-
+## Trip Purposes for trips along SR1 Corridor
 
 Let us find count observations by trip purpose for trips in the SR1 corridor
 using weights:
@@ -514,18 +480,14 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Apurp_sr1.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Apurp_sr1.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Work Trips by Mode')
-```
-
+## Work Trips by Mode
 
 Task 7: Work trips by Mode for the SR1 Corridor.
 
@@ -579,7 +541,7 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_wact_SR1.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_wact_SR1.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)

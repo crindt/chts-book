@@ -21,10 +21,7 @@ geographies such as cities or zip codes. Similar weights can be
 developed for these geographies using the approach described below if they contain enough CHTS
 respondents.
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('#','Methodology')
-```
+# Methodology
 
 Household-level county weights are calculated by raking at the
 household level. These weights adjust the relative importance of
@@ -48,26 +45,17 @@ some random checks for different variables. The results show that
 the new weights align well with the population of the different counties.
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('#','R Code and Implementation')
-```
+# R Code and Implementation
 
 The following commands are used to generate countywide household weights.
 
 First we import the person data frame and the corresponding lookup
 data frame (which contains location information) and then we merge them:
 
-```{r hw-1,echo=FALSE}
-if ( !exists("rd") ) { rd <- "/Users/crindt/chts-book" }
-source(paste(rd,'R/setup-hooks.R',sep="/"))
-```
-
-
 ```{r hw-2,cache=TRUE}
 # Set the working directory
 
-setwd(p("Weight/HHWeight_County"))
+setwd(pd("Weight/HHWeight_County"))
 #Import the household level variables data frame and give a new name
 library(chts2011)
 library(chts2011pvt)
@@ -153,7 +141,7 @@ Let us first import that file and merge these data with `nhhdata`:
 ```{r hw-9,cache=TRUE}
 # Assgin county wide total household into nhhdata file
 #Import the county wide total hosuehold csv file and give a new name
-tot.hh <- read.csv(p("Weight/Data_County/Total/county_tothh2.csv"), header=TRUE)
+tot.hh <- read.csv(pd("Weight/Data_County/Total/county_tothh2.csv"), header=TRUE)
 # Merging two data set
 hhdata3<-merge(nhhdata,tot.hh, by ="HCTFIP", all = TRUE)
 names(hhdata3)
@@ -182,7 +170,7 @@ First, let us process the Household size variable:
 
 ```{r hw-11,cache=TRUE}
 # Household size data
-hhsize.county <- read.csv(p("Weight/Data_County/County_HH/HHSize/hhsize.csv"),
+hhsize.county <- read.csv(pd("Weight/Data_County/County_HH/HHSize/hhsize.csv"),
                           header=TRUE)
 head(hhsize.county)
 # Generate a list of seperate datafrmaes containing household size variable
@@ -203,7 +191,7 @@ Second, let us import the Household income data:
 
 ```{r hw-12,cache=TRUE}
 # Income
-hhincome.county <- read.csv(p("Weight/Data_County/County_HH/Income/hhincome.csv"),
+hhincome.county <- read.csv(pd("Weight/Data_County/County_HH/Income/hhincome.csv"),
                             header=TRUE)
 head(hhincome.county)
 hhincome.county$id <- 1:nrow(hhincome.county)
@@ -221,7 +209,7 @@ Third, repeat the same process for the number of household vehicles:
 
 ```{r hw-13,cache=TRUE}
 ## Number of vehicles data
-hhveh.county <- read.csv(p("Weight/Data_County/County_HH/HHVeh/hhvehicle.csv"),
+hhveh.county <- read.csv(pd("Weight/Data_County/County_HH/HHVeh/hhvehicle.csv"),
                          header=TRUE)
 head(hhveh.county)
 hhveh.county$id <- 1:nrow(hhveh.county)
@@ -238,7 +226,7 @@ Finally, import the number of household workers:
 
 ```{r hw-14,cache=TRUE}
 ## Number of workers
-hhwrk.county <- read.csv(p("Weight/Data_County/County_HH/Worker/hhworkers.csv"),
+hhwrk.county <- read.csv(pd("Weight/Data_County/County_HH/Worker/hhworkers.csv"),
                          header=TRUE)
 head(hhwrk.county)
 hhwrk.county$id <- 1:nrow(hhwrk.county)
@@ -255,7 +243,7 @@ At this point, let us set the directory where we want to save our output:
 
 ```{r hw-15,cache=TRUE}
 # Set directory where we want to save
-setwd(p("Weight/HHWeight_County"))
+setwd(pd("Weight/HHWeight_County"))
 ```
 
 
@@ -281,8 +269,8 @@ for (i in 1:length(hhwrk.data)){
     # continue the loop 
     f=seq(6001, 6115, by=2)
     s<-as.character(f[i])
-    name=paste('HHweight_',s, '.CSV',sep="")
-    name=p(paste("Weight/HHWeight_County",name,sep="/"))
+    name<-paste('HHweight_',s, '.CSV',sep="")
+    name<-pd(paste("Weight/HHWeight_County",name,sep="/"))
 
     # Survey design (Need library "survey")
     temp1<- svydesign(
@@ -336,7 +324,7 @@ for (i in e){
     f=seq(6001, 6115, by=2)
     s<-as.character(f[i])
     name=paste('HHweight_',s, '.CSV',sep="")
-    name=p(paste("Weight/HHWeight_County",name,sep="/"))
+    name=pd(paste("Weight/HHWeight_County",name,sep="/"))
 
     # Survey design (Need library "survey")
     temp1<- svydesign(
@@ -379,10 +367,10 @@ earlier. We now combine the weights for the 58 counties into one file:
 
 ```{r hw-18,cache=TRUE}
 # Import multiple csv file of new weight and combine into one file
-setwd(p("Weight/HHWeight_County"))
+setwd(pd("Weight/HHWeight_County"))
 
 # Import the files
-filenames <- list.files(path = p("Weight/HHWeight_County"))
+filenames <- list.files(path = pd("Weight/HHWeight_County"))
 
 # combined the files into one
 nhhweight<-do.call("rbind", lapply(filenames, read.csv, header = TRUE)) 
@@ -437,8 +425,8 @@ household weights. Let us save it in a selected directory:
 
 ```{r hw-22,cache=TRUE}
 # Save 
-setwd(p("Weight/NewWeightData"))
-write.csv(nhhweight2, file="nhhweight922015.csv",
+setwd(pd("Weight/NewWeightData"))
+write.csv(nhhweight2, file=pd("Weight/NewWeightData/nhhweight922015.csv"),
           row.names = FALSE) 
 ```
 
@@ -449,7 +437,7 @@ as a CSV file:
 # Merge the new weight file with original household data file
 nhhdataw<-merge(hhdata,nhhweight2, by =c("SAMPN"), all = TRUE)
 head(nhhdataw)
-write.csv(nhhdataw, file="nhhdataw922015.csv",row.names=FALSE)
+write.csv(nhhdataw, file=pd("Weight/NewWeightData/nhhdataw922015.csv"),row.names=FALSE)
 ```
 
 We have a household data file with new countywide household
@@ -459,7 +447,7 @@ random checks for different variables. Let us take Alameda county as an example:
 
 ```{r hw-24,cache=TRUE}
 # Random Check
-setwd(p("Weight/Check"))
+setwd(pd("Weight/Check"))
 # We do it for Alameda county (FIP code=1)
 hhdata_01<-subset(nhhdataw,HCTFIP==1)
 head(hhdata_01$HCTFIP)

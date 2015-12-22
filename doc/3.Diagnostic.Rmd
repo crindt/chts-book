@@ -5,10 +5,7 @@ date: "August 31, 2015"
 output: html_document
 ---
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('#','Summary and Methodology') 
-```
+# Summary and Methodology
 
 This section explains how to generate summary statistics for the
 2010-2012 California Household Travel Survey (2012 CHTS) and how to
@@ -96,17 +93,10 @@ distance variables.
 
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('#','R Code and Implementation')
-```
-
+# R Code and Implementation
 The following commands are used for our diagnostics checks of the CHTS.
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Household Data') 
-```
+## Household Data
 
 We first import the household data and corresponding look up data
 (that contain x-y coordinates). There are a variety of ways to do
@@ -172,7 +162,7 @@ but it makes the code look a little cleaner.
 
 ```{r diag-2, cache=TRUE}
 # Attach the data frame
-attach(nhhdata)
+attach(nhhdata) 
 ```
 
 We check variables one by one starting with the sample number.
@@ -535,10 +525,7 @@ sum(VEHNEW=="")
 
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('###','Buyer Variables') 
-```
+### Buyer Variables
 
 There are 8 BUYER variables. The following codes are used to check all the BUYER variables. 
 
@@ -1319,11 +1306,7 @@ detach(nhhdata)
 
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Person Data') 
-```
-
+## Person Data
 
 To examine person data, we again rely on the R packages
 containing the CHTS datasets.  We have already loaded the `chts2011`
@@ -1502,10 +1485,7 @@ sum(is.na(HISP))
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('###','Race Variables') 
-```
+### Race Variables
 
 There are 5 variables for race. Let us check them:
 
@@ -1983,11 +1963,11 @@ psf<-npersondata[(HOURS>60&HOURS<998),c('HOURS','JOBS','OCCUP')]
 ## Cross tabulation Hours (>60) and occupation
 table(psf$HOURS,psf$OCCUP)
 # Save as csv file
-write.csv(table(psf$HOURS,psf$OCCUP),file="occup.csv")
+write.csv(table(psf$HOURS,psf$OCCUP),file=pto("occup.csv"))
 
 ## Cross tabulation Hours and number of jobs
 table(psf$HOURS,psf$JOBS)
-write.csv(table(psf$HOURS,psf$JOBS),file="job.csv")
+write.csv(table(psf$HOURS,psf$JOBS),file=pto("job.csv"))
 ```
 
 
@@ -2833,11 +2813,7 @@ sd(WCTFIP,na.rm=T)
 
 
 
-```{r diag-summary-per-WTRACT,echo=FALSE,cache=TRUE,results='asis'}
-############################################################ NESTABLE SECTION
-SEC("###","WTRACT: Work location census tract")
-```
-
+### WTRACT: Work location census tract
 
 ```{r diag-138, cache=TRUE}
 ## WTRACT
@@ -2933,11 +2909,7 @@ detach(npersondata)
 
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Vehicle Data') 
-```
-
+## Vehicle Data
 
 We are now ready to check the vehicle data variables. First we load the vehicle data frame, check its dimension, and list the variable names. 
 
@@ -3561,11 +3533,7 @@ detach(veh_data)
 
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Place Data') 
-```
-
+## Place Data
 
 We follow the same steps to perform diagnostics for the place data. First we need to merge the place dataset and the dataset that contains location data.
 
@@ -3717,10 +3685,7 @@ hist(HHMEM,xlab=c("Number of household members on trip"),col=c("maroon"))
 
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('###','PER Variables') 
-```
+### PER Variables
 
 There are five variables for person number on trip. Let us look at them via summaries, boxplots, and histograms:
 
@@ -4340,10 +4305,7 @@ detach(nplace_data)
 
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Activity Data') 
-```
+## Activity Data
 
 Let us now check activity data variables. First we import the activity data frame, check its dimension, and list variable names:
 
@@ -4627,11 +4589,7 @@ detach(activity_data)
 
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Long Distance Travel Data') 
-```
-
+## Long Distance Travel Data
 
 Finally, let us process the long distance dataset. As before, we load the data frame, rename it, load the data frame with location information, and merge them.
 
@@ -4735,10 +4693,7 @@ sum(is.na(LDDAT))
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('###','Origin Variables') 
-```
+### Origin Variables
 
 Let us now work on variables related to trip origin location:
 
@@ -4782,10 +4737,7 @@ boxplot(LDOYCORD,xlab=c("LDOYCORD"))
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('###','Destination Variables') 
-```
+### Destination Variables
 
 We are ready to consider variables related to destination location:
 
