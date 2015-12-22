@@ -1,0 +1,9 @@
+"TABLE 52: Statewide Commute trips (HW) by Mode (Walk, Bike, Drive/Passenger, Transit) and other by Mode and Distance ranges"
+""
+"Distance","Driver","Passenger","Transit","Bike","Walk","All Others","All Modes"
+"0.0 - 0.5mi",40.9,2.7,0.2,3.9,51,1.3,100
+"0.5 - 1.0mi",65,7.4,1.8,5.6,19.4,0.7,100
+"1.0 - 2.0mi",74.3,9.2,4,6.5,5.1,1,100
+"2.0 - 5.0mi",80,7.5,6.8,3.6,0.9,1.1,100
+"5.0 - 10.0mi",85.4,5.7,6.2,1.3,0.3,1.1,100
+"10.0mi or greater",83.5,4.7,8.5,0.2,0.1,3,100

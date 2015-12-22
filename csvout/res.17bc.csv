@@ -1,0 +1,297 @@
+"TABLES 17b and 17c: Weekday Commuters' Directional Travel Mode by County"
+""
+"County","Travel Mode","All Home-to-Work Trips","All Home-to-Work Trips (%)","7:00-9:00am Home-to-Work Commute Trips","7:00-9:00am Home-to-Work Commute Trips (%)"
+"California","Vehicle Driver",16460065,81,4156993,82.7
+"California","Vehicle Passenger",1428847,7,267407,5.3
+"California","Local Public Transit",1386494,6.8,362236,7.2
+"California","Intercity Public Transportation",2206,0,272,0
+"California","Walk",583443,2.9,125686,2.5
+"California","Bike",419383,2.1,105688,2.1
+"California","Miscelleneous Modes",38758,0.2,10966,0.2
+"California","Total",20319195,100,5029248,100
+"Alameda","Vehicle Driver",706551,70.2,199680,66.4
+"Alameda","Vehicle Passenger",50944,5.1,22664,7.5
+"Alameda","Local Public Transit",176704,17.6,58096,19.3
+"Alameda","Walk",29403,2.9,7145,2.4
+"Alameda","Bike",41223,4.1,12725,4.2
+"Alameda","Miscelleneous Modes",1240,0.1,363,0.1
+"Alameda","Total",1006066,100,300672,100
+"Alpine","Vehicle Driver",188,40,79,100
+"Alpine","Total",470,100,79,100
+"Amador","Vehicle Driver",11923,81.5,3541,89.2
+"Amador","Vehicle Passenger",1870,12.8,99,2.5
+"Amador","Walk",642,4.4,329,8.3
+"Amador","Total",14632,100,3970,100
+"Butte","Vehicle Driver",73468,92.9,17120,94.1
+"Butte","Vehicle Passenger",2852,3.6,743,4.1
+"Butte","Bike",1898,2.4,329,1.8
+"Butte","Total",79077,100,18192,100
+"Calaveras","Vehicle Driver",17983,95.6,3997,97.7
+"Calaveras","Vehicle Passenger",635,3.4,93,2.3
+"Calaveras","Total",18811,100,4090,100
+"Colusa","Vehicle Driver",9802,63.6,837,100
+"Colusa","Total",15401,100,837,100
+"Contra Costa","Vehicle Driver",529482,76.4,131789,76.3
+"Contra Costa","Vehicle Passenger",34044,4.9,4629,2.7
+"Contra Costa","Local Public Transit",105051,15.2,32423,18.8
+"Contra Costa","Walk",15766,2.3,2931,1.7
+"Contra Costa","Bike",7693,1.1,367,0.2
+"Contra Costa","Miscelleneous Modes",1067,0.2,557,0.3
+"Contra Costa","Total",693102,100,172696,100
+"Del Norte","Vehicle Driver",11856,95.9,3111,97.2
+"Del Norte","Vehicle Passenger",435,3.5,56,1.8
+"Del Norte","Bike",70,0.6,35,1.1
+"Del Norte","Total",12362,100,3203,100
+"El Dorado","Vehicle Driver",75089,91.9,16042,97.3
+"El Dorado","Local Public Transit",1085,1.3,265,1.6
+"El Dorado","Bike",1299,1.6,176,1.1
+"El Dorado","Total",81678,100,16482,100
+"Fresno","Vehicle Driver",436503,86.3,118157,96.6
+"Fresno","Vehicle Passenger",42046,8.3,703,0.6
+"Fresno","Local Public Transit",5945,1.2,2834,2.3
+"Fresno","Walk",19154,3.8,630,0.5
+"Fresno","Total",506010,100,122324,100
+"Glenn","Vehicle Driver",16924,95.4,4870,97.9
+"Glenn","Vehicle Passenger",253,1.4,40,0.8
+"Glenn","Walk",446,2.5,65,1.3
+"Glenn","Total",17735,100,4974,100
+"Humboldt","Vehicle Driver",70702,85.6,22011,86.3
+"Humboldt","Local Public Transit",1174,1.4,399,1.6
+"Humboldt","Walk",8353,10.1,2363,9.3
+"Humboldt","Bike",2002,2.4,731,2.9
+"Humboldt","Total",82608,100,25504,100
+"Imperial","Vehicle Driver",86833,89.7,22844,92.6
+"Imperial","Vehicle Passenger",7232,7.5,832,3.4
+"Imperial","Walk",1254,1.3,213,0.9
+"Imperial","Bike",1498,1.5,768,3.1
+"Imperial","Total",96818,100,24657,100
+"Inyo","Vehicle Driver",10342,76,2626,75.3
+"Inyo","Vehicle Passenger",473,3.5,128,3.7
+"Inyo","Bike",1810,13.3,735,21.1
+"Inyo","Total",13613,100,3488,100
+"Kern","Vehicle Driver",343042,83.8,70993,94
+"Kern","Vehicle Passenger",40853,10,3713,4.9
+"Kern","Local Public Transit",3746,0.9,646,0.9
+"Kern","Walk",14607,3.6,118,0.2
+"Kern","Bike",7223,1.8,76,0.1
+"Kern","Total",409472,100,75546,100
+"Kings","Vehicle Driver",48576,76.4,8500,97.7
+"Kings","Vehicle Passenger",13775,21.7,201,2.3
+"Kings","Total",63604,100,8701,100
+"Lake","Vehicle Driver",25841,95,5626,91.4
+"Lake","Vehicle Passenger",942,3.5,423,6.9
+"Lake","Walk",423,1.6,107,1.7
+"Lake","Total",27206,100,6156,100
+"Lassen","Vehicle Driver",11903,78,4414,90.2
+"Lassen","Vehicle Passenger",1446,9.5,423,8.6
+"Lassen","Walk",254,1.7,55,1.1
+"Lassen","Total",15253,100,4892,100
+"Los Angeles","Vehicle Driver",3966964,79.1,1003749,82.1
+"Los Angeles","Vehicle Passenger",343773,6.9,70423,5.8
+"Los Angeles","Local Public Transit",450675,9,98607,8.1
+"Los Angeles","Intercity Public Transportation",625,0,272,0
+"Los Angeles","Walk",176074,3.5,29364,2.4
+"Los Angeles","Bike",75895,1.5,20699,1.7
+"Los Angeles","Total",5014637,100,1223115,100
+"Madera","Vehicle Driver",64546,82.3,17302,98.2
+"Madera","Vehicle Passenger",8770,11.2,224,1.3
+"Madera","Bike",2485,3.2,93,0.5
+"Madera","Total",78467,100,17619,100
+"Marin","Vehicle Driver",119616,73.9,34131,75.5
+"Marin","Vehicle Passenger",6241,3.9,1129,2.5
+"Marin","Local Public Transit",19384,12,5679,12.6
+"Marin","Walk",5984,3.7,1847,4.1
+"Marin","Bike",6662,4.1,1026,2.3
+"Marin","Miscelleneous Modes",3885,2.4,1375,3
+"Marin","Total",161772,100,45187,100
+"Mariposa","Vehicle Driver",5220,76.8,1636,82.6
+"Mariposa","Vehicle Passenger",723,10.6,111,5.6
+"Mariposa","Walk",272,4,234,11.8
+"Mariposa","Total",6801,100,1981,100
+"Mendocino","Vehicle Driver",52065,90.8,16010,92.6
+"Mendocino","Vehicle Passenger",4050,7.1,823,4.8
+"Mendocino","Bike",604,1.1,459,2.7
+"Mendocino","Total",57366,100,17293,100
+"Merced","Vehicle Driver",100093,91.3,23881,93.7
+"Merced","Vehicle Passenger",5423,4.9,906,3.6
+"Merced","Walk",912,0.8,123,0.5
+"Merced","Bike",3250,3,566,2.2
+"Merced","Total",109677,100,25477,100
+"Modoc","Vehicle Driver",6952,95.3,2685,97.3
+"Modoc","Walk",150,2.1,75,2.7
+"Modoc","Total",7297,100,2760,100
+"Mono","Vehicle Driver",7165,85.7,2736,82.7
+"Mono","Walk",1153,13.8,573,17.3
+"Mono","Total",8357,100,3309,100
+"Monterey","Vehicle Driver",234788,79.6,54781,80.9
+"Monterey","Vehicle Passenger",30143,10.2,2688,4
+"Monterey","Local Public Transit",10156,3.4,2283,3.4
+"Monterey","Walk",14786,5,7048,10.4
+"Monterey","Bike",5009,1.7,907,1.3
+"Monterey","Total",294882,100,67709,100
+"Napa","Vehicle Driver",75448,90.6,15944,97.8
+"Napa","Vehicle Passenger",4571,5.5,87,0.5
+"Napa","Walk",957,1.1,276,1.7
+"Napa","Total",83251,100,16307,100
+"Nevada","Vehicle Driver",54129,77.5,12659,72.9
+"Nevada","Vehicle Passenger",11372,16.3,4682,27
+"Nevada","Bike",31,0,17,0.1
+"Nevada","Total",69873,100,17358,100
+"Orange","Vehicle Driver",1388967,88.1,377899,91.8
+"Orange","Vehicle Passenger",90124,5.7,14319,3.5
+"Orange","Local Public Transit",55309,3.5,7656,1.9
+"Orange","Walk",22642,1.4,8814,2.1
+"Orange","Bike",18598,1.2,3029,0.7
+"Orange","Miscelleneous Modes",1196,0.1,53,0
+"Orange","Total",1576835,100,411769,100
+"Placer","Vehicle Driver",167735,89.1,34132,87.5
+"Placer","Vehicle Passenger",12999,6.9,2411,6.2
+"Placer","Local Public Transit",3692,2,759,1.9
+"Placer","Bike",3346,1.8,1702,4.4
+"Placer","Total",188283,100,39005,100
+"Plumas","Vehicle Driver",8705,85.3,2623,84
+"Plumas","Walk",370,3.6,112,3.6
+"Plumas","Bike",1010,9.9,388,12.4
+"Plumas","Total",10211,100,3124,100
+"Riverside","Vehicle Driver",834421,88.1,152159,90.2
+"Riverside","Vehicle Passenger",76267,8.1,7422,4.4
+"Riverside","Local Public Transit",20661,2.2,4981,3
+"Riverside","Walk",9989,1.1,2162,1.3
+"Riverside","Bike",5611,0.6,1887,1.1
+"Riverside","Total",946949,100,168611,100
+"Sacramento","Vehicle Driver",533523,81.7,155606,82.8
+"Sacramento","Vehicle Passenger",33328,5.1,7876,4.2
+"Sacramento","Local Public Transit",52232,8,16939,9
+"Sacramento","Walk",16778,2.6,5521,2.9
+"Sacramento","Bike",17018,2.6,1959,1
+"Sacramento","Total",652879,100,187901,100
+"San Benito","Vehicle Driver",25212,78.6,5264,87.7
+"San Benito","Vehicle Passenger",4000,12.5,388,6.5
+"San Benito","Walk",1644,5.1,347,5.8
+"San Benito","Total",32088,100,5999,100
+"San Bernardino","Vehicle Driver",813240,87.5,185434,92.3
+"San Bernardino","Vehicle Passenger",77385,8.3,8237,4.1
+"San Bernardino","Local Public Transit",13704,1.5,450,0.2
+"San Bernardino","Walk",14556,1.6,5114,2.5
+"San Bernardino","Bike",10295,1.1,1690,0.8
+"San Bernardino","Total",929180,100,200926,100
+"San Diego","Vehicle Driver",1137462,84.1,283213,87.1
+"San Diego","Vehicle Passenger",114316,8.5,22461,6.9
+"San Diego","Local Public Transit",46102,3.4,4900,1.5
+"San Diego","Walk",24269,1.8,5085,1.6
+"San Diego","Bike",19449,1.4,9478,2.9
+"San Diego","Total",1351896,100,325137,100
+"San Francisco","Vehicle Driver",241644,38.3,74708,36.9
+"San Francisco","Vehicle Passenger",59117,9.4,25465,12.6
+"San Francisco","Local Public Transit",218014,34.6,70997,35
+"San Francisco","Walk",69261,11,20362,10
+"San Francisco","Bike",39148,6.2,10424,5.1
+"San Francisco","Miscelleneous Modes",3349,0.5,717,0.4
+"San Francisco","Total",630533,100,202673,100
+"San Joaquin","Vehicle Driver",334986,86.8,75327,86.8
+"San Joaquin","Vehicle Passenger",31964,8.3,3142,3.6
+"San Joaquin","Local Public Transit",8318,2.2,3759,4.3
+"San Joaquin","Walk",6942,1.8,3495,4
+"San Joaquin","Bike",3462,0.9,1039,1.2
+"San Joaquin","Total",386014,100,86762,100
+"San Luis Obispo","Vehicle Driver",146401,87.7,29362,83.1
+"San Luis Obispo","Vehicle Passenger",7130,4.3,1757,5
+"San Luis Obispo","Local Public Transit",2340,1.4,515,1.5
+"San Luis Obispo","Walk",5297,3.2,1313,3.7
+"San Luis Obispo","Bike",5853,3.5,2391,6.8
+"San Luis Obispo","Total",167021,100,35339,100
+"San Mateo","Vehicle Driver",423572,76.7,137547,78.2
+"San Mateo","Vehicle Passenger",34685,6.3,8853,5
+"San Mateo","Local Public Transit",70096,12.7,23772,13.5
+"San Mateo","Walk",8845,1.6,2452,1.4
+"San Mateo","Bike",12728,2.3,2153,1.2
+"San Mateo","Miscelleneous Modes",2055,0.4,1028,0.6
+"San Mateo","Total",551981,100,175804,100
+"Santa Barbara","Vehicle Driver",253073,79.5,72200,90.2
+"Santa Barbara","Vehicle Passenger",26766,8.4,1769,2.2
+"Santa Barbara","Local Public Transit",1594,0.5,354,0.4
+"Santa Barbara","Walk",20786,6.5,1959,2.4
+"Santa Barbara","Bike",16306,5.1,3785,4.7
+"Santa Barbara","Total",318526,100,80066,100
+"Santa Clara","Vehicle Driver",1040358,81.2,298963,82
+"Santa Clara","Vehicle Passenger",77729,6.1,20112,5.5
+"Santa Clara","Local Public Transit",80129,6.3,19098,5.2
+"Santa Clara","Walk",26801,2.1,7658,2.1
+"Santa Clara","Bike",43025,3.4,11759,3.2
+"Santa Clara","Miscelleneous Modes",13628,1.1,6872,1.9
+"Santa Clara","Total",1281670,100,364463,100
+"Santa Cruz","Vehicle Driver",130188,79.1,34858,80.6
+"Santa Cruz","Vehicle Passenger",16929,10.3,4648,10.8
+"Santa Cruz","Local Public Transit",4402,2.7,692,1.6
+"Santa Cruz","Walk",5894,3.6,1421,3.3
+"Santa Cruz","Bike",7097,4.3,1604,3.7
+"Santa Cruz","Total",164510,100,43223,100
+"Shasta","Vehicle Driver",91192,89,21682,84.3
+"Shasta","Vehicle Passenger",6869,6.7,2180,8.5
+"Shasta","Local Public Transit",2167,2.1,910,3.5
+"Shasta","Bike",1987,1.9,960,3.7
+"Shasta","Total",102454,100,25732,100
+"Sierra","Vehicle Driver",403,69.7,218,92
+"Sierra","Walk",76,13.1,19,8
+"Sierra","Total",579,100,237,100
+"Siskiyou","Vehicle Driver",20887,68.4,4352,68
+"Siskiyou","Vehicle Passenger",2098,6.9,828,12.9
+"Siskiyou","Local Public Transit",1422,4.7,208,3.3
+"Siskiyou","Walk",3054,10,415,6.5
+"Siskiyou","Bike",3084,10.1,599,9.4
+"Siskiyou","Total",30545,100,6402,100
+"Solano","Vehicle Driver",250864,83.6,57867,89.4
+"Solano","Vehicle Passenger",35894,12,5050,7.8
+"Solano","Local Public Transit",8849,2.9,721,1.1
+"Solano","Walk",663,0.2,262,0.4
+"Solano","Bike",3384,1.1,821,1.3
+"Solano","Total",299998,100,64721,100
+"Sonoma","Vehicle Driver",334174,89.2,87148,89.6
+"Sonoma","Vehicle Passenger",10387,2.8,2664,2.7
+"Sonoma","Walk",13511,3.6,2638,2.7
+"Sonoma","Bike",13688,3.7,4864,5
+"Sonoma","Total",374540,100,97315,100
+"Stanislaus","Vehicle Driver",229677,92,43755,91.6
+"Stanislaus","Vehicle Passenger",15401,6.2,2845,6
+"Stanislaus","Local Public Transit",1452,0.6,717,1.5
+"Stanislaus","Bike",2990,1.2,460,1
+"Stanislaus","Total",249601,100,47777,100
+"Sutter","Vehicle Driver",42248,91.3,10061,91.3
+"Sutter","Vehicle Passenger",575,1.2,288,2.6
+"Sutter","Local Public Transit",1770,3.8,672,6.1
+"Sutter","Total",46295,100,11021,100
+"Tehama","Vehicle Driver",31910,91.9,7099,93.5
+"Tehama","Vehicle Passenger",1593,4.6,306,4
+"Tehama","Walk",893,2.6,191,2.5
+"Tehama","Total",34726,100,7596,100
+"Trinity","Vehicle Driver",4318,90,1374,94.2
+"Trinity","Vehicle Passenger",203,4.2,74,5.1
+"Trinity","Walk",212,4.4,10,0.7
+"Trinity","Total",4799,100,1459,100
+"Tulare","Vehicle Driver",225278,87,38383,89.7
+"Tulare","Vehicle Passenger",22069,8.5,2568,6
+"Tulare","Walk",9492,3.7,1452,3.4
+"Tulare","Bike",1842,0.7,386,0.9
+"Tulare","Total",258838,100,42789,100
+"Tuolumne","Vehicle Driver",24446,84,6343,86.5
+"Tuolumne","Vehicle Passenger",1225,4.2,82,1.1
+"Tuolumne","Local Public Transit",61,0.2,61,0.8
+"Tuolumne","Walk",2970,10.2,754,10.3
+"Tuolumne","Bike",398,1.4,88,1.2
+"Tuolumne","Total",29100,100,7329,100
+"Ventura","Vehicle Driver",424216,89.2,105724,93
+"Ventura","Vehicle Passenger",32056,6.7,5298,4.7
+"Ventura","Local Public Transit",5999,1.3,992,0.9
+"Ventura","Walk",6705,1.4,404,0.4
+"Ventura","Bike",6548,1.4,1252,1.1
+"Ventura","Total",475525,100,113670,100
+"Yolo","Vehicle Driver",102167,68.1,26745,82.7
+"Yolo","Vehicle Passenger",13075,8.7,314,1
+"Yolo","Local Public Transit",5700,3.8,1850,5.7
+"Yolo","Walk",12011,8,186,0.6
+"Yolo","Bike",17168,11.4,3259,10.1
+"Yolo","Total",150121,100,32355,100
+"Yuba","Vehicle Driver",24801,91.2,5196,95.1
+"Yuba","Vehicle Passenger",1573,5.8,230,4.2
+"Yuba","Walk",78,0.3,39,0.7
+"Yuba","Total",27199,100,5465,100
