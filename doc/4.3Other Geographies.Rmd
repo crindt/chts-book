@@ -12,10 +12,7 @@ write(paste("Using Root Directory",rd,"\n"),stderr())
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('#','Overview ')
-```
+# Overview 
 
 This section explains how person-level weights are developed for the City
 of Los Angeles (LA) using the R statistical software. The purpose of
@@ -25,10 +22,7 @@ variables listed below.  Users of these weights are cautioned that
 these weights should not be applied to lower-level geographies such as
 zip codes.
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('#','Methodology')
-```
+# Methodology
 
 Weights are calculated by raking at the person level. These weights
 adjust the relative importance of responses to reflect the different
@@ -56,22 +50,14 @@ use these new person weights to calculate the final trip weights from
 `Trip Correction Factor (TCF)` * `New Person Weight of LA City`.
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('#','R Code and Implementation')
-```
+# R Code and Implementation
 
 To generate person weight for the City of Los Angeles, we first set the working directory. Then we import the person
 data file and the corresponding lookup file (containing location information), and then we merge them.
 
-```{r og-1,echo=FALSE}
-if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
-p <- function(ps) { return(paste(rd,ps,sep="/")) }
-```
-
 ```{r og-2,cache=TRUE}
 # Set the working directory
-setwd(p("Weight/LA_Weight"))
+setwd(pd("Weight/LA_Weight"))
 
 # Import the person level variables and give a new name
 library(chts2011)
@@ -179,7 +165,7 @@ First, let us import the race data for residents of the city of LA:
 
 ```{r og-8,cache=TRUE}
 #Import the LA city population data of raking variables 
-race.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/race_LA.csv"),
+race.data_LA <- read.csv(pd("Weight/LA_Weight/Raking variables/race_LA.csv"),
                          header=TRUE)
 race.data_LA
 ```
@@ -187,7 +173,7 @@ race.data_LA
 Next, we import the Hispanic variables for the City of LA.
 
 ```{r og-9,cache=TRUE}
-hisp.data_LA<- read.csv(p("Weight/LA_Weight/Raking variables/hisp_LA.csv"),
+hisp.data_LA<- read.csv(pd("Weight/LA_Weight/Raking variables/hisp_LA.csv"),
                         header=TRUE)
 hisp.data_LA
 ```
@@ -195,7 +181,7 @@ hisp.data_LA
 Now, let us import the age variables:
 
 ```{r og-10,cache=TRUE}
-age.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/age_LA.csv"),
+age.data_LA <- read.csv(pd("Weight/LA_Weight/Raking variables/age_LA.csv"),
                         header=TRUE)
 age.data_LA
 ```
@@ -203,11 +189,11 @@ age.data_LA
 Finally, let us import the gender and employment status variables:
 
 ```{r og-11,cache=TRUE}
-gend.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/gend_LA.csv"),
+gend.data_LA <- read.csv(pd("Weight/LA_Weight/Raking variables/gend_LA.csv"),
                          header=TRUE)
 gend.data_LA
 
-emply.data_LA <- read.csv(p("Weight/LA_Weight/Raking variables/emply_LA.csv"),
+emply.data_LA <- read.csv(pd("Weight/LA_Weight/Raking variables/emply_LA.csv"),
                           header=TRUE)
 emply.data_LA
 ```
@@ -295,7 +281,7 @@ Let us save the new weights in a CSV file:
 
 ```{r og-17,cache=TRUE}
 # Save as csv file
-write.csv(perweight_LA, file="PerWeight_LA.csv",row.names=FALSE) 
+write.csv(perweight_LA, file=pto("PerWeight_LA.csv"),row.names=FALSE) 
 ```
 
 At this point, We want to merge the new weights with the City of LA person data frame
@@ -305,7 +291,7 @@ and save the resulting dataset:
 # Merge the new weight file with original person data file
 nper_LA<-merge(perdata_LA,perweight_LA, by =c("SAMPN","PERNO"), all = TRUE)
 head(nper_LA)
-write.csv(nper_LA, file="npersondataLA.csv",row.names=FALSE)
+write.csv(nper_LA, file=pto("npersondataLA.csv"),row.names=FALSE)
 ```
 
 This gives us a person data file of the City of LA with new person
@@ -345,7 +331,7 @@ the place level file and merge it with the new weights file.
 
 ```{r og-21,cache=TRUE}
 #Import the place level data  csv file and give a new name
-nplacedata <- read.csv(p("Weight/NewWeightData/nplacedata932015.csv"), header=TRUE)
+nplacedata <- read.csv(pd("Weight/NewWeightData/nplacedata932015.csv"), header=TRUE)
 
 # Merge with LA weight
 nplacedata_LA<-merge(nplacedata,perweight_LA, by =c("SAMPN","PERNO"), all = TRUE)
@@ -371,7 +357,7 @@ head(placedata_LA)
 Finally, we save the new data frame with the trip weights as a CSV file:
 
 ```{r og-23,cache=TRUE}
-write.csv(placedata_LA, file="nplacedata_LA.csv",row.names=FALSE)
+write.csv(placedata_LA, file=pd("Weight/LA_Weight/nplacedata_LA.csv"),row.names=FALSE)
 ```
 
 We have a new place datafile with new trip weights for the City of

@@ -21,11 +21,7 @@ that these weights should not be applied to lower-level geographies
 such as cities or zip codes. Similar weights can be developed for
 these geographies if they contain enough CHTS respondents.
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('#','Methodology')
-```
-
+# Methodology
 Person-level county weights are calculated by raking at the person
 level. These weights adjust the relative importance of responses to
 reflect the different probabilities of selecting respondents, and
@@ -61,26 +57,18 @@ weight which is an outcome of `Trip Correction Factor (TCF) * New
 County Wide Person Weight`.
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('#','R Code and Implementation')
-```
+# R Code and Implementation
 
 The following commands are used to generate county wide person weight.
 
 First we need to import the person data file and corresponding lookup
 file (containing location information) and then we merge them.
 
-```{r pw-1,echo=FALSE}
-if ( !exists("rd") ) { rd <- "/Users/crindt/chts-book" }
-p <- function(ps) { return(paste(rd,ps,sep="/")) }
-```
-
 ```{r pw-2,cache=TRUE}
 library(chts2011)
 library(dplyr)
 # Set the working directory
-setwd(p("Weight/PersonWeight_County"))
+setwd(pd("Weight/PersonWeight_County"))
 # Import the person level variables csv file and give a new name
 persondata <- chts_per
 # Import the lookup variable csv file and give a new name
@@ -161,7 +149,7 @@ We need county wide total population data which we collect from census and save 
 ```{r pw-7,cache=TRUE}
 # Assgin county wide total population into perdata2 file
 # Import the countywise total population csv file and give a new name
-tot.pop <- read.csv(p("Weight/Data_County/Total/county_totpop2.csv"),
+tot.pop <- read.csv(pd("Weight/Data_County/Total/county_totpop2.csv"),
                     header=TRUE)
 head(tot.pop)
 
@@ -187,7 +175,7 @@ First, we do it for hispanic data.
 
 ```{r pw-9,cache=TRUE}
 # Hispanic data
-hisp.county <- read.csv(p("Weight/Data_County/Hispanic/Hisp_county.csv"),
+hisp.county <- read.csv(pd("Weight/Data_County/Hispanic/Hisp_county.csv"),
                         header=TRUE)
 head(hisp.county)
 
@@ -208,7 +196,7 @@ Here, we import the race data.
 
 ```{r pw-10,cache=TRUE}
 # Race
-race.county <- read.csv(p("Weight/Data_County/Race/Race_county.csv"),
+race.county <- read.csv(pd("Weight/Data_County/Race/Race_county.csv"),
                         header=TRUE)
 race.county$id <- 1:nrow(race.county)
 race.data <- lapply(
@@ -227,7 +215,7 @@ Then, we repeat the process for employment data.
 ```{r pw-11,cache=TRUE}
 ## Employment data
 emply.county <-
-    read.csv(p("Weight/Data_County/Employment/Employment_county.csv"),
+    read.csv(pd("Weight/Data_County/Employment/Employment_county.csv"),
              header=TRUE)
 
 emply.county$id <- 1:nrow(emply.county)
@@ -244,7 +232,7 @@ Finally, we import gender and age data.
 
 ```{r pw-12,cache=TRUE}
 #Gender
-gend.county <- read.csv(p("Weight/Data_County/Gender/Gender_county.csv"),
+gend.county <- read.csv(pd("Weight/Data_County/Gender/Gender_county.csv"),
                         header=TRUE) 
 
 gend.county$id <- 1:nrow(gend.county)
@@ -257,7 +245,7 @@ gend.data <- lapply(
 head(gend.data[1])
 
 # Age
-age.county <- read.csv(p("Weight/Data_County/Age/Age_county.csv"), header=TRUE)
+age.county <- read.csv(pd("Weight/Data_County/Age/Age_county.csv"), header=TRUE)
 head(age.county)
 age.county$id <- 1:nrow(age.county)
 age.data <- lapply(
@@ -275,7 +263,7 @@ Here we want to set the directory where we want to save our output.
 
 ```{r pw-13,cache=TRUE}
 # Set directory where we want to save
-setwd(p("Weight/PersonWeight_County"))
+setwd(pd("Weight/PersonWeight_County"))
 ```
 
 
@@ -295,7 +283,7 @@ for (i in 1:length(hisp.data)) {
     f=seq(6001, 6115, by=2)
     s<-as.character(f[i])
     name=paste('perweight_',s, '.CSV',sep="")
-    name=p(paste("Weight/PersonWeight_County",name,sep="/"))
+    name=pd(paste("Weight/PersonWeight_County",name,sep="/"))
     temp1<- svydesign(
       id=~1, 
       weights=~PERWGT,data=percnty_list[[i]], 
@@ -343,7 +331,7 @@ for (i in d){
     f=seq(6001, 6115, by=2)
     s<-as.character(f[i])
     name=paste('perweight_',s, '.CSV',sep="")
-    name=p(paste("Weight/PersonWeight_County",name,sep="/"))
+    name=pd(paste("Weight/PersonWeight_County",name,sep="/"))
     
     # Survey design 
     temp1<- svydesign(id=~1, weights=~EXPPERWGT,data=percnty_list[[i]], 
@@ -382,9 +370,9 @@ There is no error now. So, we have expanded person weights for all 58 counties a
 
 ```{r pw-16,cache=TRUE}
 # Import multiple csv file of new expanded weight and combine into one file
-setwd(p("Weight/PersonWeight_County"))
+setwd(pd("Weight/PersonWeight_County"))
 # Import the files
-filenames <- list.files(path = p("Weight/PersonWeight_County"))
+filenames <- list.files(path = pd("Weight/PersonWeight_County"))
 # combined the files into one
 nperweight<-do.call("rbind", lapply(filenames, read.csv, header = TRUE)) 
 head(nperweight)
@@ -429,7 +417,7 @@ Now we have a file with new county wide expaned and unexpanded person weights. H
 
 ```{r pw-20,cache=TRUE}
 # Save as csv
-setwd(p("Weight/NewWeightData"))
+setwd(pd("Weight/NewWeightData"))
 write.csv(nperweight2, file="nperweight922015.csv",row.names = FALSE) 
 ```
 
@@ -440,7 +428,7 @@ We want to merge the new weight with person data file.
 npersondata<-merge(persondata,nperweight2, by =c("SAMPN","PERNO"), all = TRUE)
 head(npersondata)
 
-write.csv(npersondata, file="npersondata922015.csv",row.names=FALSE)
+write.csv(npersondata, file=pto("npersondata922015.csv"),row.names=FALSE)
 ```
 
 Now we have a person data file with new county wide weight. 
@@ -448,7 +436,7 @@ As we mentioned earlier we want check whether the new weights represent the tota
 
 ```{r pw-22,cache=TRUE}
 # Random Check
-setwd(p("Weight/Check"))
+setwd(pd("Weight/Check"))
 # We do it for Mendocino county (FIP code=45)
 popdata_45<-subset(npersondata,HCTFIP==45)
 head(popdata_45$HCTFIP)
@@ -506,7 +494,7 @@ If we want to save the new file with new trip weight as csv file, we can do it b
 
 ```{r pw-26,cache=TRUE}
 # Set the working directory
-setwd(p("Weight/NewWeightData"))
+setwd(pd("Weight/NewWeightData"))
 
 write.csv(nplacedata, file="nplacedata932015.csv",row.names=FALSE)
 # Now we have new place data file with new weight

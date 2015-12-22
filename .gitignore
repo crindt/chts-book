@@ -17,3 +17,4 @@ doc/figure/
 *.out
 *.tex
 *.toc
+output/temp/*.csv

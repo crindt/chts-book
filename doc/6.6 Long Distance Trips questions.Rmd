@@ -30,10 +30,7 @@ areas:
   *	District 9 - Inyo, Mono and the rest of San Bernardino County.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('#','Summary and Methodology')
-```
+# Summary and Methodology
 
 We generate weighted and unweighted tables for trips originating in and ending in 
 the above districts, using the long distance recall survey data. Note that in the long
@@ -42,25 +39,17 @@ We exclude work trips to calculate non-commute trips and use the new countywide
 long distance weights (described in subsection 4.4) to generate weighted results.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('#','R Code and Implementation')
-```
+# R Code and Implementation
 
 
 After setting our working directory, let us import the long distance data with the corresponding weights:
 
-```{r ldtq-0,echo=FALSE}
-if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
-p <- function(ps) { return(paste(rd,ps,sep="/")) }
-```
-
 ```{r ldtq-1, }
 # Set the working directory
-setwd(p("LD data request"))
+setwd(pd("LD data request"))
 
 #Import the long distance  (with new weight) csv file and give a new name
-wLDdata <- read.csv(p("Weight/LD_Weight2/wLD_data922015.csv"), header=TRUE)
+wLDdata <- read.csv(pd("Weight/LD_Weight2/wLD_data922015.csv"), header=TRUE)
 names(wLDdata)
 ```
 
@@ -130,10 +119,7 @@ wLDdata$Mode<-
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Modal Split of Trips from District 1')
-```
+## Modal Split of Trips from District 1
 
 
 Now, let us focus on long distance trips originating from District 1. we
@@ -196,17 +182,14 @@ Save the results in a `csv` file for later use:
 temp3<-merge(temp1,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
 temp3
-write.csv(temp3,file="O_Mode.csv",row.names=FALSE)
+write.csv(temp3,file=pto("O_Mode.csv"),row.names=FALSE)
 ```
 
 Now we have modal split data based on new weights for non-commute long
 distance trips from District 1.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Modal Split of Trips from District 2')
-```
+## Modal Split of Trips from District 2
 
 Let us use the same procedure to find the total number of non-commute
 long distance trips from District 2, by mode.
@@ -258,15 +241,12 @@ Save the results for later use:
 temp3<-merge(O_mode2,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
 temp3
-write.csv(temp3,file="O_LDMode2.csv",row.names=FALSE)
+write.csv(temp3,file=pto("O_LDMode2.csv"),row.names=FALSE)
 ```
 
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Modal Split of Trips to District 1')
-```
+## Modal Split of Trips to District 1
 
 
 We perform similar procedures for trips *to* District 1.  As
@@ -329,17 +309,14 @@ Save these results in a `csv` file for later use.
 temp3<-merge(temp1,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
 temp3
-write.csv(temp3,file="D_OMode.csv",row.names=FALSE)
+write.csv(temp3,file=pto("D_OMode.csv"),row.names=FALSE)
 ```
 
 Now we have modal split data based on new weight for non-commute long
 distance trips to district 1.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Modal Split of Trips to District 2')
-```
+## Modal Split of Trips to District 2
 
 Next, we follow similar steps to find the total number of non-commute
 long distance trips to District 2, by mode.
@@ -388,14 +365,11 @@ As before, save the results for later use:
 temp3<-merge(O_mode2,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
 temp3
-write.csv(temp3,file="D_OLDMode2.csv",row.names=FALSE)
+write.csv(temp3,file=pto("D_OLDMode2.csv"),row.names=FALSE)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Generate similar statistics for other districts')
-```
+## Generate similar statistics for other districts
 
 We can generate similar tables for other districts (District 3, 4, 5, 9 and Southern California) using the above codes. To do that we need to subset the data using county fip numbers of all counties of resepective district.
 

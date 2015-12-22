@@ -18,10 +18,7 @@ write(paste("Using Root Directory",rd,"\n"),stderr())
 5. Trips by Purpose
 6. Work trips by mode
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('#','Summary and Methodology')
-```
+# Summary and Methodology
 
 In this sub-section, We learn how to generate tables by mode for the following: total number of trips,
 total trip distance, average trip distance, total trip duration,
@@ -42,34 +39,19 @@ weights to generate weighted results for trips that originated outside
 of Santa Cruz County.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('#','R Code and Implementation')
-```
+# R Code and Implementation
 
 
 The following commands are used to generate the results.
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Trips to  Santa Cruz County')
-```
+## Trips to  Santa Cruz County
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Mode split calculations')
-```
+### Mode split calculations
 
 
 To get started we need the place level table with weights
 that we computed in Chapter 4.
-
-```{r scc-0,echo=FALSE}
-if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
-p <- function(ps) { return(paste(rd,ps,sep="/")) }
-source(p("R/setup-hooks.R"))
-```
 
 ```{r scc-1 }
 # Set the working directory
@@ -77,7 +59,7 @@ source(p("R/setup-hooks.R"))
 
 
 #Import the place level with new weight csv file and give a new name
-nplace<- read.csv(p("Weight/NewWeightData/nplacedata932015.csv"), header=TRUE)
+nplace<- read.csv(pd("Weight/NewWeightData/nplacedata932015.csv"), header=TRUE)
 names(nplace)
 head(nplace)# Show first ten observations
 
@@ -208,10 +190,7 @@ rm(temp2)
 rm(temp3)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trip duration by mode')
-```
+### Trip duration by mode
 
 
 Next, we perform similar computations for Total Trip duration for all
@@ -269,10 +248,7 @@ rm(temp3)
 rm(temp)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trip distance by mode')
-```
+### Trip distance by mode
 
 
 Moving on, let us calculate Total Trip distance for all trips ending in
@@ -329,10 +305,7 @@ rm(temp3)
 rm(temp)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Modal split for driving alone')
-```
+### Modal split for driving alone
 
 
 The next question was the modal split for Drive Alone.  To estimate
@@ -397,10 +370,7 @@ rm(temp3)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Trips from  Santa Cruz County')
-```
+## Trips from  Santa Cruz County
 
 
 We proceed the same way for trips *from* Santa Cruz County.  
@@ -416,10 +386,7 @@ names(place_87O)
 head(place_87O)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trips by mode')
-```
+### Trips by mode
 
 
 Now we generate the mode frequency table for all trips from Santa Cruz
@@ -528,10 +495,7 @@ rm(temp3)
 rm(temp)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trip distance by Mode')
-```
+### Trip distance by Mode
 
 Here are the trip distance calculations for all trips from Santa Cruz,
 by Mode:
@@ -587,10 +551,7 @@ rm(temp3)
 rm(temp)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Modal split for driving alone')
-```
+### Modal split for driving alone
 
 
 Lastly for Santa Cruz origins, let us generate the drive alone modal
@@ -653,10 +614,7 @@ rm(temp2)
 rm(temp3)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Trip Purpose Calculations')
-```
+## Trip Purpose Calculations
 
 
 Now we need the trip purpose breakdown, so we import the activity level data with the 
@@ -721,10 +679,7 @@ act_place$Actpur<-
 head(act_place)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Trip Purposes from  Santa Cruz County')
-```
+## Trip Purposes from  Santa Cruz County
 
 We start with trips from Santa Cruz County, subsetting based on origin county `OCTFIP=87`.
 
@@ -778,26 +733,20 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Actpur_87O.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Actpur_87O.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Work Trips by Mode')
-```
+## Work Trips by Mode
 
 
 In the remainder of this sub question, let us generate work trips by Mode for Santa Cruz County:
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Work Trips Originating in Santa Cruz County')
-```
+### Work Trips Originating in Santa Cruz County
 
 
 First, we reuse the merged activity table from above for trips
@@ -850,16 +799,13 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_wact87O.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_wact87O.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Work Trips Ending in  Santa Cruz County')
-```
+### Work Trips Ending in  Santa Cruz County
 
 
 Now let us find trips ending in Santa Cruz county `(CTFIP=87)`.
@@ -925,7 +871,7 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Actpur_87D.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Actpur_87D.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -976,7 +922,7 @@ temp3
 
 ```{r scc-47}
 ## Save as csv file
-write.csv(temp3,file="Mode_wact87D.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_wact87D.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)

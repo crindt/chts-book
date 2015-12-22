@@ -12,10 +12,7 @@ write(paste("Using Root Directory",rd,"\n"),stderr())
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('#','Overview ')
-```
+# Overview 
 
 This document explains how county-level weights are developed for long
 distance trips using the R statistical software for people who
@@ -31,10 +28,7 @@ to lower-level geographies such as cities or zip codes. Similar
 weights can be developed for these geographies if they contain enough
 CHTS respondents.
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('#','Methodology')
-```
+# Methodology
 
 County wide Weights for Long distance trips are calculated by raking
 at the person level. These weights adjust the relative importance of
@@ -54,15 +48,7 @@ of each county. Variables used for raking at the person level are:
 After the raking procedure, very large weights are capped to be no
 more than five times the mean of weight.
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('#','R Code and Implementation')
-```
-
-```{r ldw-1,echo=FALSE}
-if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
-source(paste(rd,'R/setup-hooks.R',sep="/"))
-```
+# R Code and Implementation
 
 The following commands are used to generate county wide weights for
 long distance trips.
@@ -72,7 +58,7 @@ frame (containing location information) and then we merge them.
 
 ```{r ldw-2,cache=TRUE}
 # Set the working directory
-setwd(p("Weight/PersonWeight_County"))
+setwd(pd("Weight/PersonWeight_County"))
 
 library(chts2011)
 persondata <- chts_per
@@ -164,7 +150,7 @@ merge this data with `perdata2`.
 ```{r ldw-7,cache=TRUE}
 # Assign county wide total population into perdata2 file
 # Import the countywise total population csv file and give a new name
-tot.pop <- read.csv(p("Weight/Data_County/Total/county_totpop2.csv"),
+tot.pop <- read.csv(pd("Weight/Data_County/Total/county_totpop2.csv"),
                     header=TRUE)
 head(tot.pop)
 
@@ -180,7 +166,7 @@ Now, We need to import the long distance file and corresponding look
 up file (containing location information) and merge them.
 
 ```{r ldw-8,cache=TRUE}
-setwd(p("Weight/LD_Weight2"))
+setwd(pd("Weight/LD_Weight2"))
 LD_data <- chts_ld
 lookup_LD <- chts_lu_ld
 
@@ -250,7 +236,7 @@ dim(nLD_data)
 We want to save the file as CSV.
 
 ```{r ldw-13,cache=TRUE}
-setwd(p("Weight/LD_Weight2"))
+setwd(pd("Weight/LD_Weight2"))
 write.csv(LD_dataw1, file="nLD_dataw1.csv", row.names=FALSE)
 ```
 
@@ -275,7 +261,7 @@ First, we do it for Hispanic data.
 
 ```{r ldw-15,cache=TRUE}
 # Hispanic data
-hisp.county <- read.csv(p("Weight/Data_County/Hispanic/Hisp_county.csv"),
+hisp.county <- read.csv(pd("Weight/Data_County/Hispanic/Hisp_county.csv"),
                         header=TRUE)
 head(hisp.county)
 
@@ -296,7 +282,7 @@ Here, we import the race data.
 
 ```{r ldw-16,cache=TRUE}
 # Race
-race.county <- read.csv(p("Weight/Data_County/Race/Race_county.csv"),
+race.county <- read.csv(pd("Weight/Data_County/Race/Race_county.csv"),
                         header=TRUE)
 race.county$id <- 1:nrow(race.county)
 race.data <- lapply(
@@ -313,7 +299,7 @@ Then, we repeat the process for employment data.
 
 ```{r ldw-17,cache=TRUE}
 ## Employment data
-emply.county <- read.csv(p("Weight/Data_County/Employment/Employment_county.csv"),
+emply.county <- read.csv(pd("Weight/Data_County/Employment/Employment_county.csv"),
                          header=TRUE)
 emply.county$id <- 1:nrow(emply.county)
 emply.data <- lapply(
@@ -330,7 +316,7 @@ Finally, we import gender and age data.
 
 ```{r ldw-18,cache=TRUE}
 #Gender
-gend.county <- read.csv(p("Weight/Data_County/Gender/Gender_county.csv"),
+gend.county <- read.csv(pd("Weight/Data_County/Gender/Gender_county.csv"),
                         header=TRUE)
 gend.county$id <- 1:nrow(gend.county)
 gend.data <- lapply(
@@ -342,7 +328,7 @@ gend.data <- lapply(
 head(gend.data[1])
 
 # Age
-age.county <- read.csv(p("Weight/Data_County/Age/Age_county.csv"),
+age.county <- read.csv(pd("Weight/Data_County/Age/Age_county.csv"),
                        header=TRUE)
 head(age.county)
 age.county$id <- 1:nrow(age.county)
@@ -360,7 +346,7 @@ Here we want to set the directory where we want to save our output.
 
 ```{r ldw-19,cache=TRUE}
 # Set directory where we want to save
-setwd(p("Weight/LD_Weight2"))
+setwd(pd("Weight/LD_Weight2"))
 ```
 
 
@@ -393,7 +379,7 @@ for (i in 1:length(hisp.data)){
     f=seq(6001, 6115, by=2)
     s<-as.character(f[i])
     name=paste('LDweight_',s, '.CSV',sep="")
-    name=p(paste("Weight/LD_Weight",name,sep="/"))
+    name=pd(paste("Weight/LD_Weight",name,sep="/"))
 
     # Survey design with equal probability
     temp1<- svydesign(id=~1,data=ldcnty_list[[i]],pps="brewer") 
@@ -442,7 +428,7 @@ for (i in d){
     f=seq(6001, 6115, by=2)
     s<-as.character(f[i])
     name=paste('LDweight_',s, '.CSV',sep="")
-    name=p(paste("Weight/LD_Weight",name,sep="/"))
+    name=pd(paste("Weight/LD_Weight",name,sep="/"))
 
     # Survey design with equal probability
     temp1<- svydesign(id=~1,data=ldcnty_list[[i]], pps="brewer") 
@@ -481,8 +467,8 @@ combine them.
 
 ```{r ldw-22,cache=TRUE}
 # Import multiple csv file of new expanded weight and combine into one file
-setwd(p("Weight/LD_Weight"))
-filenames <- list.files(path = p("Weight/LD_Weight")) # import the files
+setwd(pd("Weight/LD_Weight"))
+filenames <- list.files(path = pd("Weight/LD_Weight")) # import the files
 # combine the files into one
 nldweight2<-do.call("rbind", lapply(filenames, read.csv, header = TRUE)) 
 head(nldweight2)
@@ -492,7 +478,7 @@ dim(nldweight2)
 Now, we save the new file as CSV format.
 
 ```{r ldw-23,cache=TRUE}
-setwd(p("Weight/LD_Weight2"))
+setwd(pd("Weight/LD_Weight2"))
 write.csv(nldweight2, file="nldweight922015.csv",row.names = FALSE) 
 ```
 
@@ -512,6 +498,6 @@ we want to save it as CSV.
 
 ```{r ldw-25,cache=TRUE}
 write.csv(wLDdata,
-          file=p(paste("Weight/LD_Weight2","wLD_data922015.csv",sep="/")),
+          file=pd(paste("Weight/LD_Weight2","wLD_data922015.csv",sep="/")),
           row.names=FALSE)
 ```

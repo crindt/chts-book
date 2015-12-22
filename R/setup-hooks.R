@@ -30,6 +30,9 @@ qfmt <- function(val) { return(format(big.mark=",",val)) }
 
 pp <- function(n) { return(paste(rd,n,sep="/")) }
 p <- function(ps) { return(paste(rd,ps,sep="/")) }
+pd <- function(ps) { return(paste(rd,'data',ps,sep="/")) }
+po <- function(ps) { return(paste(rd,'output',ps,sep="/")) }
+pto <- function(ps) { return(paste(rd,'output/temp',ps,sep="/")) }
 
 if ( !exists("lev") ) { lev <<- 0 }  # section nesting
 SEC <- function(level,text,as.string=FALSE) {
@@ -64,4 +67,27 @@ var.value.summary <<- function(vn,tab='hh',head='###',val.list=TRUE,desc=NA) {
         cat(paste("Valid values for ",vdesc," (`",vn,"`) are as follows:\n",sep=""))
         pandoc.list(vlist)
     }
+}
+
+filterRmd <- function(fname,lev=0) {
+    con <- file(fname, "r")
+    ld <- data.frame(line=readLines(con)) %>%
+        mutate(yamlcnt=ifelse(grepl("^---",line),1,0)) %>%
+        mutate(yamlsum=cumsum(yamlcnt)) %>%
+        mutate(yamlsum=cumsum(ifelse(row_number()==1 | lag(yamlsum)>0, yamlcnt, 0))) %>%
+        mutate(yamlblock=(yamlcnt==1 | yamlsum%%2 == 1)) %>%
+        filter(!yamlblock) %>%
+        mutate(tickcnt=ifelse(grepl("^```",line),1,0)) %>%
+        mutate(markdownblock=(cumsum(tickcnt)%%2==0)) %>%
+        mutate(line=ifelse(markdownblock,
+                           gsub("^#",paste(rep('#',lev+1),collapse=""),line),
+                           as.character(line)
+                           ))
+    close(con)
+    return(paste(ld$line,collapse="\n"))
+}
+
+nestedInclude <- function(fname, lev=0, ..., options = NULL, envir = parent.frame()) {
+  text <- filterRmd(fname,lev)
+  cat(knit_child(text=text,options=options,envir=envir,quiet=TRUE,...))
 }

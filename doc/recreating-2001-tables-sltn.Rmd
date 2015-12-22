@@ -33,10 +33,7 @@ write(paste("Using Root Directory",rd,"\n"),stderr())
 
 \ifmydocumentation
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('#','Using R to Generate Summary Tables')
-```
+# Using R to Generate Summary Tables
 
 In this section, we describe the creation of a set of summary tables
 that provide statistics about household travel behavior as derived
@@ -51,10 +48,7 @@ In the sections below, we provide the `R` code for generating each
 table as well as some discussion of the general methods used.
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Setup')
-```
+## Setup
 
 ```{r rt-recreating-2001-tables-setup,cache=TRUE,echo=TRUE}
 # Set the working directory so we can access libraries
@@ -77,7 +71,7 @@ library(chts2011pvt)
 library(chts2011wgt)
 
 # read in the FIPS county table for pretty printing
-fipsctyca <- read.csv(paste(rd,"data/fips-county.csv",sep="/"),
+fipsctyca <- read.csv(pd("fips-county.csv"),
                       header=TRUE,
                       stringsAsFactors=FALSE) %>%
   filter(state=="CA") %>% 
@@ -103,10 +97,7 @@ single.family <- c(1)   # RESTY values: single family homes
 multi.family  <- c(2:6) # RESTY values
 ```
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Weighting Calculations')
-```
+## Weighting Calculations
 
 Weights used in the calculations of the following tables were
 generated separately and included in the `chts2011wgt` package.  See
@@ -118,10 +109,7 @@ weights and county weights (and county weekday weights).
 library(chts2011wgt)
 ```
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Table A: Key 2011-2012 Travel Survey Data for California')
-```
+## Table A: Key 2011-2012 Travel Survey Data for California
 
 
 Table A contains a range of information about households.  In R, we'll construct
@@ -385,10 +373,7 @@ res[["res.a.2"]]$data <- res.a.2
 res[["res.a.2"]]$tabtxt <- res.a.2.str
 ```
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Table B: Weekday Trip Information')
-```
+## Table B: Weekday Trip Information
 
 
 The weekday trip information is based upon linked trips, which have
@@ -878,10 +863,7 @@ res[["res.b"]]$tabtxt <- res.b.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Table C - Travel Mode Distribution')
-```
+## Table C - Travel Mode Distribution
 
 
 To compute the travel mode distribution table, we first start by
@@ -969,10 +951,7 @@ res[["res.c"]]$tabtxt <- res.c.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Table D: Weekday Commute Mode Share Information')
-```
+## Table D: Weekday Commute Mode Share Information
 
 
 The process to compute the commute mode share is similar to that used
@@ -1081,10 +1060,7 @@ res[["res.d"]]$tabtxt <- res.d.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','Table 1: Persons/Vehicle per Household By County')
-```
+## Table 1: Persons/Vehicle per Household By County
 
 To compute persons and vehicles per household for the state and each
 county, we need the household table, which includes the number of
@@ -1152,10 +1128,7 @@ res[["res.1"]]$tabtxt <- res.1.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','TABLE 5: Licensed Drivers Per Household')
-```
+## TABLE 5: Licensed Drivers Per Household
 
 
 We use a similar process to generate the licensed drivers per
@@ -1207,10 +1180,7 @@ res[["res.5"]]$tabtxt <- res.5.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','TABLE 6: Employees Per Household')
-```
+## TABLE 6: Employees Per Household
 
 
 Once again, the process is similar for computing the employees per
@@ -1262,10 +1232,7 @@ res[["res.6"]]$tabtxt <- res.6.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','TABLE 9: Weekday Trip-Type Distribution')
-```
+## TABLE 9: Weekday Trip-Type Distribution
 
 
 We will now compute the weekday trip type distribution by state and
@@ -1421,10 +1388,7 @@ res[["res.9"]]$tabtxt <- res.9.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','TABLE 10a: Weekday Person Trips Per Household')
-```
+## TABLE 10a: Weekday Person Trips Per Household
 
 
 Here, we're looking for weekday person trips per household broken down
@@ -1667,10 +1631,7 @@ res[["res.10a"]]$tabtxt <- res.10a.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','TABLE 11: Weekday Driver Trips Per Household')
-```
+## TABLE 11: Weekday Driver Trips Per Household
 
 
 Now we're looking for weekday person trips per household broken down by county, housing unit type, vehicle ownership, and trip type.  As with Table 10a, we also want the total across all trip types
@@ -1814,10 +1775,7 @@ cat(res.11.str)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','TABLE 13a: Weekday Person and Driver Trips Per Household')
-```
+## TABLE 13a: Weekday Person and Driver Trips Per Household
 
 
 ```{r rt-table13a}
@@ -2000,10 +1958,7 @@ cat(res.13.str)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','TABLE 15: Weekday Driver Trips Per Vehicle By County, HH Income, and Housing Unit')
-```
+## TABLE 15: Weekday Driver Trips Per Vehicle By County, HH Income, and Housing Unit
 
 
 ```{r rt-table-15}
@@ -2162,10 +2117,7 @@ cat(res.15.str)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','TABLE 15a: Weekday Person and Vehicle Miles Traveled per Vehicle by County and HH Income')
-```
+## TABLE 15a: Weekday Person and Vehicle Miles Traveled per Vehicle by County and HH Income
 
 
 ```{r rt-table-15a}
@@ -2250,10 +2202,7 @@ cat(res.15a.str)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','TABLE 17a: Weekday Unlinked and Linked Trips Distributed by Particular Travel Mode and Group')
-```
+## TABLE 17a: Weekday Unlinked and Linked Trips Distributed by Particular Travel Mode and Group
 
 
 ```{r rt-table-17a}
@@ -2524,10 +2473,7 @@ res[["res.17a"]]$tabtxt <- paste(res.17a.st.str,res.17a.cty.str,sep="\n\n\n")
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##',"Table 17B and 17C: Weekday Commuters' Directional Travel Mode Split")
-```
+## Table 17B and 17C: Weekday Commuters' Directional Travel Mode Split
 
 ```{r rt-table-17bc}
 mode.groups <- data.frame( 
@@ -2672,10 +2618,7 @@ res[["res.17bc"]]$tabtxt <- res.17bc.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','TABLE 22: Age of Vehicle in Use on Travel Day by County and Vehicle Type')
-```
+## TABLE 22: Age of Vehicle in Use on Travel Day by County and Vehicle Type
 
 
 ```{r rt-table-22}
@@ -2763,19 +2706,13 @@ res[["res.22"]]$tabtxt <- res.22.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','TABLE 22a: Vehicle Trips, Person Trips by County by Mode and Purpose')
-```
+## TABLE 22a: Vehicle Trips, Person Trips by County by Mode and Purpose
 
 
 How to define VT?  By definition, Transit trips will have zero VMT, so having both VMT and mode split doesn't make sense to me.
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','TABLE 50: Mode Share for Short Trips by County')
-```
+## TABLE 50: Mode Share for Short Trips by County
 
 
 Also asked for cities, but samples sizes will be too small for most.
@@ -2833,10 +2770,7 @@ res[["res.50"]]$tabtxt <- res.50.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##','TABLE 51: Mode Share for Millennials Versus Older Age Groups')
-```
+## TABLE 51: Mode Share for Millennials Versus Older Age Groups
 
 
 
@@ -2903,10 +2837,7 @@ res[["res.51"]]$tabtxt <- res.51.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##',"TABLE 52: Statewide Commute trips by Mode and Distance Ranges")
-```
+## TABLE 52: Statewide Commute trips by Mode and Distance Ranges
 
 
 ```{r rt-table-52}
@@ -2993,10 +2924,7 @@ res[["res.52"]]$tabtxt <- res.52.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##',"TABLE 53: Statewide School Trips by Mode and Distance Ranges")
-```
+## TABLE 53: Statewide School Trips by Mode and Distance Ranges
 
 
 ```{r rt-t53}
@@ -3084,11 +3012,7 @@ res[["res.53"]]$tabtxt <- res.53.str
 ```
 
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC('##',"TABLE 54: Daily Travel Statistics by Weekday vs Weekend")
-
-```
+## TABLE 54: Daily Travel Statistics by Weekday vs Weekend
 
 We will compute a number of driver- and person-specific daily travel
 statistics partitioned by weekday/weekend as and spatially (by
@@ -3530,17 +3454,15 @@ res[["res.54"]]$data <- res.54.all
 res[["res.54"]]$tabtxt <- res.54.str
 ```
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-SEC("#","Writing Tables for Use with Other Programs")
-```
+# Writing Tables for Use with Other Programs
 
 We have saved the data for all tables in the `res` list.  Now we will
 write them all out to CSV files so they may be imported into other
 programs as needed.
 
-```{r rt-write-csv,cache=TRUE}
+```{r rt-write-csv,cache=TRUE,warn=FALSE}
 # Set CSV output dir
-csvout <- paste(rd,"csvout",sep="/")
+csvout <- po("csv")
 for (tname in names(res)) {
   fname <- paste(csvout,paste(tname,"csv",sep="."),sep="/")
   # see if rows are named
@@ -3560,12 +3482,8 @@ for (tname in names(res)) {
 }
 ```
 
-```{r results='asis',echo=FALSE,cache=TRUE}
-############################################################ NESTABLE SECTION
-SEC("#","Complete Tables")
-if ( rmarkdown::metadata$documentation == "true" ) 
-  lev <- lev+1
-```
+# Complete Tables
+
 \fi
 
 ```{r rt-dump-all,echo=FALSE,results='asis',cache=TRUE}
@@ -3574,7 +3492,7 @@ cat(
     lapply(
       names(res),
       function(k) {
-        return(paste(paste("\n\n",SEC('##',res[[k]]$title,as.string=TRUE),"\n\n",res[[k]]$tabtxt)))
+        return(paste(paste("\n\n",'### ',res[[k]]$title,"\n\n",sep=""),res[[k]]$tabtxt))
       }
     ),
     collapse="\n\n\\newpage\n\n"

@@ -19,10 +19,7 @@ write(paste("Using Root Directory",rd,"\n"),stderr())
 5. Trips by Purpose
 6. Work trips by mode
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('#','Summary and Methodology')
-```
+# Summary and Methodology
 
 
 In this subsection We generate tables by mode for total number of trips,
@@ -44,43 +41,28 @@ weights to generate weighted results for trips that originated outside
 of Del Norte County.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('#','R Code and Implementation')
-```
+# R Code and Implementation
 
 
 The following commands are used to generate the results.
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Trips to Del Norte County')
-```
+## Trips to Del Norte County
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Mode split calculations')
-```
+### Mode split calculations
 
 
 To obtain our results we need the place level table (with weights) that we computed in Section 4, 
 so let us retrieve it.
 
-```{r dnc-0,echo=FALSE}
-if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
-source(paste(rd,"R/setup-hooks.R",sep="/"))
-write(paste("Using Root Directory",rd,"\n"),stderr())
-```
-
 
 ```{r dnc-1, cache=TRUE}
 # Set the working directory
-setwd(p("District 1/DelNorte County"))
+setwd(pd("District 1/DelNorte County"))
 
 
 #Import the place level with new weight csv file and give a new name
-nplace<- read.csv(p("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
+nplace<- read.csv(pd("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
 names(nplace)
 head(nplace)# Show first ten observations
 
@@ -206,16 +188,13 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_15d.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_15d.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trip duration by mode')
-```
+### Trip duration by mode
 
 
 We proceed similarly to find Total Trip duration for all
@@ -266,17 +245,14 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="TripDUrm_D15.csv",row.names=FALSE)
+write.csv(temp3,file=pto("TripDUrm_D15.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 rm(temp)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trip distance by mode')
-```
+### Trip distance by mode
 
 Moving on, we find Total Trip distance for all trips ending in
 Del Norte County, by mode.
@@ -325,17 +301,14 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="TripDistanceM_D15.csv",row.names=FALSE)
+write.csv(temp3,file=pto("TripDistanceM_D15.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 rm(temp)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Modal split for driving alone')
-```
+### Modal split for driving alone
 
 The next task is to find the modal split for "Drive Alone". To perform this task, 
 we first subset the data based on `TOTTR` (Total travelers) and
@@ -389,17 +362,14 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_15Ddrialn.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_15Ddrialn.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Trips from Del Norte County')
-```
+## Trips from Del Norte County
 
 We are done with trips to Del Norte so let perform a similar procedure for trips from Del Norte
 County.  We start by subseting the place data, but this time for trips
@@ -414,10 +384,7 @@ names(place_15O)
 head(place_15O)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trips by mode')
-```
+### Trips by mode
 
 
 Now let us generate the mode frequency table for all trips from Del Norte
@@ -464,16 +431,13 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_15O.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_15O.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trip duration by Mode')
-```
+### Trip duration by Mode
 
 
 Repeat for trip durations originating in Del Norte:
@@ -523,17 +487,14 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="TripDUrm_O.csv",row.names=FALSE)
+write.csv(temp3,file=pto("TripDUrm_O.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 rm(temp)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trip distance by Mode')
-```
+### Trip distance by Mode
 
 
 Here are the trip distance calculations for all trips from Del Norte, by
@@ -583,17 +544,14 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="TripDistanceM_O.csv",row.names=FALSE)
+write.csv(temp3,file=pto("TripDistanceM_O.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 rm(temp)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Modal split for driving alone')
-```
+### Modal split for driving alone
 
 Lastly for trips originating in Del Norte County, here is the drive alone modal
 split.  As before, we subset the data based on `TOTTR` (Total
@@ -646,16 +604,13 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_15Odrialn.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_15Odrialn.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Trip Purpose Calculations')
-```
+## Trip Purpose Calculations
 
 Now we want to find the trip purpose breakdown, so we import the activity
 level data with the appropriate weights.  Let us load the data and merge them:
@@ -720,10 +675,7 @@ act_place$Actpur <-
 head(act_place)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trip Purposes from Del Norte County')
-```
+### Trip Purposes from Del Norte County
 
 
 We start with trips from Del Norte County, subsetting based on the
@@ -779,26 +731,20 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Actpur_15O.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Actpur_15O.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Work Trips by Mode')
-```
+## Work Trips by Mode
 
 
 In the remainder of this sub-section, let us find work trips by mode for Del Norte County.  
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Work Trips Originating in Del Norte County')
-```
+### Work Trips Originating in Del Norte County
 
 First, we reuse the merged activity table from above for trips
 activities (and associated trips) originating in Del Norte County, and
@@ -850,16 +796,13 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_wact15O.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_wact15O.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Work Trips Ending in Del Norte County')
-```
+### Work Trips Ending in Del Norte County
 
 
 Now let us find trips ending in Del Norte county `(CTFIP=15)`.
@@ -920,7 +863,7 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Actpur_15D.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Actpur_15D.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -971,7 +914,7 @@ temp3
 
 ```{r dnc-47,cache=TRUE}
 ## Save as csv file
-write.csv(temp3,file="Mode_wact15D.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_wact15D.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -980,10 +923,7 @@ rm(temp3)
 We have completed the tasks we wanted to acomplish in this subsection.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Generate similar statistics for other counties')
-```
+## Generate similar statistics for other counties
 
 We can generate similar tables for other counties (e.g., Humboldt,
 Lake, and Mendocino County) using the commands above with only a minor

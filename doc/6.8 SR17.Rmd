@@ -15,10 +15,7 @@ write(paste("Using Root Directory",rd,"\n"),stderr())
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('#','Summary and Methodology')
-```
+# Summary and Methodology
 
 In this subsection, we show how 2012 CHTS data can be used to generate
 useful statistics in the SR-17 corridor. This is another illustration
@@ -40,23 +37,14 @@ unweighted results. We used countywide weights to generate weighted
 results.
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('#','R Code and Implementation')
-```
+# R Code and Implementation
 
 
 To perform the 7 tasks outlined above, we need the place file with the new countywide person weights that were computed in Section 4.1.
 
-```{r sr17-0,echo=FALSE}
-if ( !exists("rd") ) { rd <- "/Users/crindt/chts-book" }
-p <- function(ps) { return(paste(rd,ps,sep="/")) }
-source(p("R/setup-hooks.R"))
-```
-
 ```{r sr17-1, }
 #Import the place level with new weight csv file and give a new name
-nplace<- read.csv(p("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
+nplace<- read.csv(pd("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
 ```
 
 Next, we convert the `MODE` codes into text descriptions:
@@ -103,7 +91,7 @@ we saved it in a 'csv' file. Let us import that file:
 
 ```{r sr17-3, }
 #Import SR17 sample households (obtained from GIS) 
-sr17 <- read.csv(p("District 4/SR 17/SR17_block1km.csv"), header=TRUE)
+sr17 <- read.csv(pd("District 4/SR 17/SR17_block1km.csv"), header=TRUE)
 ```
 
 And, let us merge it with the place file:
@@ -119,10 +107,7 @@ head(sr17_place)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Modal split for SR 17 corridor')
-```
+## Modal split for SR 17 corridor
 
 
 Task 1: Let us generate trip frequencies by mode:
@@ -169,17 +154,14 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_sr17.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_sr17.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Total Trip duration for all trips by mode for SR 17 corridor')
-```
+## Total Trip duration for all trips by mode for SR 17 corridor
 
 
 Task 2: Let us apply a similar procedure to find Total Trip duration for all trips, by mode:
@@ -235,7 +217,7 @@ Now, save the results for later use:
 
 ```{r sr17-11,}
 ## Save as csv file
-write.csv(temp3,file="TripDUrm_sr17.csv",row.names=FALSE)
+write.csv(temp3,file=pto("TripDUrm_sr17.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -243,10 +225,7 @@ rm(temp)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('###','Trip distance by mode')
-```
+### Trip distance by mode
 
 
 Task 4: Total Trip distance, by mode.
@@ -302,7 +281,7 @@ Save the results for later use:
 
 ```{r sr17-15,}
 ## Save as csv file
-write.csv(temp3,file="TripDistanceM_sr17.csv",row.names=FALSE)
+write.csv(temp3,file=pto("TripDistanceM_sr17.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -310,10 +289,7 @@ rm(temp)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Trip Purpose Calculations')
-```
+## Trip Purpose Calculations
 
 
 Task 6: Trip purpose breakdown. For this task, we need to import activity level data with appropriate weights.
@@ -427,10 +403,7 @@ names(sr17_act)
 head(sr17_act)
 ```
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Trip Purposes for trips along SR 17 Corridor')
-```
+## Trip Purposes for trips along SR 17 Corridor
 
 
 Let us compute weighted trip purpose results for the SR-17 corridor based on new county weights:
@@ -474,17 +447,14 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Apurp_sr17.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Apurp_sr17.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
 
-```{r results='asis',echo=FALSE,cache=FALSE}
-############################################################ NESTABLE SECTION
-SEC('##','Work Trips by Mode')
-```
+## Work Trips by Mode
 
 
 Task 7. Finally, let us calculate the number of work trips by Mode for the SR-17 Corridor.
@@ -538,7 +508,7 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_wact_sr17.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_wact_sr17.csv"),row.names=FALSE)
 rm(temp1)
 rm(temp2)
 rm(temp3)
