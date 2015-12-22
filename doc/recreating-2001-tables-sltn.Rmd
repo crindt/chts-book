@@ -56,7 +56,7 @@ table as well as some discussion of the general methods used.
 SEC('##','Setup')
 ```
 
-```{r rt-recreating-2001-tables-setup,cache=TRUE,echo=TRUE} 
+```{r rt-recreating-2001-tables-setup,cache=TRUE,echo=TRUE}
 # Set the working directory so we can access libraries
 write(paste("Setting working directory to",rd,"\n"),stderr())
 setwd(rd)
@@ -3476,7 +3476,7 @@ manipulating it to match the requested format, then outputing the
 result.  The results are all concatenated into a single string, which
 we store.
 
-```{r rt-t54-16}
+```{r rt-t54-17}
 res.54.str <- 
   paste(
     lapply(
