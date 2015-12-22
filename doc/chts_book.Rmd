@@ -1,16 +1,20 @@
 ---
-title: "2012 California Household Travel Survey Data Analysis"
-author: "Jean-Daniel Saphores and Craig Rindt and Suman Mitra"
-# Set the date to be the newest modification time of all Rmd files
-date: '`r (function() {f<-dir(); max(file.mtime(f[grepl("^.*\\.Rmd$",f)]))})()`'
+title: "Analyzing the 2012 California Household Travel Survey using R"
+author:
+- name: Craig Rindt
+- name: Suman Mitra
+- name: Jean-Daniel Saphores
+  contact: "Contact information: saphores@uci.edu; Phone: (949) 824 7334"
+date: 'This version: `r (function() {f<-dir(); format(max(file.mtime(f[grepl("^.*\\.Rmd$",f)])), format="%B %d, %Y")})()`'
+institution:
+- Institute of Transportation Studies
+- University of California, Irvine
 output:
   pdf_document:
     highlight: tango
     keep_tex: yes
     number_sections: yes
-    pandoc_args: [
-      "--chapters"
-      ]
+    pandoc_args: --chapters
     template: custom.latex
     toc: yes
     toc_depth: 5
@@ -48,19 +52,19 @@ deliverables:
 1. a systematic diagnostic review of the 2010-12 CHTS database for
    unlikely observations;
 
-2. a set of interviews with staff at Caltrans headquarters and three
+2. a set of interviews with staff at Caltrans headquarters and visits to three
    selected Caltrans Districts to better understand how they could
-   benefit from using 2010-12 CHTS data and to help promote the use in
-   their work of CHTS data;
+   benefit from using 2010-12 CHTS data and to help promote its use in
+   their work;
 
 3. hands-on statistical training and consulting to selected Caltrans
    staff in the Office of Travel Forecasting and Analysis in
    Sacramento;
 
-4. provide on-call statistical support to Caltrans staff from the
+4. on-call statistical support to Caltrans staff from the
    Office of Travel Forecasting and Analysis; and
 
-5. creation of a reference book of useful statistical commands based
+5. a reference book of useful statistical commands based
    on actual case studies to make it easier to put the 2010-12 CHTS to
    work for Caltrans staff.
 
@@ -84,7 +88,7 @@ chapter 7 describes the solution of a number of statistical queries
 that were answered under task 4 statistical support tasks.
 
 
-# Use of R Program for CHTS Data Analysis
+# Getting Started with R and R Studio
 
 Following review and discussions with Caltrans staff during the
 initial stages of the project a number of decisions were made
@@ -96,7 +100,7 @@ recommendation was based upon a number of factors.  First of all, R is
 completely free, open-source, and it runs on UNIX, Windows and
 Macintosh. Second, it is extremely powerful, and it has an excellent
 built-in help system as well as excellent graphing capabilities.
-Comparable commerical packages, such as Stata, cost thousands of
+Comparable commerical packages, such as SAS, cost hundreds of
 dollars per user license.  Second, R's language has an easy to learn
 syntax with many built-in statistical functions, and it is easy to
 extend with user-written functions.  Third, R can be made user
@@ -308,7 +312,7 @@ computations are performed.
 
 ## Where to find help in R?
 
-There are a wealth of tutorials, articles, and examples to help you
+There is a wealth of tutorials, articles, and examples to help you
 learn R and its extensions.
 
 A starting point for R resources is the Comprehensive R Archive
@@ -433,36 +437,6 @@ during the course of the project.
 `r NESTLEV(2)`
 
 ```{r child = '6.2DelNortecounty.Rmd'}
-```
-
-`r UNNESTLEV(2)`
-
-## Humboldt for Humboldt County
-
-
-`r NESTLEV(2)`
-
-```{r child = '6.3 Humboldt county.Rmd'}
-```
-
-`r UNNESTLEV(2)`
-
-## Data Request for Lake County
-
-
-`r NESTLEV(2)`
-
-```{r child = '6.4 Lake County.Rmd'}
-```
-
-`r UNNESTLEV(2)`
-
-## Data Request for Mendocino County
-
-
-`r NESTLEV(2)`
-
-```{r child = '6.5 Mendocino County.Rmd'}
 ```
 
 `r UNNESTLEV(2)`

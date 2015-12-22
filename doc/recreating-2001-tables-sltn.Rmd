@@ -56,7 +56,7 @@ table as well as some discussion of the general methods used.
 SEC('##','Setup')
 ```
 
-```{r rt-recreating-2001-tables-setup,cache=TRUE,echo=TRUE}
+```{r rt-recreating-2001-tables-setup,cache=TRUE,echo=TRUE} 
 # Set the working directory so we can access libraries
 write(paste("Setting working directory to",rd,"\n"),stderr())
 setwd(rd)
@@ -3085,18 +3085,466 @@ res[["res.53"]]$tabtxt <- res.53.str
 
 
 ```{r results='asis',echo=FALSE,cache=TRUE}
+############################################################ NESTABLE SECTION
+SEC('##',"TABLE 54: Daily Travel Statistics by Weekday vs Weekend")
+
+```
+
+We will compute a number of driver- and person-specific daily travel
+statistics partitioned by weekday/weekend as and spatially (by
+County).  For the purposes of this table, we assume the spatial
+partitioning is by household location.  All statistics are computed
+using the linked-trip table.  We start by creating a data frame
+holding all linked-trips recorded for drivers then add the weights we
+computed earlier for each county and weekday/weekend days.
+
+```{r rt-t54-1}
+#Daily Travel Statistics
+##Vehicle Trips per Driver
+
+# use lt.wd.trips.veh, but expand to county
+trips.veh <- 
+  lt.clean %>% 
+  filter(ltmode==5) %>% # driver trips only
+  left_join(chts_hh %>% select(SAMPN,CTFIP,DOW) %>% 
+              transmute(SAMPN=SAMPN,
+                        hCTFIP=as.integer(CTFIP)%%1000,
+                        WD=ifelse(DOW<6,1,2)),
+            by=c('SAMPN')
+            ) 
+
+# people w/ wd+county weights
+trips.wd.cty.veh <-
+  trips.veh %>%
+  left_join(chts_per.wgt.wd.cty,
+            by=c('SAMPN','PERNO')
+            )
+```
+
+Since we also want the state-wide statistics, we duplicate all county
+trips and overwrite their county codes (`HCTFIP=0`) and weights to be
+state-wide weekend/weekday weights.  By combining them into a single
+data frame, we can streamline code below.
+
+
+```{r rt-t54-2}
+trips.wd.cty.veh <- 
+  rbind(trips.wd.cty.veh,
+        # attach duplicates for California as a whole
+        trips.wd.cty.veh %>% 
+          left_join(chts_per.wgt.wd %>% select(SAMPN,PERNO,NEXPPERWDWGT),
+                    by=c('SAMPN','PERNO')
+                    ) %>%
+          mutate(
+            hCTFIP=0,
+            NEXPPERWDCTYWGT=NEXPPERWDWGT) %>%
+          select(-NEXPPERWDWGT)) %>%
+  mutate(NEXPTCFPERWDCTYWGT=NEXPPERWDCTYWGT*ltTCF)        # compute TCF weights
+
+veh.trips.wd.cty <- trips.wd.cty.veh %>%
+  group_by(hCTFIP,WD) %>%
+  summarise(vtrips=sum(NEXPPERWDCTYWGT))
+```
+
+Now, we turn to computing vehicle trips per driver.  Given the other
+content of the requested table (e.g., average trip length), we assume
+this should be vehicle trips per "active" driver.  Thus, we compute
+the number of drivers by totaling the unique drivers making trips in
+the survey by county and day (recall that we've created a duplicate
+set of data representing statewide activity).
+
+```{r rt-t54-3}
+# same number of drivers in county on wd/we
+# we compute drivers as total number of licensed drivers
+drivers.cty <- trips.wd.cty.veh %>%
+  # group by SAMPN, PERNO to get unique drivers
+  group_by(hCTFIP,WD,SAMPN,PERNO) %>%  
+
+  # summarise to get one row (with a weight) for each driver
+  summarise(trips=n(),wgt=max(NEXPPERWDCTYWGT)) %>%
+
+  # now group by county/day combo
+  group_by(hCTFIP,WD) %>%
+
+  # and sum the weights to get a weighted count of drivers by
+  # county/day comno
+  summarise(drivers=sum(wgt))
+```            
+
+Next, we compute the vehicle trips per driver by combining trip and
+driver frames.  We'll attach all computations to the `res.54.all` data
+frame.
+
+```{r rt-t54-4}
+vtpd.cty.day <-
+  veh.trips.wd.cty %>%
+  left_join(drivers.cty,by=c('hCTFIP','WD'))  %>%
+  mutate('Vehicle Trips per Driver'=vtrips/drivers) %>% 
+  select(-vtrips,-drivers)
+#  mutate('Day'=ifelse(WD==1,'Weekday','Weekend')) %>% select(-WD)
+
+res.54.all <- vtpd.cty.day
+```
+
+Now we turn to computing the fraction of work and non-work trips in
+this sample.  We use the linked-trip `TripType` variable to identify
+any work-related trips then compute the fractions accordining.
+
+```{r rt-t54-5}
+
+#% work trips
+#% non-work trips
+    
+wtrips <- trips.wd.cty.veh %>%
+  filter(TripType=='HW' | TripType=='WO' | TripType=='WW') %>%
+  group_by(hCTFIP,WD) %>%
+  summarise(vtrips.wrk=sum(NEXPPERWDCTYWGT))
+
+trippct <- veh.trips.wd.cty %>%
+  left_join(wtrips,by=c('hCTFIP','WD')) %>% 
+  mutate('Pct Work Trips'=vtrips.wrk/vtrips*100,
+         'Pct Non-Work Trips'=(1-vtrips.wrk/vtrips)*100) %>%
+  select(-vtrips,-vtrips.wrk)
+
+res.54.all <-
+  res.54.all %>%
+  left_join(trippct,by=c('hCTFIP','WD'))
+```
+
+To compute VMT per driver, we'll reuse the `drivers` data frame from
+above, but need to count the VMT for each county/day by computing a
+weighted sum of the trip distances, which we again repeat for the
+statewide totals too.
+
+```{r rt-t54-6}
+
+#VMT per Driver
+
+vmt.cty <- trips.veh %>%
+  left_join(chts_per.wgt.wd.cty ,by=c('SAMPN','PERNO')) %>%
+  group_by(WD,hCTFIP) %>%
+  summarise(vmt=sum(tripdist*NEXPPERWDCTYWGT*ltTCF,na.rm=TRUE))
+vmt.ca <- trips.veh %>% 
+    left_join(chts_per.wgt.wd %>% select(-WD),by=c('SAMPN','PERNO')) %>%
+    group_by(WD) %>%
+    summarise(vmt=sum(tripdist*NEXPPERWDWGT*ltTCF,na.rm=TRUE)) %>%
+    transmute(WD=WD,hCTFIP=0,vmt)
+
+vmt <- rbind(
+  vmt.ca,
+  vmt.cty
+  )
+
+vmt.per.driver <- vmt %>%
+  left_join(drivers.cty,by=c('hCTFIP','WD')) %>%
+  mutate(vmt.per.driver=vmt/drivers) %>%
+  select(-vmt,-drivers)
+
+res.54.all <- res.54.all %>% left_join(vmt.per.driver,by=c('hCTFIP','WD'))
+```
+
+The average vehicle trip length can by computed as a simple weighted
+mean of `tripdist` for each county/day.
+
+```{r rt-t54-7}
+
+#Average Vehicle Trip Length
+
+mean.vehicle.trip.length <- 
+  rbind(
+    trips.veh %>%
+      left_join(chts_per.wgt.wd.cty,by=c('SAMPN','PERNO')) %>%
+      group_by(WD,hCTFIP) %>%
+      summarise(avg.len=wtd.mean(tripdist,weights=NEXPPERWDCTYWGT*ltTCF,na.rm=TRUE)),
+    trips.veh %>% 
+      left_join(chts_per.wgt.wd %>% select(-WD,-fpc),by='SAMPN','PERNO') %>%
+      group_by(WD) %>%
+      summarise(avg.len=wtd.mean(tripdist,weights=NEXPPERWDWGT*ltTCF,na.rm=TRUE)) %>%
+      transmute(hCTFIP=0,WD,avg.len)
+    )
+
+res.54.all <- res.54.all %>%
+  left_join(mean.vehicle.trip.length,by=c('hCTFIP','WD'))
+```
+
+The average time spent driving is also a simple weighted mean, this time of `tripdur`.
+
+```{r rt-t54-8}
+#Average Time Spent Driving (in minutes)
+mean.vehicle.trip.dur <- rbind(
+  trips.veh %>%
+    left_join(chts_per.wgt.wd.cty,by=c('SAMPN','PERNO')) %>%
+    group_by(WD,hCTFIP) %>%
+    summarise(avg.dur=wtd.mean(tripdur,weights=NEXPPERWDCTYWGT*ltTCF,na.rm=TRUE)),
+  trips.veh %>%
+    left_join(chts_per.wgt.wd %>% select(-WD,-fpc),by=c('SAMPN','PERNO')) %>%
+    group_by(WD) %>%
+    summarise(avg.dur=wtd.mean(tripdur,weights=NEXPPERWDWGT*ltTCF,na.rm=TRUE)) %>%
+    transmute(hCTFIP=0,WD,avg.dur))
+res.54.all <- res.54.all %>%
+  left_join(mean.vehicle.trip.dur,by=c('hCTFIP','WD'))
+
+```
+
+The next elements in the table are for person trips, using the
+definitions described earlier.  As for the vehicle trip computations
+above, we start by filtering the linked-trip table for person trips
+and join on the household county and associated county/day weights.
+
+```{r rt-t54-9}
+
+#Person Trips per Person
+lt.person.trips <-
+  lt.clean %>% 
+  filter(ltmode %in% person.trip.modes) %>%
+  left_join(chts_hh %>%
+              select(SAMPN,CTFIP) %>%
+              mutate(hCTFIP=as.integer(CTFIP)%%1000),
+            by=c('SAMPN')) 
+
+lt.wd.cty.trips <- 
+  lt.person.trips %>%
+  # people w/ wd+county weights
+  left_join(chts_per.wgt.wd.cty,by=c('SAMPN','PERNO')) %>%              
+  # add WD variable
+  left_join(chts_hh.wgt.wd %>% select(SAMPN,WD),by=c('SAMPN')) %>%   
+  mutate(NEXPTCFPERWDCTYWGT=NEXPPERWDCTYWGT*ltTCF)
+```
+
+Since we need some statistics per person, we again assume these
+statistics should by for *traveling* persons (not total persons), and
+compute total persons traveling in each county and in the state
+combining them into a single data frame.
+
+```{r rt-t54-10}
+
+traveling.persons <-
+  lt.person.trips %>%
+  group_by(SAMPN,PERNO) %>%
+  summarise(n=n())
+
+persons.cty <- traveling.persons %>% 
+  left_join(chts_per.wgt.wd.cty,by=c('SAMPN','PERNO')) %>%
+  left_join(chts_hh %>%transmute(SAMPN,CTFIP,WD=ifelse(DOW<6,1,2)),
+            by=c('SAMPN')) %>%
+  mutate(hCTFIP=as.integer(CTFIP)%%1000) %>%
+  group_by(hCTFIP,WD) %>%
+  summarise(persons=sum(NEXPPERWDCTYWGT))
+
+persons.st <- traveling.persons %>%
+  left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>%
+  left_join(chts_hh %>%select(SAMPN,CTFIP),
+            by=c('SAMPN')) %>%
+  mutate(hCTFIP=0) %>%
+  group_by(hCTFIP,WD) %>%
+  summarise(persons=sum(NEXPPERWDWGT))
+
+persons <- rbind(
+  persons.st, persons.cty
+  )
+```
+
+Next, we compute the weighted person-trip sums for each county/day.
+
+```{r rt-t54-11}
+person.trips.wd.cty <- 
+  lt.wd.cty.trips %>% group_by(hCTFIP,WD) %>%
+  summarise(trips=sum(NEXPTCFPERWDCTYWGT,na.rm=TRUE))
+
+person.trips.wd.st <-
+  lt.wd.cty.trips %>% select(-WD,-fpc) %>% 
+  left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>%
+  group_by(WD) %>%
+  summarise(trips=sum(NEXPPERWDWGT*ltTCF,na.rm=TRUE)) %>%
+  transmute(hCTFIP=0,WD,trips)
+
+person.trips.all <- rbind(
+  person.trips.wd.st,
+  person.trips.wd.cty
+  )
+```
+
+Then, we divide the total trips by total traveling persons for each
+county/day and store the result.
+
+```{r rt-t54-12}
+            
+person.trips.per.person.wd.cty <-
+  person.trips.all %>% 
+  left_join(persons,by=c('hCTFIP','WD')) %>% 
+  mutate(ptpp=trips/persons) %>%
+  select(-trips,-persons)
+
+res.54.all <- res.54.all %>%
+  left_join(person.trips.per.person.wd.cty,by=c('hCTFIP','WD'))
+```
+
+Turning to the person-miles traveled per person, we compute a weighted
+sum of the tripdist for each county/day and divide by traveling persons.
+
+```{r rt-t54-13}
+#PMT per Person
+pmt.wd.cty <-
+  lt.wd.cty.trips %>% group_by(hCTFIP,WD) %>%
+  summarise(pmt=sum(NEXPTCFPERWDCTYWGT*tripdist,na.rm=TRUE))
+
+pmt.wd.st <-
+  lt.wd.cty.trips %>% select(-WD,-fpc) %>%
+  left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>% 
+  group_by(WD) %>%
+  summarise(pmt=sum(NEXPPERWDWGT*ltTCF*tripdist,na.rm=TRUE)) %>%
+  transmute(hCTFIP=0,WD,pmt)
+  
+pmt.wd <- rbind(
+  pmt.wd.st,
+  pmt.wd.cty
+  )
+
+pmt.per.person.wd.cty <-
+  pmt.wd %>%
+  left_join(persons,by=c('hCTFIP','WD')) %>%
+  mutate(pmtpp=pmt/persons) %>%
+  select(-pmt,-persons)
+
+res.54.all <- res.54.all %>%
+  left_join(pmt.per.person.wd.cty,by=c('hCTFIP','WD'))
+```
+
+To get average person trip length, we compute the straight weighted
+mean of tripdist.
+
+```{r rt-t54-14}
+#Average Person Trip Length
+aptl.cty <-
+  lt.wd.cty.trips %>% 
+  group_by(hCTFIP,WD) %>%
+  summarise(
+    avg.person.trip.length=wtd.mean(tripdist,
+                                    weights=NEXPPERWDCTYWGT*ltTCF,
+                                    na.rm=TRUE))
+
+aptl.st <- lt.wd.cty.trips %>% select(-WD,-fpc) %>%
+  left_join(chts_per.wgt.wd,by=c('SAMPN','PERNO')) %>%
+  group_by(WD) %>%
+  summarise(avg.person.trip.length=wtd.mean(tripdist,
+                                            weights=NEXPPERWDWGT*ltTCF,
+                                            na.rm=TRUE)) %>%
+  transmute(hCTFIP=0,WD=WD,avg.person.trip.length)
+
+avg.person.trip.length <- rbind(
+  aptl.st,
+  aptl.cty)
+
+res.54 <- res.54.all %>%
+  left_join(avg.person.trip.length,by=c('hCTFIP','WD'))
+```
+
+Now we're ready to put it all together.  We start by creating a
+dataframe to attach county and state names for each distinct `hCTFIP`.
+
+```{r rt-t54-15}
+fipscty <- rbind(
+  fipsctyca,
+  data.frame(state=c("CA"),state_ansi=c(6),county_ansi=c(0),
+             county_name="California",ansi_cl=c("H1"),County="California"))
+```
+
+Then, we join that data frame and transform the table to contain
+user-friendly data for use in a table.
+
+```{r rt-t54-16}
+
+res.54.all <- res.54 %>%
+  left_join(fipscty,by=c('hCTFIP'='county_ansi')) %>%
+  transmute(County,
+            WD=ifelse(WD==1,"Weekday","Sat/Sun"),
+            'Vehicle Trips per Driver'=`Vehicle Trips per Driver`,
+            'Pct Works Trip'=`Pct Work Trips`,
+            'Pct Non-Work Trips'=`Pct Non-Work Trips`,
+            'VMT per Driver'=vmt.per.driver,
+            'Average Trip Length'=avg.len,
+            'Average Trip Duration'=avg.dur,
+            'Person Trips per Person'=ptpp,
+            'Person Miles per Person'=pmtpp,
+            'Average Person Trip Length'=avg.person.trip.length)
+```
+
+In the next step, we generate pandoc-compatible formatted tables for
+each county.  We do this by looping over the counties (and state),
+filtering the main data frame for the relevant subset of data,
+manipulating it to match the requested format, then outputing the
+result.  The results are all concatenated into a single string, which
+we store.
+
+```{r rt-t54-16}
+res.54.str <- 
+  paste(
+    lapply(
+      c("California",sort(unique(res.54.all$County))),
+      function(cty) {
+        
+        # get the data for <cty> County
+        res.54<-t(res.54.all %>% 
+                    ungroup() %>% 
+                    filter(County==cty) %>% 
+                    select(-hCTFIP,-County) ) %>% 
+          as.data.frame() 
+        
+        # transpose the data to match the requested format
+        names(res.54) <- as.vector(t(res.54['WD',]))
+
+        # remove the "county" row (it's redundant)
+        res.54 <- res.54[-1,]
+
+        # the transpose operation made the data factors,
+        # convert back to numbers (this is a little hack-y)
+        res.54$Weekday <- as.numeric(as.character(res.54$Weekday))
+        res.54$`Sat/Sun` <- as.numeric(as.character(res.54$`Sat/Sun`))
+
+        # format and return the table
+        return(
+          pandoc.table.return(
+            res.54,
+            caption=paste("TABLE 54: Daily Travel Statistics by Weekday vs Weekend (",
+                          cty,")",sep=""),
+            split.table=Inf,split.cells=Inf,
+            justify=c('left','right','right'),
+            style='multiline',
+            round=1,
+            big.mark = ',',
+            missing='&nbsp;'
+          ))
+      }),
+    collapse="\n\n\n"
+  )
+```
+
+Finally, print out the table and store the results in the table list.
+
+```{r rt-table-54-results,results='asis',echo=FALSE,cache=TRUE}
+cat(res.54.str)
+res[["res.54"]] <- list()
+res[["res.54"]]$title <-
+  "TABLE 54: Daily Travel Statistics by Weekday vs Weekend for each County"
+res[["res.54"]]$data <- res.54.all
+res[["res.54"]]$tabtxt <- res.54.str
+```
+
+```{r results='asis',echo=FALSE,cache=TRUE}
 SEC("#","Writing Tables for Use with Other Programs")
 ```
 
-We have saved the data for all tables in the `res` list.  Now we will write them all out to 
-CSV files so they may be imported into other programs as needed.
+We have saved the data for all tables in the `res` list.  Now we will
+write them all out to CSV files so they may be imported into other
+programs as needed.
 
 ```{r rt-write-csv,cache=TRUE}
 # Set CSV output dir
 csvout <- paste(rd,"csvout",sep="/")
 for (tname in names(res)) {
   fname <- paste(csvout,paste(tname,"csv",sep="."),sep="/")
-  rn <- sum(as.integer(rownames(res[[tname]]$data)),na.rm=TRUE)==0 # see if rows are named
+  # see if rows are named
+  rn <- sum(as.integer(rownames(res[[tname]]$data)),na.rm=TRUE)==0 
   write(paste("Writing",fname,rn,"\n"),stderr())
 
   # Table title

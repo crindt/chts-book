@@ -17,19 +17,32 @@ SEC('#','Summary and Methodology')
 ```
 
 
-We found 269 household respondents (622 person respondents) including
-98 GPS respondents within 1 km on each side of the SR1 (San Francisco
-Golden Gate Bridge to Pacifica). We generated tables by mode for the
-following: total number of trips, total trip distance, average trip
-distance, total trip duration, average trip duration.  We also
-generated tables for the total number of trips by trip purpose and for
-work trips by mode. Here, we actually generated tables for total
-number of trips by activity purpose since the trip purpose is given in
-the database as activity purpose and there is more than one activity
-in many single trips. We considered each activity as a trip. We only
-considered the purpose code (APURP) 9 for work trips.  We generated
-every table for both weighted and unweighted results. We used county
-wide weights to generate weighted results.
+The purpose of this subsection is to show how 2012 CHTS data can be
+used to generate useful statistics in a corridor provided enough CHTS
+observations are available in that corridor. We used ArcGis 10.2 to
+select the households located within 1 km buffer of each side of
+selected portion of SR 1 corridor (San Francisco Golden Gate Bridge to
+Pacifica). We used Open street map and California road network GIS map
+(downloaded from
+http://www.dot.ca.gov/hq/tsip/gis/datalibrary/#Highway) for GIS
+operations. We imported the x-y coordinates of the location of CHTS
+household respondents to ArcMap and converted it into a shapefile. We
+then created a 1 Km buffer around the SR 1 corridor. Next we did a
+intersect operation in ArcGis to sub set the sample of respondents who
+reside within 1 km of the corridor. We found 269 household respondents
+(622 person respondents) including 98 GPS respondents within 1 km on
+each side of the SR1 (San Francisco Golden Gate Bridge to
+Pacifica). The size of this sample is sufficient to generate tables by
+mode for 1) total number of trips; 2) total trip duration; 3) average
+trip duration; 4) total trip distance; and 5) average trip
+distance. We also created tables for the total number of trips by trip
+purpose (task 6) and for work trips by mode (task 7). We generated
+tables for total number of trips by activity purpose since the trip
+purpose is given in the database as activity purpose and there is more
+than one activity in many single trips. We considered each activity as
+a trip. We only considered the purpose code (`APURP`) 9 for work
+trips. We generated every table for both unweighted and weighted
+results using countywide weights for the latter.
 
 
 ```{r results='asis',echo=FALSE,cache=FALSE}
@@ -43,10 +56,9 @@ if ( !exists("rd") ) { rd <- "/home/crindt/chts-book" }
 p <- function(ps) { return(paste(rd,ps,sep="/")) }
 ```
 
-The following commands are used to generate the results.
 
-To answer the questions we need the place file with new county wide
-person weight that we computed in the section on
+To create these tables, we need the place file with the new countywide
+person weights that were computed in the section on
 [County Level Person Weights].
 
 
@@ -55,7 +67,7 @@ person weight that we computed in the section on
 nplace<- read.csv(p("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
 ```
 
-Next, we convert the `MODE` codes into text descriptions.
+Next, we convert the `MODE` codes into text descriptions:
 
 ```{r sr1-2, }
 # For recoding Mode
@@ -122,16 +134,16 @@ nplace$Mode<-
 ```
 
 We found 269 household respondents (622 person respondents) including
-98 GPS respondents within 1 km on each side of the SR1 (San Francisco
-Golden Gate Bridge to Pacifica) using ArcGis and we saved it in a
-'csv' file. Now we need to import that file.
+98 GPS respondents within 1 km on each side of the stretch of the SR1 that extends from San Francisco
+Golden Gate Bridge to Pacifica using ArcGis and we saved it in a
+'csv' file. Let us import that file:
 
 ```{r sr1-3, }
 # Import SR1 sample households (obtained from GIS) 
 sr1 <- read.csv(p("District 4/SR1/SR1_block1km.csv"), header=TRUE)
 ```
 
-And, we merge this file with place file.
+Now let us merge this file with the place file:
 
 ```{r sr1-4, }
 # Merge the SR1 sample data with place level data
@@ -144,15 +156,13 @@ head(sr1_place)
 ```
 
 
-
-
 ```{r results='asis',echo=FALSE,cache=FALSE}
 ############################################################ NESTABLE SECTION
 SEC('##','Modal split for SR1 corridor')
 ```
 
 
-First, we generate trip frequency by mode.
+Task 1: Now, let us generate trip frequencies by mode:
 
 ```{r sr1-5, }
 ## Generate frequency for trip Mode
@@ -169,7 +179,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
 temp1
 ```
 
-Then, we compute the weighted trip frequency.
+Second, let us compute weighted trip frequencies:
 
 ```{r sr1-6, }
 ## Create weighted frequency
@@ -184,8 +194,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
 temp2
 ```
 
-Now we can save these results in a `csv` file for later use.
-
+Let us save these results in a `csv` file for later use:
 
 ```{r sr1-7, }
 ## Merge the two files and save
@@ -210,8 +219,8 @@ SEC('##','Total Trip duration for all trips by mode for SR1 corridor')
 ```
 
 
-Next, we perform a similar computation for Total Trip duration for all
-trips for SR1 corridor, by mode.
+Task 2: Next, we apply a similar procedure to computate Total Trip durations for all
+trips in the SR1 corridor, by mode:
 
 ```{r sr1-8, }
 ## Generate frequency for trip Mode
@@ -226,7 +235,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","TDu_UW","Per_UW")
 temp1
 ```
 
-Again, we compute the weighted frequency.
+Let us find the weighted frequency:
 
 ```{r sr1-9, }
 ## Create weighted frequency
@@ -242,7 +251,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","TDu_W","Per_W")
 temp2
 ```
 
-Now, we compute the average trip duration.
+Task 3: Now calculate average trip duration:
 
 ```{r sr1-10,}
 ## Merge the two files and save
@@ -259,7 +268,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ```
 
-And as before, we save the results for later use.
+Let us save results for later use:
 
 ```{r sr1-11,}
 ## Save as csv file
@@ -277,7 +286,7 @@ SEC('###','Trip distance by mode')
 ```
 
 
-Moving on, we determine Total Trip distance for SR1 Corridor, by mode.
+Task 4: Next, let us calculate Total Trip distance for SR1 Corridor trips, by mode:
 
 
 ```{r sr1-12,}
@@ -293,7 +302,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","TDis_UW","Per_UW")
 temp1
 ```
 
-Again, we compute the weighted frequency.
+Calculate weighted frequencies:
 
 ```{r sr1-13,}
 ## Create weighted frequency
@@ -309,7 +318,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","TDis_W","Per_W")
 temp2
 ```
 
-Now, we compute the average trip distance.
+Task 5: Now, find average trip distances:
 
 ```{r sr1-14,}
 ## Merge the two files and save
@@ -326,7 +335,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ```
 
-And, we save the results for later use.
+And let us save results for later use in "TripDistanceM_sr1.csv":
 
 ```{r sr1-15,}
 ## Save as csv file
@@ -344,8 +353,8 @@ SEC('##','Trip Purpose Calculations')
 
 
 
-Now we need trip purpose breakdown, so we need to import activity level data with the 
-appropriate weights.  Here we load and merge them.
+NTask 6: for trip purpose data, we need to import activity level data with the 
+appropriate weights.  Here we load and merge them:
 
 
 ```{r sr1-16,}
@@ -358,7 +367,7 @@ act_place<-merge(act_data,nplace, by =c("SAMPN","PERNO","PLANO"), all = FALSE)
 names(act_place)
 ```
 
-For display purposes, we convert the purpose codes into readable strings.
+For display purposes, we convert the purpose codes into readable strings:
 
 ```{r sr1-17,}
 # Recoding activity purpose
@@ -444,7 +453,7 @@ act_place$Actpur<-
   )))))))))))))))))))))))))))))))))))))))
 ```
 
-Now, merge the this data with SR1 data table.
+Now, merge the these data with the SR1 data table:
 
 ```{r sr1-18,}
 # Merge the SR1 sample data with activity level data
@@ -463,8 +472,8 @@ SEC('##','Trip Purposes for trips along SR1 Corridor')
 ```
 
 
-We compute the observations for trip purpose for trips of SR1 corridor
-based on new weights.
+Let us find count observations by trip purpose for trips in the SR1 corridor
+using weights:
 
 ```{r sr1-19,}
 ## Generate frequency for trip purpose
@@ -479,7 +488,7 @@ colnames(temp1)[c(1:3)] <- c("Apurp","Ob_UW","Per_UW")
 temp1
 ```
 
-This is followed by the weighted trip purpose frequencies.
+Calculate weighted trip purpose frequencies:
 
 ```{r sr1-20,}
 ## Create weighted frequency
@@ -494,7 +503,7 @@ colnames(temp2)[c(1:3)] <- c("Apurp","Ob_W","Per_W")
 temp2
 ```
 
-And here we save the results.
+And save the results:
 
 ```{r sr1-21,}
 ## Merge the two files and save
@@ -518,9 +527,9 @@ SEC('##','Work Trips by Mode')
 ```
 
 
-We want to generate work trips by Mode for SR1 Corridor.
+Task 7: Work trips by Mode for the SR1 Corridor.
 
-First, we reuse the merged activity table from above for trips
+First, let us reuse the merged activity table from above for trips
 activities (and associated trips), and subset it for work trips only.
 
 ```{r sr1-22,}
@@ -529,7 +538,7 @@ actw_sr1<-subset(sr1_act,APURP==9)
 head(actw_sr1$Mode)
 ```
 
-Now, we can determine the observations of each Mode used for work trips.
+Now, we can find the number of work trips for each mode:
 
 ```{r sr1-23,}
 ## Generate frequency for trip Mode
@@ -544,7 +553,7 @@ colnames(temp1)[c(1:3)] <- c("Mode","Ob_UW","Per_UW")
 temp1
 ```
 
-Given those, we can expand them with the county wide weights.
+Let us expand these numbers with the countywide weights:
 
 ```{r sr1-24,}
 ## Create weighted frequency
@@ -559,7 +568,7 @@ colnames(temp2)[c(1:3)] <- c("Mode","Ob_W","Per_W")
 temp2
 ```
 
-And again, we finish by saving the results.
+Finally, save the results.
 
 ```{r sr1-25,}
 ## Merge the two files and save
@@ -575,3 +584,5 @@ rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
+
+This completes this sub-section.
