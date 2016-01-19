@@ -1,8 +1,17 @@
 ---
 title: "Data Request for Santa Cruz County"
 author: "Suman Mitra"
-date: "September 3, 2015"
-output: html_document
+date: 'This version: `r (function() {f<-dir(); format(max(file.mtime(f[grepl("^.*\\.Rmd$",f)])), format="%B %d, %Y")})()`'
+output:
+  pdf_document:
+    keep_tex: yes
+    template: custom.latex
+fontfamily: inconsolata
+fontsize: 11pt
+geometry: margin=1in
+params:
+  documentclass: article
+  documentation: '`r if(exists("documentation")){documentation}else{documentation<-"false";documentation}`'
 ---
 
 ```{r scc-setup-0,echo=FALSE,cache=FALSE}
@@ -10,6 +19,10 @@ if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) }
 source(paste(rd,"R/setup-hooks.R",sep="/"))
 write(paste("Using Root Directory",rd,"\n"),stderr())
 ```
+
+# Question
+
+This question asked for the following information for Santa Cruz county:
 
 1. Trips by Mode
 2. Modal split for driving alone
@@ -38,6 +51,7 @@ results for trips that originated in Santa Cruz County and statewide
 weights to generate weighted results for trips that originated outside
 of Santa Cruz County.
 
+\ifmydocumentation
 
 # R Code and Implementation
 
@@ -184,7 +198,8 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_87d.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_87d.csv"),row.names=FALSE)
+mode.scc.dest <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -241,7 +256,8 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="TripDUrm_D87.csv",row.names=FALSE)
+write.csv(temp3,file=pto("TripDUrm_D87.csv"),row.names=FALSE)
+dur.scc.dest <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -298,7 +314,8 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="TripDistanceM_D87.csv",row.names=FALSE)
+write.csv(temp3,file=pto("TripDistanceM_D87.csv"),row.names=FALSE)
+dist.scc.dest <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -363,7 +380,8 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_87Ddrialn.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_87Ddrialn.csv"),row.names=FALSE)
+mode.da.scc.dest <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -433,7 +451,8 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_87O.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_87O.csv"),row.names=FALSE)
+mode.scc.orig <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -488,7 +507,8 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="TripDUrm_O.csv",row.names=FALSE)
+write.csv(temp3,file=pto("TripDUrm_O.csv"),row.names=FALSE)
+dur.scc.orig <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -544,7 +564,8 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="TripDistanceM_O.csv",row.names=FALSE)
+write.csv(temp3,file=pto("TripDistanceM_O.csv"),row.names=FALSE)
+dist.scc.orig <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -608,7 +629,8 @@ temp3[,1]<-as.character(temp3[,1])
 temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
-write.csv(temp3,file="Mode_87Odrialn.csv",row.names=FALSE)
+write.csv(temp3,file=pto("Mode_87Odrialn.csv"),row.names=FALSE)
+mode.da.scc.orig <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -734,6 +756,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("Actpur_87O.csv"),row.names=FALSE)
+apurp.scc.orig <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -800,6 +823,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("Mode_wact87O.csv"),row.names=FALSE)
+scc.mode.wact.orig <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -872,6 +896,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("Actpur_87D.csv"),row.names=FALSE)
+apurp.scc.dest <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -923,9 +948,307 @@ temp3
 ```{r scc-47}
 ## Save as csv file
 write.csv(temp3,file=pto("Mode_wact87D.csv"),row.names=FALSE)
+scc.mode.wact.dest <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
 
 We are done generating tables by mode for Santa Cruz County.
+
+\fi
+
+\newpage
+
+# Results
+
+```{r scc-mode-code,echo=FALSE,results='asis'}
+mmap <- nplacedata %>%
+    group_by(MODE,Mode) %>% summarise(n=n())
+pandoc.table.double(
+    mmap %>%
+    select(Code=MODE,Mode),
+    caption="Mode Code",
+    justify=c('left','left'),
+    split.cells=Inf,
+    missing="&nbsp;")
+```
+
+\newpage
+
+```{r scc-act-purp-code,echo=FALSE,results='asis'}
+amap <- act_place %>%
+    group_by(APURP,Actpur) %>% summarise(n=n())
+pandoc.table.double(
+    amap %>% select(Code=APURP,Purpose=Actpur),
+    caption="Activity Purpose Code",
+    justify=c('left','left'),
+    split.cells=c('10%','90%'),
+    split.table=100,
+  missing='&nbsp;')
+```
+
+\newpage
+
+```{r mode.scc.orig,echo=FALSE,results='asis'}
+mode.scc.orig <- mode.scc.orig %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+  transmute(Mode=Mode,
+            'Observed Unweighted'=format(round(as.numeric(Ob_UW),0),big.mark=','),
+            'Observed Weighted'=format(round(as.numeric(Ob_W),0),big.mark=','),
+            'Percent Unweighted'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Percent Weighted'=format(round(as.numeric(Per_W),2),big.mark=','))
+#scc.mode.orig2[,4:5] <- format(round(as.numeric(scc.mode.orig2[,4:5]),2))
+pandoc.table(
+    mode.scc.orig,
+    caption="Total number of trips originating in Santa Cruz County",
+    justify=c('left','right','right','right','right'),
+    split.tables=100,
+    split.cells=c('40%','15%','15%','15%','15%'),
+    big.mark=",",
+    emphasize.strong.rows=which(mode.scc.orig$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+```{r mode.da.scc.orig,echo=FALSE,results='asis'}
+mode.da.scc.orig <- mode.da.scc.orig %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(Observations_W))) %>%
+  transmute(Mode=Mode,
+            'Observed Unweighted'=format(round(as.numeric(Observations_UW),0),big.mark=','),
+            'Observed Weighted'=format(round(as.numeric(Observations_W),0),big.mark=','),
+            'Percent Unweighted'=format(round(as.numeric(Percent_UW),2),big.mark=','),
+            'Percent Weighted'=format(round(as.numeric(Percent_W),2),big.mark=','))
+pandoc.table(
+    mode.da.scc.orig,
+    caption="Modal split (drive alone) of trips originating in Santa Cruz County",
+    justify=c('left','right','right','right','right'),
+    split.tables=100,
+    split.cells=c('40%','15%','15%','15%','15%'),
+    big.mark=",",
+    emphasize.strong.rows=which(mode.da.scc.orig$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+\newpage
+
+```{r dist.scc.orig,echo=FALSE,results='asis'}
+dist.scc.orig <- dist.scc.orig %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(TDis_W))) %>%
+  transmute('Mode'=Mode,
+            'Trip&nbsp;Dist UW'=format(round(as.numeric(TDis_UW),0),big.mark=','),
+            'Trip&nbsp;Dist W'=format(round(as.numeric(TDis_W),0),big.mark=','),
+            'Percent UW'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Percent W'=format(round(as.numeric(Per_W),2),big.mark=','),
+            'Avg Dist UW'=format(round(as.numeric(avg_uw),2),big.mark=','),
+            'Avg Dist W'=format(round(as.numeric(avg_w),2),big.mark=',')
+            )
+pandoc.table(
+    dist.scc.orig,
+    caption="Trip distance (mi) by mode for trips originating in Santa Cruz County",
+    justify=c('left','right','right','right','right','right','right'),
+    split.tables=120,
+    split.cells=c('20%','15%','25%','10%','10%','10%','10%'),
+    big.mark=",",
+    emphasize.strong.rows=which(dist.scc.orig$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+\newpage
+
+```{r dur.scc.orig,echo=FALSE,results='asis'}
+dur.scc.orig <- dur.scc.orig %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(TDu_W))) %>%
+  transmute(Mode=Mode,
+            'Trip&nbsp;Dur UW'=format(round(as.numeric(TDu_UW),0),big.mark=','),
+            'Trip&nbsp;Dur W'=format(round(as.numeric(TDu_W),0),big.mark=','),
+            'Percent UW'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Percent W'=format(round(as.numeric(Per_W),2),big.mark=','),
+            'Avg Dur UW'=format(round(as.numeric(avg_uw),2),big.mark=','),
+            'Avg Dur W'=format(round(as.numeric(avg_w),2),big.mark=',')
+            )
+pandoc.table(
+    dur.scc.orig,
+    caption="Trip duration (min) by mode for trips originating in Santa Cruz County",
+    justify=c('left','right','right','right','right','right','right'),
+    split.tables=120,
+    split.cells=c('20%','15%','25%','10%','10%','10%','10%'),
+    big.mark=",",
+    emphasize.strong.rows=which(dur.scc.orig$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+\newpage
+
+```{r apurp.scc.orig,echo=FALSE,results='asis'}
+apurp.scc.orig <- apurp.scc.orig %>%
+  arrange(ifelse(Actpur=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+  transmute('Activity Purpose'=Actpur,
+            'Obs UW'=format(round(as.numeric(Ob_UW),0),big.mark=','),
+            'Obs W'=format(round(as.numeric(Ob_W),0),big.mark=','),
+            'Pct UW'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Pct W'=format(round(as.numeric(Per_W),2),big.mark=',')
+            )
+pandoc.table(
+  apurp.scc.orig,
+  caption="Total number of work trips (APURP=9) for trips originating in Santa Cruz County",
+  justify=c('left','right','right','right','right'),
+  split.tables=120,
+  split.cells=c('60%','10%','10%','10%','10%'),
+  big.mark=",",
+  emphasize.strong.rows=which(apurp.scc.orig$'Activity Purpose'=='Total',arr.ind=TRUE)
+)
+```
+
+```{r scc.mode.wact.orig,echo=FALSE,results='asis'}
+scc.mode.wact.orig <- scc.mode.wact.orig %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+  transmute(Mode=Mode,
+            'Obs UW'=format(round(as.numeric(Ob_UW),0),big.mark=','),
+            'Obs W'=format(round(as.numeric(Ob_W),0),big.mark=','),
+            'Pct UW'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Pct W'=format(round(as.numeric(Per_W),2),big.mark=',')
+            )
+pandoc.table(
+  scc.mode.wact.orig,
+  caption="Total number of trips by activity purpose for trips originating in Santa Cruz County",
+  justify=c('left','right','right','right','right'),
+  split.tables=120,
+  split.cells=c('60%','10%','10%','10%','10%'),
+  big.mark=",",
+  emphasize.strong.rows=which(scc.mode.wact.orig$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+
+<!-- Destinations --->
+
+\newpage
+
+```{r mode.scc.dest,echo=FALSE,results='asis'}
+mode.scc.dest <- mode.scc.dest %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+  transmute(Mode=Mode,
+            'Observed Unweighted'=format(round(as.numeric(Ob_UW),0),big.mark=','),
+            'Observed Weighted'=format(round(as.numeric(Ob_W),0),big.mark=','),
+            'Percent Unweighted'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Percent Weighted'=format(round(as.numeric(Per_W),2),big.mark=','))
+#scc.mode.dest2[,4:5] <- format(round(as.numeric(scc.mode.dest2[,4:5]),2))
+pandoc.table(
+    mode.scc.dest,
+    caption="Total number of trips ending in Santa Cruz County",
+    justify=c('left','right','right','right','right'),
+    split.tables=100,
+    split.cells=c('40%','15%','15%','15%','15%'),
+    big.mark=",",
+    emphasize.strong.rows=which(mode.scc.dest$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+```{r mode.da.scc.dest,echo=FALSE,results='asis'}
+mode.da.scc.dest <- mode.da.scc.dest %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+  transmute(Mode=Mode,
+            'Observed Unweighted'=format(round(as.numeric(Ob_UW),0),big.mark=','),
+            'Observed Weighted'=format(round(as.numeric(Ob_W),0),big.mark=','),
+            'Percent Unweighted'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Percent Weighted'=format(round(as.numeric(Per_W),2),big.mark=','))
+pandoc.table(
+    mode.da.scc.dest,
+    caption="Modal split (drive alone) of trips ending in Santa Cruz County",
+    justify=c('left','right','right','right','right'),
+    split.tables=100,
+    split.cells=c('40%','15%','15%','15%','15%'),
+    big.mark=",",
+    emphasize.strong.rows=which(mode.da.scc.dest$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+\newpage
+
+```{r dist.scc.dest,echo=FALSE,results='asis'}
+dist.scc.dest <- dist.scc.dest %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(TDis_W))) %>%
+  transmute('Mode'=Mode,
+            'Trip&nbsp;Dist UW'=format(round(as.numeric(TDis_UW),0),big.mark=','),
+            'Trip&nbsp;Dist W'=format(round(as.numeric(TDis_W),0),big.mark=','),
+            'Percent UW'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Percent W'=format(round(as.numeric(Per_W),2),big.mark=','),
+            'Avg Dist UW'=format(round(as.numeric(avg_uw),2),big.mark=','),
+            'Avg Dist W'=format(round(as.numeric(avg_w),2),big.mark=',')
+            )
+pandoc.table(
+    dist.scc.dest,
+    caption="Trip distance (mi) by mode for trips ending in Santa Cruz County",
+    justify=c('left','right','right','right','right','right','right'),
+    split.tables=120,
+    split.cells=c('20%','15%','25%','10%','10%','10%','10%'),
+    big.mark=",",
+    emphasize.strong.rows=which(dist.scc.dest$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+\newpage
+
+```{r dur.scc.dest,echo=FALSE,results='asis'}
+dur.scc.dest <- dur.scc.dest %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(TDu_W))) %>%
+  transmute(Mode=Mode,
+            'Trip&nbsp;Dur UW'=format(round(as.numeric(TDu_UW),0),big.mark=','),
+            'Trip&nbsp;Dur W'=format(round(as.numeric(TDu_W),0),big.mark=','),
+            'Percent UW'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Percent W'=format(round(as.numeric(Per_W),2),big.mark=','),
+            'Avg Dur UW'=format(round(as.numeric(avg_uw),2),big.mark=','),
+            'Avg Dur W'=format(round(as.numeric(avg_w),2),big.mark=',')
+            )
+pandoc.table(
+    dur.scc.dest,
+    caption="Trip duration (min) by mode for trips ending in Santa Cruz County",
+    justify=c('left','right','right','right','right','right','right'),
+    split.tables=120,
+    split.cells=c('20%','15%','25%','10%','10%','10%','10%'),
+    big.mark=",",
+    emphasize.strong.rows=which(dur.scc.dest$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+\newpage
+
+```{r apurp.scc.dest,echo=FALSE,results='asis'}
+apurp.scc.dest <- apurp.scc.dest %>%
+  arrange(ifelse(Actpur=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+  transmute('Activity Purpose'=Actpur,
+            'Obs UW'=format(round(as.numeric(Ob_UW),0),big.mark=','),
+            'Obs W'=format(round(as.numeric(Ob_W),0),big.mark=','),
+            'Pct UW'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Pct W'=format(round(as.numeric(Per_W),2),big.mark=',')
+            )
+pandoc.table(
+  apurp.scc.dest,
+  caption="Total number of work trips (APURP=9) for trips ending in Santa Cruz County",
+  justify=c('left','right','right','right','right'),
+  split.tables=120,
+  split.cells=c('60%','10%','10%','10%','10%'),
+  big.mark=",",
+  emphasize.strong.rows=which(apurp.scc.dest$'Activity Purpose'=='Total',arr.ind=TRUE)
+)
+```
+
+```{r scc.mode.wact.dest,echo=FALSE,results='asis'}
+scc.mode.wact.dest <- scc.mode.wact.dest %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+  transmute(Mode=Mode,
+            'Obs UW'=format(round(as.numeric(Ob_UW),0),big.mark=','),
+            'Obs W'=format(round(as.numeric(Ob_W),0),big.mark=','),
+            'Pct UW'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Pct W'=format(round(as.numeric(Per_W),2),big.mark=',')
+            )
+pandoc.table(
+  scc.mode.wact.dest,
+  caption="Total number of trips by activity purpose for trips ending in Santa Cruz County",
+  justify=c('left','right','right','right','right'),
+  split.tables=120,
+  split.cells=c('60%','10%','10%','10%','10%'),
+  big.mark=",",
+  emphasize.strong.rows=which(scc.mode.wact.dest$Mode=='Total',arr.ind=TRUE)
+)
+```

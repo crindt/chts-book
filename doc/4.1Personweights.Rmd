@@ -9,6 +9,7 @@ output: html_document
 if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
 source(paste(rd,"R/setup-hooks.R",sep="/"))
 write(paste("Using Root Directory",rd,"\n"),stderr())
+library(dplyr)
 ```
 
 This document explains how county-level weights are developed using
@@ -56,6 +57,8 @@ We use this new county wide person weight to calculate the final trip
 weight which is an outcome of `Trip Correction Factor (TCF) * New
 County Wide Person Weight`.
 
+
+\ifmydocumentation
 
 # R Code and Implementation
 
@@ -501,3 +504,5 @@ write.csv(nplacedata, file="nplacedata932015.csv",row.names=FALSE)
 ```
 
 Now we have new place data file with new trip weight for all counties.
+
+\fi

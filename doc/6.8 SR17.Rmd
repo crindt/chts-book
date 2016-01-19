@@ -37,6 +37,8 @@ unweighted results. We used countywide weights to generate weighted
 results.
 
 
+\ifmydocumentation
+
 # R Code and Implementation
 
 
@@ -44,7 +46,8 @@ To perform the 7 tasks outlined above, we need the place file with the new count
 
 ```{r sr17-1, }
 #Import the place level with new weight csv file and give a new name
-nplace<- read.csv(pd("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
+#nplace<- read.csv(pd("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
+nplace<- read.csv(pd("Weight/NewWeightData/nplacedata932015.csv"), header=TRUE)
 ```
 
 Next, we convert the `MODE` codes into text descriptions:
@@ -155,6 +158,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("Mode_sr17.csv"),row.names=FALSE)
+mode.sr17 <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -218,6 +222,7 @@ Now, save the results for later use:
 ```{r sr17-11,}
 ## Save as csv file
 write.csv(temp3,file=pto("TripDUrm_sr17.csv"),row.names=FALSE)
+dur.sr17 <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -282,6 +287,7 @@ Save the results for later use:
 ```{r sr17-15,}
 ## Save as csv file
 write.csv(temp3,file=pto("TripDistanceM_sr17.csv"),row.names=FALSE)
+dist.sr17 <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -448,6 +454,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("Apurp_sr17.csv"),row.names=FALSE)
+apurp.sr17 <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -509,9 +516,124 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("Mode_wact_sr17.csv"),row.names=FALSE)
+mode.wact.sr17 <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
 ```
+\fi
 
-We are done with our 7 tasks.
+# Results
+
+
+
+```{r sr17-res-mode,echo=FALSE,results='asis'}
+mode.sr17 <- mode.sr17 %>%
+    arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+    transmute(`Mode` = Mode,
+              `Observed Unweighted` = obsfmt(`Ob_UW`),
+              `Observed Weighted` = obsfmt(`Ob_W`),
+              `Percent Unweighted` = pctfmt(`Per_UW`),
+              `Percent Weighted` = pctfmt(`Per_W`)
+              )
+pandoc.table(
+    mode.sr17,
+    caption="Modal split through the SR17 corridor",
+    justify=c('left','right','right','right','right'),
+    split.tables=100,
+    split.cells=c('40%','15%','15%','15%','15%'),
+    big.mark=",",
+    emphasize.strong.rows=which(mode.sr17$Mode=='Total',arr.ind=TRUE)
+)
+
+```
+
+
+```{r sr17-res-dur,echo=FALSE,results='asis'}
+dur.sr17 <- dur.sr17 %>%
+    arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(TDu_W))) %>%
+    transmute(`Mode` = Mode,
+              `Observed Unweighted` = obsfmt(`TDu_UW`),
+              `Observed Weighted` = obsfmt(`TDu_W`),
+              `Percent Unweighted` = pctfmt(`Per_UW`),
+              `Percent Weighted` = pctfmt(`Per_W`)
+              )
+pandoc.table(
+    dur.sr17,
+    caption="Total trip duration of trips through the SR17 corridor",
+    justify=c('left','right','right','right','right'),
+    split.tables=100,
+    split.cells=c('40%','15%','15%','15%','15%'),
+    big.mark=",",
+    emphasize.strong.rows=which(dur.sr17$Mode=='Total',arr.ind=TRUE)
+)
+
+```
+
+
+```{r sr17-res-dist,echo=FALSE,results='asis'}
+dist.sr17 <- dist.sr17 %>%
+    arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(TDis_W))) %>%
+    transmute(`Mode` = Mode,
+              `Observed Unweighted` = obsfmt(`TDis_UW`),
+              `Observed Weighted` = obsfmt(`TDis_W`),
+              `Percent Unweighted` = pctfmt(`Per_UW`),
+              `Percent Weighted` = pctfmt(`Per_W`)
+              )
+pandoc.table(
+    dist.sr17,
+    caption="Total trip distance of trips through the SR17 corridor",
+    justify=c('left','right','right','right','right'),
+    split.tables=100,
+    split.cells=c('40%','15%','15%','15%','15%'),
+    big.mark=",",
+    emphasize.strong.rows=which(dist.sr17$Mode=='Total',arr.ind=TRUE)
+)
+
+```
+
+
+
+```{r sr17-res-apurp,echo=FALSE,results='asis'}
+apurp.sr17 <- apurp.sr17 %>%
+    arrange(ifelse(Apurp=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+    transmute(`Purpose` = Apurp,
+              `Observed Unweighted` = obsfmt(`Ob_UW`),
+              `Observed Weighted` = obsfmt(`Ob_W`),
+              `Percent Unweighted` = pctfmt(`Per_UW`),
+              `Percent Weighted` = pctfmt(`Per_W`)
+              )
+pandoc.table(
+    apurp.sr17,
+    caption="Total purpose splits for trips through the SR17 corridor",
+    justify=c('left','right','right','right','right'),
+    split.tables=100,
+    split.cells=c('40%','15%','15%','15%','15%'),
+    big.mark=",",
+    emphasize.strong.rows=which(apurp.sr17$Purpose=='Total',arr.ind=TRUE)
+)
+
+```
+
+
+
+```{r sr17-res-mode-wact,echo=FALSE,results='asis'}
+mode.wact.sr17 <- mode.wact.sr17 %>%
+    arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+    transmute(`Mode` = Mode,
+              `Observed Unweighted` = obsfmt(`Ob_UW`),
+              `Observed Weighted` = obsfmt(`Ob_W`),
+              `Percent Unweighted` = pctfmt(`Per_UW`),
+              `Percent Weighted` = pctfmt(`Per_W`)
+              )
+pandoc.table(
+    mode.wact.sr17,
+    caption="Travel mode for work trips through the SR17 corridor",
+    justify=c('left','right','right','right','right'),
+    split.tables=100,
+    split.cells=c('40%','15%','15%','15%','15%'),
+    big.mark=",",
+    emphasize.strong.rows=which(mode.wact.sr17$Mode=='Total',arr.ind=TRUE)
+)
+
+```

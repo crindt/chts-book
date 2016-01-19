@@ -50,6 +50,8 @@ use these new person weights to calculate the final trip weights from
 `Trip Correction Factor (TCF)` * `New Person Weight of LA City`.
 
 
+\ifmydocumentation
+
 # R Code and Implementation
 
 To generate person weight for the City of Los Angeles, we first set the working directory. Then we import the person
@@ -362,3 +364,5 @@ write.csv(placedata_LA, file=pd("Weight/LA_Weight/nplacedata_LA.csv"),row.names=
 
 We have a new place datafile with new trip weights for the City of
 LA. This concludes this sectiion.
+
+\fi

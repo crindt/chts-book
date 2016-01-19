@@ -213,6 +213,7 @@ $if(dir)$
 \fi
 $endif$
 
+\usepackage{xspace}  % for end of line spaces
 \usepackage{titling}
 \pretitle{\begin{center}\Large\bfseries}% make title bold, and a little smaller to fit
 $if(institution)$
@@ -276,6 +277,10 @@ $endif$
 \clearpage
 \setcounter{page}{1}
 \pagenumbering{arabic}
+$if(tables)$
+\LTcapwidth=\textwidth  %wide caption width
+$endif$
+
 $body$
 
 $if(natbib)$
