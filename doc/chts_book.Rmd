@@ -30,6 +30,13 @@ documentation: '`r if(exists("documentation")){documentation}else{documentation<
 documentclass: '`r if (exists("documentation")) {"report"}else{"article"}`'
 ---
 
+```{r book-setup-0,echo=FALSE,cache=FALSE}
+if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
+source(paste(rd,"R/setup-hooks.R",sep="/"))
+write(paste("Using Root Directory",rd,"\n"),stderr())
+```
+
+
 # Introduction
 
 The 2010-12 CHTS, which resulted from a statewide, collaborative
@@ -91,8 +98,8 @@ that were answered under task 4 statistical support tasks.
 
 # Getting Started with R and R Studio
 
-```{r readme-child,echo=FALSE,results='asis',cache=FALSE}
-nestedInclude('../getting-started.Rmd',1) 
+```{r getting-started-child,echo=FALSE,results='asis',cache=FALSE}
+nestedInclude('getting-started.Rmd',1) 
 ```
 
 # Diagnostic Checks of the CHTS
