@@ -34,23 +34,24 @@ This question asked for the following information for Del Norte county:
 # Summary and Methodology
 
 
-In this subsection We generate tables by mode for total number of trips,
-total trip distance, average trip distance, total trip duration,
-average trip duration, and total number of trips for driving alone.
-To calculate the drive alone numbers we extract data for total
-travelers (`TOTTR=1`) and `MODE={5, 6, 7, 8, 10}` (i.e., drivers
-of cars, trucks, or motorcycles). We also generate tables for the
-total number of trips by trip purpose and for work trips by
-mode. More specifically, we generate tables for total number of trips by
-activity purpose since the trip purpose is given in the database as
-activity purpose and there is more than one activity in many single
-trips. We consider each activity as a trip and only consider the
-purpose code (`APURP=9`) for work trips.  We generate every table for
-both trips originating in and ending in Del Norte County. We use the
-new county wide weights for Del Norte County to generate weighted
-results for trips that originated in Del Norte County and statewide
-weights to generate weighted results for trips that originated outside
-of Del Norte County.
+In this subsection We generate tables by mode for total number of
+trips, total trip distance, average trip distance, total trip
+duration, average trip duration, and total number of trips for driving
+alone.  To calculate the drive alone numbers we extract data for total
+travelers \ifmydocumentation(`TOTTR=1`)\fi and drivers of cars,
+trucks, or motorcycles \ifmydocumentation (`MODE={5, 6, 7, 8,
+10}`). We also generate tables for the total number of trips by trip
+purpose and for work trips by mode. More specifically, we generate
+tables for total number of trips by activity purpose since the trip
+purpose is given in the database as activity purpose and there is more
+than one activity in many single trips. We consider each activity as a
+trip and only consider the work trips\ifmydocumentation
+(`APURP=9`)\fi.  We generate every table for both trips originating in
+and ending in Del Norte County. We use the new county wide weights for
+Del Norte County to generate weighted results for trips that
+originated in Del Norte County and statewide weights to generate
+weighted results for trips that originated outside of Del Norte
+County.
 
 
 \ifmydocumentation
