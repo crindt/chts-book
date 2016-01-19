@@ -26,7 +26,6 @@ write(paste("Using Root Directory",rd,"\n"),stderr())
 
 # Introduction
 
-
 This document describes the method used to determine the linked trip
 table.  The 2001 CHTS included a linked trip table with the following
 fields, for which we summarize how we anticipate computing comparable
@@ -305,6 +304,7 @@ all trips making up the linked trip.  The relevant values are as follows:
 * `ARR_HR`: The arrival hour to the destination of this linked trip
 * `ARR_MIN`: The arrival minute to the destination of this linked trip
 
+\ifmydocumentation
 
 # Generating Linked Trip Tables Using R
 
@@ -1351,3 +1351,4 @@ rm("chts_lu_lt")
 ```
 
 
+\fi

@@ -45,6 +45,8 @@ some random checks for different variables. The results show that
 the new weights align well with the population of the different counties.
 
 
+\ifmydocumentation
+
 # R Code and Implementation
 
 The following commands are used to generate countywide household weights.
@@ -478,3 +480,5 @@ wown
 The total number of households in Alameda county is 53,2026 (based on
 census data). Our random check shows that the new weights align with the
 total number of households in Alameda county for both variables. This concludes this section.
+
+\fi

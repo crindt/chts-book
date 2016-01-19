@@ -48,6 +48,8 @@ of each county. Variables used for raking at the person level are:
 After the raking procedure, very large weights are capped to be no
 more than five times the mean of weight.
 
+\ifmydocumentation
+
 # R Code and Implementation
 
 The following commands are used to generate county wide weights for
@@ -501,3 +503,5 @@ write.csv(wLDdata,
           file=pd(paste("Weight/LD_Weight2","wLD_data922015.csv",sep="/")),
           row.names=FALSE)
 ```
+
+\fi

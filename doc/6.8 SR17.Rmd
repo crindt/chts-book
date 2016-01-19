@@ -44,7 +44,8 @@ To perform the 7 tasks outlined above, we need the place file with the new count
 
 ```{r sr17-1, }
 #Import the place level with new weight csv file and give a new name
-nplace<- read.csv(pd("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
+#nplace<- read.csv(pd("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
+nplace<- read.csv(pd("Weight/NewWeightData/nplacedata932015.csv"), header=TRUE)
 ```
 
 Next, we convert the `MODE` codes into text descriptions:
