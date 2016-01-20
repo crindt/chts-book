@@ -1,0 +1,18 @@
+"TABLE 55: Selected travel data for older population groups"
+""
+"Gender","Age Group","Percent Drivers","Vehicle Miles per Driver","Percent with No Vehicles Available","Percent Who Did Not Travel on Travel Day","Percent Disabled"
+"All","50-59",91.4,8.7,5.8,0.2,9
+"All","60-69",90.4,8.2,6.9,0.1,13.5
+"All","70-79",83.5,7.6,8.5,0.1,19.9
+"All","80 and older",62,7.7,7.6,0.4,21.1
+"All","All 50 and Over",84.2,8.3,6.9,0.2,14.4
+"Female","50-59",89.1,7.5,6,0.1,9.3
+"Female","60-69",87,7,8,0.1,14.9
+"Female","70-79",78.2,6.2,10.1,0,22.2
+"Female","80 and older",58.6,6.8,9.1,0.2,24.6
+"Female","All 50 and Over",80.4,7.1,7.9,0.1,16.2
+"Male","50-59",93.8,9.8,5.6,0.2,8.6
+"Male","60-69",94.1,9.4,5.8,0.1,12
+"Male","70-79",89.7,8.8,6.6,0.1,17.3
+"Male","80 and older",69.4,8.8,6,0.6,17.7
+"Male","All 50 and Over",89.3,9.4,5.9,0.2,12.6

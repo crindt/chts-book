@@ -20,7 +20,7 @@ output:
 ---
 
 
-```{r rt-setup-0,echo=FALSE,cache=TRUE}
+```{r rt-setup-0,echo=FALSE,cache=FALSE}
 if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
 source(paste(rd,'R/setup-hooks.R',sep="/"))
 # remove chts data from namespace
@@ -50,7 +50,7 @@ table as well as some discussion of the general methods used.
 
 ## Setup
 
-```{r rt-recreating-2001-tables-setup,cache=TRUE,echo=TRUE}
+```{r rt-recreating-2001-tables-setup,cache=FALSE,echo=TRUE}
 # Set the working directory so we can access libraries
 write(paste("Setting working directory to",rd,"\n"),stderr())
 setwd(rd)
@@ -115,7 +115,7 @@ library(chts2011wgt)
 Table A contains a range of information about households.  In R, we'll construct
 this table as a list with named rows, so we begin by creating an empty list.
 
-```{r rt-table-a-0}
+```{r rt-table-a-0} 
 adat <- list()
 ```
 
@@ -123,7 +123,7 @@ Now, we'll describe how to create each element of the table.  First, the number
 of vehicles available is simply the weighted sum of the household vehicles
 available in the sample.
 
-```{r rt-table-a-1}
+```{r rt-table-a-1} 
 # weighted sum of vehicles available
 adat[['Vehicles Available']] <- round(sum(chts_hh$HHVEH*chts_hh$EXPHHWGT),0)
 ```
@@ -3454,13 +3454,274 @@ res[["res.54"]]$data <- res.54.all
 res[["res.54"]]$tabtxt <- res.54.str
 ```
 
+## TABLE 55: Selected travel data for older population groups
+
+For this table, we use a similar approach to table 54, but limit it to
+older drivers.  We're also only interested in statewide data for all
+days, so we can use the standard weights.
+
+```{r rt-t55-1}
+over.50 <- chts_per %>%
+    filter(AGE>49) %>%
+    mutate(
+        agecat=ifelse(
+            AGE<60,"50-59",
+               ifelse(
+                   AGE<70,"60-69",
+               ifelse(
+                   AGE<80,"70-79","80 and older"))),
+        gend=ifelse(
+            GEND==1,"Male",
+            ifelse(GEND==2,"Female","N/A")))
+
+# Percent Licensed Drivers
+over.50.lic.ft <- over.50 %>%
+    mutate(gend="All") %>%
+    group_by(gend,agecat,LIC) %>%
+    summarise(n=sum(EXPPERWGT)) %>%
+    mutate(freq.pct.drivers = round(n / sum(n)*100,1)) %>%
+    filter(LIC==1)
+
+over.50.lic.ft <-
+    rbind(over.50 %>%
+          mutate(gend="All",agecat="All 50 and Over") %>%
+          group_by(gend,agecat,LIC) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.pct.drivers = round(n / sum(n)*100,1)) %>%
+          filter(LIC==1),
+          over.50.lic.ft)
+
+over.50.lic.ft <-
+    rbind(over.50.lic.ft,
+          over.50 %>%
+          group_by(gend,agecat,LIC) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.pct.drivers = round(n / sum(n)*100,1)) %>%
+          filter(LIC==1 & (gend %in% c('Male','Female')))
+          )
+over.50.lic.ft <-
+    rbind(over.50 %>%
+          mutate(agecat="All 50 and Over") %>%
+          group_by(gend,agecat,LIC) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.pct.drivers = round(n / sum(n)*100,1)) %>%
+          filter(LIC==1 & (gend %in% c('Male','Female'))),
+          over.50.lic.ft) %>%
+    arrange(gend,agecat)
+
+
+over.50.trips <-  over.50 %>%
+    left_join(chts_pla %>% select(-EXPPERWGT),by=c('SAMPN','PERNO'))
+over.50.driver.trips <- over.50.trips %>%
+    filter(MODE %in% driver.trip.modes)
+over.50.driver.trips.stats <- over.50.driver.trips %>%
+    group_by(SAMPN,PERNO) %>%
+    summarise(n=sum(ifelse(LIC==1,EXPPERWGT,0),na.rm=TRUE),
+              vmt=sum(EXPTCFPERWGT*TripDistance,na.rm=TRUE)) %>%
+    left_join(over.50 %>% select(SAMPN,PERNO,gend,agecat), by=c('SAMPN','PERNO'))
+
+over.50.driver.vmt <- over.50.driver.trips.stats %>%
+    mutate(gend='All') %>%
+    group_by(gend,agecat) %>%
+    summarise(vmt.per.d=round(sum(vmt)/sum(n),1))
+    
+over.50.driver.vmt <-
+    rbind(over.50.driver.trips.stats %>%
+          mutate(gend='All',agecat="All 50 and Over") %>%
+          group_by(gend,agecat) %>%
+          summarise(vmt.per.d=round(sum(vmt)/sum(n),1)),
+          over.50.driver.vmt)
+
+over.50.driver.vmt <-
+    rbind(over.50.driver.vmt,
+          over.50.driver.trips.stats %>%
+          group_by(gend,agecat) %>%
+          summarise(vmt.per.d=round(sum(vmt)/sum(n),1)) %>%
+          filter(gend %in% c('Male','Female')))
+
+over.50.driver.vmt <-
+    rbind(over.50.driver.trips.stats %>%
+          mutate(agecat="All 50 and Over") %>%
+          group_by(gend,agecat) %>%
+          summarise(vmt.per.d=round(sum(vmt)/sum(n),1)) %>%
+          filter(gend %in% c('Male','Female')),
+          over.50.driver.vmt) %>%
+    arrange(gend,agecat)
+    
+over.50.hh <- over.50 %>%
+    left_join(chts_hh %>% select(SAMPN,HHVEH),by=c('SAMPN'))
+
+over.50.noveh <- over.50.hh %>%
+          mutate(gend="All") %>%
+          group_by(gend,agecat,HHVEH) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.noveh = round(n / sum(n)*100,1)) %>%
+          filter(HHVEH==0)
+
+over.50.noveh <-
+    rbind(over.50.hh %>%
+          mutate(gend="All",agecat="All 50 and Over") %>%
+          group_by(gend,agecat,HHVEH) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.noveh = round(n / sum(n)*100,1)) %>%
+          filter(HHVEH==0),
+          over.50.noveh)
+
+over.50.noveh <-
+    rbind(over.50.noveh,
+          over.50.hh %>%
+          group_by(gend,agecat,HHVEH) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.noveh = round(n / sum(n)*100,1)) %>%
+          filter(HHVEH==0 & (gend %in% c('Male','Female')))
+          )
+
+over.50.noveh <-
+    rbind(over.50.hh %>%
+          mutate(agecat="All 50 and Over") %>%
+          group_by(gend,agecat,HHVEH) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.noveh = round(n / sum(n)*100,1)) %>%
+          filter(HHVEH==0 & (gend %in% c('Male','Female'))),
+          over.50.noveh) %>%
+    arrange(gend,agecat)
+
+
+
+over.50.ntrips.data <- over.50 %>%
+    left_join(chts_pla,by=c('SAMPN','PERNO')) %>%
+    group_by(SAMPN,PERNO) %>%
+    summarise(ntrip=sum(ifelse(is.na(PLANO),0,1))) %>%
+    left_join(over.50 %>% select(SAMPN,PERNO,agecat,gend,EXPPERWGT),
+              by=c('SAMPN','PERNO'))
+
+over.50.ntrips <- over.50.ntrips.data %>%
+          mutate(gend="All") %>%
+          group_by(gend,agecat,ntrip) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.no.trips = round(n / sum(n)*100,1)) %>%
+          filter(ntrip==0)
+
+over.50.ntrips <-
+    rbind(over.50.ntrips.data %>%
+          mutate(gend="All",agecat="All 50 and Over") %>%
+          group_by(gend,agecat,ntrip) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.no.trips = round(n / sum(n)*100,1)) %>%
+          filter(ntrip==0),
+          over.50.ntrips)
+
+over.50.ntrips <-
+    rbind(over.50.ntrips,
+          over.50.ntrips.data %>%
+          group_by(gend,agecat,ntrip) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.no.trips = round(n / sum(n)*100,1)) %>%
+          filter(ntrip==0 & (gend %in% c('Male','Female')))
+          )
+
+over.50.ntrips <-
+    rbind(over.50.ntrips.data %>%
+          mutate(agecat="All 50 and Over") %>%
+          group_by(gend,agecat,ntrip) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.no.trips = round(n / sum(n)*100,1)) %>%
+          filter(ntrip==0 & (gend %in% c('Male','Female'))),
+          over.50.ntrips) %>%
+    arrange(gend,agecat)
+
+
+
+
+over.50.disab <- over.50 %>%
+          mutate(gend="All") %>%
+          group_by(gend,agecat,DISAB) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.disab = round(n / sum(n)*100,1)) %>%
+          filter(DISAB==1)
+
+over.50.disab <-
+    rbind(over.50 %>%
+          mutate(gend="All",agecat="All 50 and Over") %>%
+          group_by(gend,agecat,DISAB) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.disab = round(n / sum(n)*100,1)) %>%
+          filter(DISAB==1),
+          over.50.disab)
+
+over.50.disab <-
+    rbind(over.50.disab,
+          over.50 %>%
+          group_by(gend,agecat,DISAB) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.disab = round(n / sum(n)*100,1)) %>%
+          filter(DISAB==1 & (gend %in% c('Male','Female')))
+          )
+
+over.50.disab <-
+    rbind(over.50 %>%
+          mutate(agecat="All 50 and Over") %>%
+          group_by(gend,agecat,DISAB) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.disab = round(n / sum(n)*100,1)) %>%
+          filter(DISAB==1 & (gend %in% c('Male','Female'))),
+          over.50.disab) %>%
+    arrange(gend,agecat)
+```
+
+```{r rt-t55-join}
+res.55.all <-
+    over.50.lic.ft %>% select(gend,agecat,freq.pct.drivers) %>%
+    left_join(over.50.driver.vmt %>%
+              select(gend,agecat,vmt.per.d), by=c('gend','agecat')) %>%
+    left_join(over.50.noveh %>%
+              select(gend,agecat,freq.noveh), by=c('gend','agecat')) %>%
+    left_join(over.50.ntrips %>%
+              select(gend,agecat,freq.no.trips), by=c('gend','agecat')) %>%
+    left_join(over.50.disab %>%
+              select(gend,agecat,freq.disab), by=c('gend','agecat')) %>%
+    select(Gender=gend,
+           'Age Group'=agecat,
+           'Percent Drivers'=freq.pct.drivers,
+           'Vehicle Miles per Driver'=vmt.per.d,
+           'Percent with No Vehicles Available'=freq.noveh,
+           'Percent Who Did Not Travel on Travel Day'=freq.no.trips,
+           'Percent Disabled'=freq.disab)
+```
+
+```{r rt-t55-format}
+res.55.str <-
+    pandoc.table.return(
+        res.55.all,
+        caption="TABLE 55: Selected travel data for older population groups",
+        split.table=Inf,
+        split.cells=c(5,20,rep(10,5)),
+        justify=c('left','left','right','right','right','right','right'),
+        style='multiline',
+        round=1,
+        big.mark = ",",
+        missing='&nsbp;',
+        emphasize.strong.rows=which(res.55.all$`Age Group`=='All 50 and Over',arr.ind=TRUE)
+        
+    )
+```
+
+```{r rt-t-55-results,results='asis',echo=FALSE,cache=FALSE}
+cat(res.55.str)
+res[["res.55"]] <- list()
+res[["res.55"]]$title  <- "TABLE 55: Selected travel data for older population groups"
+res[["res.55"]]$data <- res.55.all
+res[["res.55"]]$tabtxt <- res.55.str
+```
+
+
 # Writing Tables for Use with Other Programs
 
 We have saved the data for all tables in the `res` list.  Now we will
 write them all out to CSV files so they may be imported into other
 programs as needed.
 
-```{r rt-write-csv,cache=TRUE,warn=FALSE}
+```{r rt-write-csv,cache=FALSE,warn=FALSE}
 # Set CSV output dir
 csvout <- po("csv")
 for (tname in names(res)) {
@@ -3486,7 +3747,7 @@ for (tname in names(res)) {
 
 \fi
 
-```{r rt-dump-all,echo=FALSE,results='asis',cache=TRUE}
+```{r rt-dump-all,echo=FALSE,results='asis',cache=FALSE}
 cat(
   paste(
     lapply(
