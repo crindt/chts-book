@@ -1,0 +1,167 @@
+---
+title: "Analyzing the 2012 California Household Travel Survey using R: Summary"
+author:
+- name: Craig Rindt
+- name: Suman Mitra
+- name: Jean-Daniel Saphores
+  contact: "Contact information: saphores@uci.edu; Phone: (949) 824 7334"
+date: 'This version: `r (function() {f<-dir(); format(max(file.mtime(f[grepl("^.*\\.Rmd$",f)])), format="%B %d, %Y")})()`'
+institution:
+- Institute of Transportation Studies
+- University of California, Irvine
+output:
+  pdf_document:
+    highlight: tango
+    keep_tex: yes
+    number_sections: yes
+    pandoc_args: --chapters
+    template: custom.latex
+    toc: yes
+    toc_depth: 5
+  html_document:
+    fig_caption: yes
+    highlight: tango
+    number_sections: yes
+    toc: yes
+fontfamily: inconsolata
+fontsize: 11pt
+geometry: margin=1in
+params:
+  documentation: false
+  documentclass: report
+---
+
+```{r summary-setup-0,echo=FALSE,cache=FALSE}
+if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
+source(paste(rd,"R/setup-hooks.R",sep="/"))
+write(paste("Using Root Directory",rd,"\n"),stderr())
+```
+
+
+# Introduction
+
+The 2010-12 CHTS, which resulted from a statewide, collaborative
+effort, enabled the collection of travel information from 42,560
+Californian households. This rich dataset has helped update regional
+and statewide travel and will help update environmental models.
+
+In 2014, the Institute of Transportation Studies at Irvine (ITS) and
+Caltrans initiated the "Enhancing the Value of the 2010-12 California
+Household Travel Survey (CHTS)" contract.  This contract was motivated
+by the idea that potential value of the CHTS is not always well
+understood by Caltrans staff and that some Caltrans staff from the
+Office of Travel Forecasting and Analysis may benefit from updating
+their knowledge of statistical modeling to comfortably query CHTS data
+and to estimate some common transportation econometrics models.
+
+The specific elements of the contract included the following
+deliverables:
+
+1. a systematic diagnostic review of the 2010-12 CHTS database for
+   unlikely observations;
+
+2. a set of interviews with staff at Caltrans headquarters and visits to three
+   selected Caltrans Districts to better understand how they could
+   benefit from using 2010-12 CHTS data and to help promote its use in
+   their work;
+
+3. hands-on statistical training and consulting to selected Caltrans
+   staff in the Office of Travel Forecasting and Analysis in
+   Sacramento;
+
+4. on-call statistical support to Caltrans staff from the
+   Office of Travel Forecasting and Analysis; and
+
+5. a reference book of useful statistical commands based
+   on actual case studies to make it easier to put the 2010-12 CHTS to
+   work for Caltrans staff.
+
+The book you are reading now is the last of these deliverables.  It
+provides numerous examples of how to perform various types of
+statistical analysis on the CHTS.  In chapter 2, we discuss the
+computation of statistical weights for various subpopulations in the
+CHTS---a critical component of any analysis involving the CHTS.  In
+chapter 3, we cover the creation of a "linked trip" dataset, which
+provides a means for analyzing CHTS data in a manner that is
+compatible with conventional 4-step, trip based models.  Finally,
+chapter 4 describes the solution of a number of statistical queries
+that were answered under task 4 statistical support tasks.
+
+
+# Calculating Weights
+
+## County Level Person Weights
+
+
+```{r pw-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('4.1Personweights.Rmd',2)
+```
+
+## County Level Household Weights
+
+
+```{r hw-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('4.2Householdweights.Rmd',2)
+```
+
+
+## Weights for Other Geographies
+
+```{r og-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('4.3Other Geographies.Rmd',2)
+```
+
+## Weights for Long Distance Trips
+
+```{r ldw-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('4.4Longdistanceweight.Rmd',2)
+```
+
+# Linked Trip Tables
+
+```{r lt-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('chts-linked-trips.Rmd',1)
+```
+
+# Data Analysis Requests
+
+The following sections provide R solutions to the questions asked by various districts
+during the course of the project.
+
+## Data Request for Santa Cruz County
+
+
+```{r scc-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('6.1SantaCruz county.Rmd',2)
+```
+
+
+## Data Request for Del Norte County
+
+
+```{r dnc-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('6.2DelNortecounty.Rmd',2)
+```
+
+
+## Long Distance Trips Questions
+
+
+```{r ld-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('6.6 Long Distance Trips questions.Rmd',2)
+```
+
+## Travel Statistics along the SR-1 Corridor
+
+
+```{r sr1-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('6.7 SR1.Rmd',2)
+```
+
+## Travel Statistics along the SR-17 Corridor
+
+
+```{r sr17-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('6.8 SR17.Rmd',2)
+```
+
