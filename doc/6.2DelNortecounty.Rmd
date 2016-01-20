@@ -34,13 +34,13 @@ This question asked for the following information for Del Norte county:
 # Summary and Methodology
 
 
-In this subsection We generate tables by mode for total number of
+In this subsection we generate tables by mode for total number of
 trips, total trip distance, average trip distance, total trip
 duration, average trip duration, and total number of trips for driving
 alone.  To calculate the drive alone numbers we extract data for total
 travelers \ifmydocumentation(`TOTTR=1`)\fi and drivers of cars,
 trucks, or motorcycles \ifmydocumentation (`MODE={5, 6, 7, 8,
-10}`). We also generate tables for the total number of trips by trip
+10}`)\fi. We also generate tables for the total number of trips by trip
 purpose and for work trips by mode. More specifically, we generate
 tables for total number of trips by activity purpose since the trip
 purpose is given in the database as activity purpose and there is more
