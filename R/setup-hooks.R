@@ -116,10 +116,10 @@ pandoc.table.double <- function(x,justify='center',split.cells=Inf,...) {
   pandoc.table(y,justify=justify,split.cells=split.cells,...)
 }
 
-obsfmt <- function(x) {
-    return(format(round(as.numeric(x),0),big.mark=','))
+obsfmt <- function(x,prec=0) {
+    return(format(round(as.numeric(x),prec),big.mark=','))
 }
 
-pctfmt <- function(x) {
-    return(format(round(as.numeric(x),2),big.mark=','))
+pctfmt <- function(x,prec=2) {
+    return(format(round(as.numeric(x),prec),big.mark=','))
 }
