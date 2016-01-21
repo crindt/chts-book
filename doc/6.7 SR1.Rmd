@@ -35,10 +35,10 @@ distance. We also created tables for the total number of trips by trip
 purpose (task 6) and for work trips by mode (task 7). We generated
 tables for total number of trips by activity purpose since the trip
 purpose is given in the database as activity purpose and there is more
-than one activity in many single trips. We considered each activity as
-a trip. We only considered the purpose code (`APURP`) 9 for work
-trips. We generated every table for both unweighted and weighted
-results using countywide weights for the latter.
+than one activity in many single trips.  We considered each activity
+as a trip.  We only considered work trips\ifmydocumentation (purpose
+code `APURP=9`)\fi. We generated every table for both unweighted and
+weighted results using countywide weights for the latter.
 
 
 \ifmydocumentation

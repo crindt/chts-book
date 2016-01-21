@@ -32,11 +32,13 @@ areas:
 
 # Summary and Methodology
 
-We generate weighted and unweighted tables for trips originating in and ending in 
-the above districts, using the long distance recall survey data. Note that in the long
-distance recall survey, trips 50 miles or longer are classified as long distance trips.
-We exclude work trips to calculate non-commute trips and use the new countywide 
-long distance weights \ifmydocumentation(described in subsection 4.4)\fi to generate weighted results.
+We generate weighted and unweighted tables for trips originating in
+and ending in the above districts, using the long distance recall
+survey data. Note that in the long distance recall survey, trips 50
+miles or longer are classified as long distance trips.  We exclude
+work trips to calculate non-commute trips and use the new countywide
+long distance weights described previously to generate weighted
+results.
 
 \ifmydocumentation
 

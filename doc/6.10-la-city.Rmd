@@ -1,0 +1,1299 @@
+---
+title: "Data Request for the City of Los Angeles"
+author: "Suman Mitra"
+date: 'This version: `r (function() {f<-dir(); format(max(file.mtime(f[grepl("^.*\\.Rmd$",f)])), format="%B %d, %Y")})()`'
+output:
+  pdf_document:
+    keep_tex: yes
+    template: custom.latex
+fontfamily: inconsolata
+fontsize: 11pt
+geometry: margin=1in
+params:
+  documentclass: article
+  documentation: '`r if(exists("documentation")){documentation}else{documentation<-"false";documentation}`'
+---
+
+```{r la-city-setup-0,echo=FALSE,cache=FALSE}
+if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
+source(paste(rd,"R/setup-hooks.R",sep="/"))
+write(paste("Using Root Directory",rd,"\n"),stderr())
+```
+
+# Question
+
+This question asked for the following information:
+
+1. Total number of linked trips, by mode, whose origin was in the City
+   of Los Angeles. This will include trips whose origin and
+   destination were in the City of Los Angeles. If possible, we would
+   be interested in also seeing the total duration and total distance
+   of these associated trips.
+
+2. Total number of linked trips, by mode, whose destination was in the
+   City of Los Angeles, but whose origin was outside the City of Los
+   Angeles. If possible, we would be interested in also seeing the
+   total duration and total distance of these associated trips.
+
+3. Total number of linked trips, by mode, whose origin and destination
+   was outside the City of Los Angeles that passed through the City of
+   Los Angeles. If possible, we would be interested in also seeing the
+   total duration and total distance of these associated trips.
+
+# Summary and Methodology
+
+
+We have generated weighted results for the first two requests. First
+we generated specific person level weights for the City of Los
+Angeles. Weights were calculated by raking at the person level. These
+weights adjust the relative importance of responses to reflect the
+different probabilities of selection of respondents, and align the
+sample distributions to population distributions, based on the 2010
+Census. In particular, the aforementioned weights are adjusted so that
+the sums of the adjusted weights are equal to known population totals
+for certain subgroups of the population of the City of Los
+Angeles. Since sampling information was not available for the City of
+Los Angeles, we assumed equal probability here. Variables used for
+raking at the person level are:
+
+* Hispanic Status (Hispanic, Non-Hispanic) – LA City-wide distribution.
+* Ethnicity (White, African American, Asian, Other) – LA City-wide distribution.
+* Age (less than 20 years, 20 – 24 years, 25 – 34 years, 35 – 54
+  years, 55 – 64 years, 65 years or older) – LA City -wide
+  distribution.
+* Employment Status (Part-time or full-time Employed, Not-employed) -
+  LA City-wide distribution
+* Gender (Male, Female) - LA City-wide distribution
+
+Following the raking procedure, very large weights were capped to be
+no more than five times the mean weight. To check whether the new
+weights represent the total population of the City of Los Angeles, we
+did some random checking for different variables and the results
+showed that the new weights align with the population of the City of
+Los Angeles.
+
+To calculate the total number of linked trips we generated linked trip
+table following the CHTS 2001 methodology (detail methodology is in
+separate document). Since linked trip table does not contain the
+origin and destination city name, we merged it with the place level
+file which contains those information. We then merged this new data
+set with new weights of the City of LA based on sample number and
+person number. We used this merged data set to generate linked trips
+whose origin was in the City of Los Angeles, destination was in the
+City of Los Angeles, origin and destination both were in the City of
+Los Angeles and finally destination was in the City of Los 2 Angeles
+but origin was outside the City of Los Angeles. To do this, we
+generated different sub sets of data based on different
+origin-destination conditions. The variables used for sub-setting the
+data are `PPrimaryCity` (origin) and `City` (destination) which
+renamed later as `oCity` and `dCity` respectively. We used the new
+weights of the City of Los Angeles to generate weighted results for
+trips originated in the City of Los Angeles. We then used statewide
+weights to generate weighted results for trips originated outside of
+the City of Los Angeles. We generated tables by mode for the
+following: total number of linked trips, total linked trip distance
+and total linked trip duration assuming that all requests were by
+mode. We used R programming (RStudio). The codes used for generating
+weights and the requested tables are given below:
+
+\ifmydocumentation
+
+# R Code and Implementation
+
+## Preparing the data for answering the questions
+
+The first step in the process to answer the questions is to generate
+person-weights for the City of Los Angeles.  We use methods similar to
+those described in the chapter on computing weights.
+
+```{r la-city-weights-1}
+
+# We need the survey library to perform raking
+library(survey)
+
+# Import the person level variables and give a new name
+perdata2 <- chts_per %>% left_join(chts_hh,by=c('SAMPN'))
+names(perdata2)
+sum(perdata2$HCITY=="LOS ANGELES")
+sum(perdata2$HPrimaryCity=="LOS ANGELES")
+
+
+# Assign 0 for all NA observations
+# FIXME: This is not good
+perdata2$HISP[is.na(perdata2$HISP)] <- 0
+perdata2$AGE[is.na(perdata2$AGE)] <- 0
+perdata2$RACE1[is.na(perdata2$RACE1)] <- 0
+perdata2$EMPLY[is.na(perdata2$EMPLY)] <- 0
+```
+
+We need to recode the raking variables to make them similar to the
+census data (we are using American Community Survey, 2010 five year
+estimate data).
+
+```{r la-city-weights-2}
+
+# For changing values of Hispanic
+perdata2$HISPn <-
+  ifelse(perdata2$HISP > 2, 2,
+         perdata2$HISP)
+
+# Show values
+tail(perdata2$HISPn)
+
+perdata2$AGEn <-
+  ifelse(perdata2$AGE < 20,
+         1,
+         ifelse(perdata2$AGE <= 24,
+                2,
+                ifelse(perdata2$AGE <= 34,
+                       3,
+                       ifelse(perdata2$AGE <= 54,
+                              4,
+                              ifelse(perdata2$AGE <= 64,
+                                     5,
+                                     6)))))
+
+
+# For recoding race
+
+perdata2$RACEn <-
+  ifelse(perdata2$RACE1 == 1,
+         1,
+         ifelse(perdata2$RACE1 == 2,
+                2,
+                ifelse(perdata2$RACE1 == 4,
+                       3,
+                       4)))
+
+# For recoding employment
+perdata2$EMPLYn <-
+  ifelse(perdata2$EMPLY == 1,
+         1,
+         ifelse(perdata2$EMPLY == 2,
+                2,
+                ifelse(perdata2$EMPLY == 8,
+                       1,
+                       2)))
+
+# For recoding Gender
+perdata2$GENDn <-
+  ifelse(perdata2$GEND == 1,
+         1,
+         2)
+
+
+# Generate a subset for city of LA
+perdata_LA<-subset(perdata2,HCITY=="LOS ANGELES")
+dim(perdata_LA)
+names(perdata_LA)
+head(perdata_LA)
+
+
+# Import the LA city population data of raking variables
+# These data are based on 2010 Census
+race.data_LA <- read.csv(pd("Weight/LA_Weight/Raking variables/race_LA.csv"),
+                         header=TRUE)
+race.data_LA
+
+hisp.data_LA<- read.csv(pd("Weight/LA_Weight/Raking variables/hisp_LA.csv"),
+                        header=TRUE)
+hisp.data_LA
+
+age.data_LA <- read.csv(pd("Weight/LA_Weight/Raking variables/age_LA.csv"),
+                        header=TRUE)
+age.data_LA
+
+gend.data_LA <- read.csv(pd("Weight/LA_Weight/Raking variables/gend_LA.csv"),
+                         header=TRUE)
+gend.data_LA
+
+emply.data_LA <- read.csv(pd("Weight/LA_Weight/Raking variables/emply_LA.csv"),
+                          header=TRUE)
+emply.data_LA
+```
+
+With all the data prepped, we now generate the expansion weights via
+raking.
+
+```{r la-city-weights-3}
+
+# Survey design with equal probability
+temp1<- svydesign(id=~1,data=perdata_LA,pps="brewer")
+temp2<- rake(temp1,
+             list(~RACEn,~HISPn,~AGEn,~EMPLYn,~GENDn),
+             list(race.data_LA,hisp.data_LA,age.data_LA,emply.data_LA,gend.data_LA),
+             control = list(maxit = 100)) 
+
+# Raking
+summary(weights(temp2)) # Summary statistics of new weight
+
+# Trim the weights (max value no greater than 5 times the mean)
+temp3<-trimWeights(temp2,
+                   lower=(min(weights(temp2))),
+                   upper=(5*mean(weights(temp2))))
+summary(weights(temp3)) # Summary of trimmed weight
+
+# Combine expanded weight with sample no and person no
+perweight_LA<-cbind(temp3$variables[1:2],weights(temp3))
+head(perweight_LA)
+
+# change the column name of weight variable
+colnames(perweight_LA)[3] <- "NEXPPERWGT_LA" 
+head(perweight_LA)
+
+# Generate person weight
+# Generate a variable for sampling weight
+# (fpc) = sample population (4889) / City total population
+# based on 2010 census(3792621)
+
+fpc<- (sum(perdata2$HCITY=="LOS ANGELES"))/3792621
+perdata_LA$fpc <- fpc
+head(perdata_LA$fpc)
+
+# Person weight= Expanded weight* fpc (sampling weight)
+perweight_LA$NPERWGT_LA<-perweight_LA$NEXPPERWGT_LA*perdata_LA$fpc
+head(perweight_LA)
+
+# Save as csv file
+write.csv(perweight_LA, file=pto("PerWeight_LA.csv"),row.names=FALSE) 
+```
+
+Now we have new weight for LA City which we will use to generate the
+requested tables Random Check whether new weights represent total
+population of the City of LA.  We run some checks to to make sure we
+did things correctly.
+
+```{r la-city-weights-4}
+
+# Merge the new weight file with original person data file
+nper_LA<-merge(perdata_LA,perweight_LA, by =c("SAMPN","PERNO"), all = TRUE)
+head(nper_LA)
+
+# For race
+wrace<-aggregate(NEXPPERWGT_LA~RACE1,FUN=sum,data=nper_LA)
+wrace$Percent<-wrace$NEXPPERWGT_LA*100/sum(wrace$NEXPPERWGT_LA)
+wrace
+wrace1<- rbind(wrace, c("Total", colSums(wrace[,2:3])))
+wrace1
+
+# For nativity
+wntv<-aggregate(NEXPPERWGT_LA~NTVTY,FUN=sum,data=nper_LA)
+wntv$Percent<-wntv$NEXPPERWGT_LA*100/sum(wntv$NEXPPERWGT_LA)
+wntv
+wntv1<- rbind(wntv, c("Total", colSums(wntv[,2:3])))
+wntv1
+
+# For education
+weduc<-aggregate(NEXPPERWGT_LA~EDUCA,FUN=sum,data=nper_LA)
+weduc$Percent<-weduc$NEXPPERWGT_LA*100/sum(weduc$NEXPPERWGT_LA)
+weduc1<- rbind(weduc, c("Total", colSums(weduc[,2:3])))
+weduc1
+```
+
+To answer the questions we need the place level data, the linked trip
+table (see the chapter on generating the linked trip table for
+details), and new weights for LA City.  Since the linked trip table
+does not contain the origin and destination city name, we have to
+import the place level data which contains those information and merge
+it with linked trip table.
+
+
+```{r la-city-2}
+# Import the place level data and give a new name
+nplacedata <- chts_pla
+
+# create mode text for table
+nplacedata$Mode <-
+  ifelse(nplacedata$MODE==1,"Walk",
+  ifelse(nplacedata$MODE==2,"Bike",
+  ifelse(nplacedata$MODE==3,"Wheelchair/Mobility Scooter",
+  ifelse(nplacedata$MODE==4,"Other Non-Motorized",
+  ifelse(nplacedata$MODE==5,"Auto/Van/Truck Driver",
+  ifelse(nplacedata$MODE==6,"Auto /Van/Truck Passenger",
+  ifelse(nplacedata$MODE==7,"Carpool/Vanpool",
+  ifelse(nplacedata$MODE==8,"Motorcycle/Scooter/Moped",
+  ifelse(nplacedata$MODE==9,"Taxi/Hired Car/Limo",
+  ifelse(nplacedata$MODE==10,"Rental Car/Vehicle",
+  ifelse(nplacedata$MODE==11,"Private shuttle ",
+  ifelse(nplacedata$MODE==12,"Greyhound Bus",
+  ifelse(nplacedata$MODE==13,"Plane",
+  ifelse(nplacedata$MODE==14,"Other Private Transit",
+  ifelse(nplacedata$MODE==15,"Local Bus,Rapid Bus",
+  ifelse(nplacedata$MODE==16,"Express Bus/Commuter Bus",
+  ifelse(nplacedata$MODE==17,"Premium Bus",
+  ifelse(nplacedata$MODE==18,"School Bus",
+  ifelse(nplacedata$MODE==19,"Public Transit Shuttle",
+  ifelse(nplacedata$MODE==20,"Air BART/LAX Fly Away",
+  ifelse(nplacedata$MODE==21,"Dial-a-Ride/Paratransit", 
+  ifelse(nplacedata$MODE==22,"Amtrak Bus", 
+  ifelse(nplacedata$MODE==23,"Other Bus ", 
+  ifelse(nplacedata$MODE==24,"BART,Metro Red/Purple Line",
+  ifelse(nplacedata$MODE==25,"ACE, Amtrak, Cal train",
+  ifelse(nplacedata$MODE==26,"Metro",
+  ifelse(nplacedata$MODE==27,"Street Car/Cable Car",
+  ifelse(nplacedata$MODE==28,"Other Rail",
+  ifelse(nplacedata$MODE==29,"Ferry / Boat",
+         "Don't Know/Refused"
+         )))))))))))))))))))))))))))))
+
+
+# Subset the dataset for origin city names
+npl_or<-subset(nplacedata ,select= c('SAMPN','PERNO','PLANO','PPrimaryCity'))
+
+# rename one variable
+names(npl_or) [c(3,4)]<-c('oPLANO','oCity')
+names(npl_or)
+head(npl_or)
+
+# Subset the dataset for destination city names
+npl_dt<-subset(nplacedata ,select= c('SAMPN','PERNO','PLANO','CITY'))
+names(npl_dt) [c(3,4)]<-c('dPLANO','dCity')
+names(npl_dt)
+head(npl_dt)
+
+# Import the linked trip table
+linked_trip <- chts_lt %>%
+  mutate(oPLANO=as.integer(oplano)) %>%
+  mutate(dPLANO=as.integer(dplano))
+
+head(linked_trip)
+
+# Merge the linked trip with origin and destination city name file by
+# origin and destination place no
+nplace_l<-merge(linked_trip,npl_or, by =c("SAMPN","PERNO","oPLANO"), all = FALSE)
+nplace_t<-merge(nplace_l,npl_dt, by =c("SAMPN","PERNO","dPLANO"), all = FALSE)
+names(nplace_t)
+head(nplace_t)
+
+# Import the LA City weight file (no, just use from above)
+# perweight_LA <- read.csv(pd("Weight/LA_Weight/PerWeight_LA.csv"), header=TRUE)
+
+# Import the person level variables
+persondata <- chts_per
+names(persondata)
+
+# Subset the person file for state-wide weight
+per_w<-subset(persondata ,select= c('SAMPN','PERNO','PERWGT','EXPPERWGT'))
+names(per_w)
+
+# Merge with LA weight
+perw2<-merge(per_w,perweight_LA, by =c("SAMPN","PERNO"), all = TRUE)
+head(perw2)
+
+# Merge the linked trip file with LA weight
+linkplace<-merge(nplace_t,perw2, by =c("SAMPN","PERNO"), all = FALSE)
+names(linkplace)
+head (linkplace,10)
+
+```
+
+Now we have a data frame (linkplace) with link trip table, origin and
+destination place city name and with new LA City weight. We will use
+this data frame to generate the requested tables.
+
+
+## Linked Trips Originating in LA
+
+We begin with linked trips originating in Los Angeles.  We start by
+producing a table with the number and percent of linked trips by mode.
+
+```{r la.city.lt.orig.la}
+
+# Generate a subset for link trips originating in LA
+place_LAO<-subset(linkplace,(oCity=="LOS ANGELES"|oCity=="LOS ÁNGELES"))
+names(place_LAO)
+
+## Total number of linked trips for all trips originating in LA, by mode
+## Generate frequency for trip mode
+temp1<-as.data.frame(table(place_LAO$ltmode))
+
+## Generate percentage of frequency
+temp1$Percent<-temp1$Freq*100/sum(temp1$Freq)
+
+## Names
+names(temp1)
+
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Number of Linked-Trips(UW)","Percent(UW)")
+
+## Show the results
+temp1
+
+## Generate weighted frequency (Use weight generated for LA city)
+temp2<-aggregate(NEXPPERWGT_LA~ltmode,FUN=sum,data=place_LAO) 
+
+## Generate weighted percentage
+temp2$Percent<-temp2$NEXPPERWGT_LA*100/sum(temp2$NEXPPERWGT_LA)
+
+## Names
+names(temp2)
+
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Number of Linked-Trips(W)","Percent(W)")
+
+## Show
+temp2
+
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+
+## Save as csv file
+write.csv(temp3,file=pto("WlinkMode_LAO.csv"),row.names=FALSE)
+la.city.lt.orig.la <- temp3
+```
+
+Next, we compute a table with the total linked trip duration for all
+trips originating in LA, by mode.  We also compute the fraction of
+total time spent in each mode by the population.
+
+
+```{r la.city.lt.dur.orig.la}
+
+temp1<-aggregate(tripdur~ltmode,FUN=sum,data=place_LAO)
+
+## Generate percentage
+temp1$Percent<-temp1$tripdur*100/sum(temp1$tripdur)
+
+## Names
+names(temp1)
+
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Linked-Trip Duration (Min)(UW)","Percent(UW)")
+
+## Show
+temp1
+
+## Generate weighted frequency
+temp<-place_LAO$NEXPPERWGT_LA*place_LAO$tripdur
+temp2<-aggregate(temp~ltmode,FUN=sum,data=place_LAO)
+
+## Generate weighted percentage
+temp2$Percent<-temp2$temp*100/sum(temp2$temp)
+
+## Names
+names(temp2)
+
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Linked-Trip Duration(Min)(W)","Percent(W)")
+
+## Show
+temp2
+
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+
+## Save as csv file
+write.csv(temp3,file=pto("WlinkTRIPDUR_LAO.csv"),row.names=FALSE)
+la.city.lt.dur.orig.la <- temp3
+```
+
+
+Similarly, we compute a table with the total linked trip distance for
+all trips originating in LA, by mode.  Again, we also compute the
+fraction of total miles traveled in each mode by the population.
+
+
+```{r la.city.lt.dist.orig.la}
+
+## Total linked trip distance for all trips originating in LA, by mode
+## Generate frequency for linked trip distance by trip mode
+temp1<-aggregate(tripdist~ltmode,FUN=sum,data=place_LAO)
+
+## Generate percentage
+temp1$Percent<-temp1$tripdist*100/sum(temp1$tripdist)
+
+## Names
+names(temp1)
+
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Linked-Trip Distance (Miles)(UW)","Percent(UW)")
+
+## Show
+temp1
+
+## Generate weighted frequency
+temp<-place_LAO$NEXPPERWGT_LA*place_LAO$tripdist
+temp2<-aggregate(temp~ltmode,FUN=sum,data=place_LAO)
+
+## Generate weighted percentage
+temp2$Percent<-temp2$temp*100/sum(temp2$temp)
+
+## Names
+names(temp2)
+
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Linked-Trip Distance (miles)(W)","Percent(W)")
+
+## Show
+temp2
+
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+
+## Save as csv file
+write.csv(temp3,file=pto("WlinkTRIPDIST_LAO.csv"),row.names=FALSE)
+la.city.lt.dist.orig.la <- temp3
+```
+
+## Linked Trips Originating in LA and ending in LA
+
+Next, we turn to linked trips originating in LA and ending in LA.  As
+before, we start with a count and frequency of linked trips by mode.
+
+```{r la.city.lt.od.la}
+
+# Generate a subset for trips originating in LA and ending in LA
+place_LAOD<-subset(
+    linkplace,
+    ((oCity=="LOS ANGELES"|oCity=="LOS ÁNGELES")
+        & (dCity=="LOS ANGELES"|dCity=="LOS ÁNGELES")))
+names(place_LAOD)
+head(place_LAOD)
+
+## Total number of linked trips for all trips originating and ending in LA, by mode
+## Generate frequency for trip mode
+temp1<-as.data.frame(table(place_LAOD$ltmode))
+
+## Generate percentage of frequency
+temp1$Percent<-temp1$Freq*100/sum(temp1$Freq)
+
+## Names
+names(temp1)
+
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Number of Linked-Trips(UW)","Percent(UW)")
+
+## Show the results
+temp1
+
+## Generate weighted frequency
+temp2<-aggregate(NEXPPERWGT_LA~ltmode,FUN=sum,data=place_LAOD)
+
+## Generate weighted percentage
+temp2$Percent<-temp2$NEXPPERWGT_LA*100/sum(temp2$NEXPPERWGT_LA)
+
+## Names
+names(temp2)
+
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Number of Linked-Trips(W)","Percent(W)")
+
+## Show
+temp2
+
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+
+## Save as csv file
+write.csv(temp3,file=pto("WlinkMode_LAOD.csv"),row.names=FALSE)
+la.city.lt.od.la <- temp3
+```
+
+As before, we next compute a table with the total and fractional
+linked trip duration for all trips originating in LA, by mode.
+
+```{r la.city.lt.dur.od.la}
+
+## Generate frequency for linked trip duration by trip mode
+temp1<-aggregate(tripdur~ltmode,FUN=sum,data=place_LAOD)
+
+## Generate percentage
+temp1$Percent<-temp1$tripdur*100/sum(temp1$tripdur)
+
+## Names
+names(temp1)
+
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Linked-Trip Duration (Min)(UW)","Percent(UW)")
+
+## Show
+temp1
+
+## Generate weighted frequency
+temp<-place_LAOD$NEXPPERWGT_LA*place_LAOD$tripdur
+temp2<-aggregate(temp~ltmode,FUN=sum,data=place_LAOD)
+
+## Generate weighted percentage
+temp2$Percent<-temp2$temp*100/sum(temp2$temp)
+
+## Names
+names(temp2)
+
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Linked-Trip Duration (Min)(W)","Percent(W)")
+
+## Show
+temp2
+
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+
+## Save as csv file
+write.csv(temp3,file=pto("WlinkTRIPDUR_LAOD.csv"),row.names=FALSE)
+la.city.lt.dur.od.la <- temp3
+```
+
+Continuing, we again compute a table with the total and fractional
+linked trip distance for all trips originating in LA, by mode.
+
+```{r la.city.lt.dist.od.la}
+
+## Total linked trip distance for all trips originating and ending in LA, by mode
+## Generate frequency for linked trip distance by trip mode
+temp1<-aggregate(tripdist~ltmode,FUN=sum,data=place_LAOD)
+
+## Generate percentage
+temp1$Percent<-temp1$tripdist*100/sum(temp1$tripdist)
+
+## Names
+names(temp1)
+
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Linked-Trip Distance (Miles)(UW)","Percent(UW)")
+
+## Show
+temp1
+
+## Generate weighted frequency
+temp<-place_LAOD$NEXPPERWGT_LA*place_LAOD$tripdist
+temp2<-aggregate(temp~ltmode,FUN=sum,data=place_LAOD)
+
+## Generate weighted percentage
+temp2$Percent<-temp2$temp*100/sum(temp2$temp)
+
+## Names
+names(temp2)
+
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Linked-Trip Distance (Miles)(W)","Percent(W)")
+
+## Show
+temp2
+
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+
+## Save as csv file
+write.csv(temp3,file=pto("WlinkTRIPDIST_LAOD.csv"),row.names=FALSE)
+la.city.lt.dist.od.la <- temp3
+```
+
+## Linked Trips ending in LA
+
+Now we turn to linked trips ending in LA.  Following the same pattern,
+we start with a count and frequency of linked trips by mode.
+
+```{r la.city.lt.dest.la}
+
+#########################
+# Generate a subset for trips ending in LA
+place_LAD<-subset(linkplace,(dCity=="LOS ANGELES"|dCity=="LOS ÁNGELES"))
+names(place_LAD)
+head(place_LAD)
+
+# Change the weight for non LA origin (Assign state wide weight for non LA origin)
+place_LAD$NW <- ifelse((
+    place_LAD$oCity=="LOS ANGELES"|place_LAD$oCity=="LOS ÁNGELES"),
+    place_LAD$NEXPPERWGT_LA, place_LAD$EXPPERWGT)
+names(place_LAD)
+head(place_LAD)
+
+## Total number of linked trips for all trips ending in LA, by mode
+## Generate frequency for trip mode
+
+temp1<-as.data.frame(table(place_LAD$ltmode))
+
+## Generate percentage of frequency
+temp1$Percent<-temp1$Freq*100/sum(temp1$Freq)
+
+## Names
+names(temp1)
+
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Number of Linked-Trips(UW)","Percent(UW)")
+
+## Show the results
+temp1
+
+## Generate weighted frequency
+temp2<-aggregate(NW~ltmode,FUN=sum,data=place_LAD)
+
+## Generate weighted percentage
+temp2$Percent<-temp2$NW*100/sum(temp2$NW)
+
+## Names
+names(temp2)
+
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Number of Linked-Trips(W)","Percent(W)")
+
+## Show
+temp2
+
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+
+## Save as csv file
+write.csv(temp3,file=pto("WlinkMode_LAD.csv"),row.names=FALSE)
+la.city.lt.dest.la <-temp3
+
+```
+
+The next step is to compute a table with the total and fractional
+linked trip duration for all trips originating in LA, by mode.
+
+```{r la.city.lt.dur.dest.la}
+
+## Total linked trip duration for all trips ending in LA, by mode
+## Generate frequency for trip duration by trip mode
+temp1<-aggregate(tripdur~ltmode,FUN=sum,data=place_LAD)
+
+## Generate percentage
+temp1$Percent<-temp1$tripdur*100/sum(temp1$tripdur)
+
+## Names
+names(temp1)
+
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Linked-Trip Duration (Min)(UW)","Percent(UW)")
+
+## Show
+temp1
+
+## Generate weighted frequency
+temp<-place_LAD$NW*place_LAD$tripdur
+temp2<-aggregate(temp~ltmode,FUN=sum,data=place_LAD)
+
+## Generate weighted percentage
+temp2$Percent<-temp2$temp*100/sum(temp2$temp)
+
+## Names
+names(temp2)
+
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Linked-Trip Duration (Min)(W)","Percent(W)")
+
+## Show
+temp2
+
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+
+## Save as csv file
+write.csv(temp3,file=pto("WlinkTRIPDUR_LAD.csv"),row.names=FALSE)
+la.city.lt.dur.dest.la <- temp3
+```
+
+And the last step is to compute a table with the total and fractional
+linked trip distance for all trips originating in LA, by mode.
+
+```{r la.city.lt.dist.dest.la}
+## Generate frequency for trip distance by mode
+temp1<-aggregate(tripdist~ltmode,FUN=sum,data=place_LAD)
+
+## Generate weighted percentage
+temp1$Percent<-temp1$tripdist*100/sum(temp1$tripdist)
+
+## Names
+names(temp1)
+
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Linked-Trip Distance (Miles)(UW)","Percent(UW)")
+
+## Show
+temp1
+
+## Generate weighted frequency
+temp<-place_LAD$NW*place_LAD$tripdist
+temp2<-aggregate(temp~ltmode,FUN=sum,data=place_LAD)
+
+## Generate weighted percentage
+temp2$Percent<-temp2$temp*100/sum(temp2$temp)
+
+## Names
+names(temp2)
+
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Linked-Trip Distance (miles)(W)","Percent(W)")
+
+## Show
+temp2
+
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+
+## Save as csv file
+write.csv(temp3,file=pto("WlinkTRIPDIST_LAD.csv"),row.names=FALSE)
+la.city.lt.dist.dest.la <- temp3
+```
+
+## Linked Trips Ending in LA but Originating Outside LA
+
+The last group of trips we'll perform these computations for are those
+ending in LA but originating outside LA.  Here is the code for
+producing a table with the number and percent of linked trips by mode.
+
+```{r la.city.lt.dest.la.o}
+
+
+# Generate a subset for trips ending in LA but originating in outside LA
+place_LAD2<-subset(linkplace,((dCity=="LOS ANGELES"|dCity=="LOS ÁNGELES") &
+                              !(oCity=="LOS ANGELES"|oCity=="LOS ÁNGELES")))
+head(place_LAD2,10)
+names(place_LAD2)
+
+## Total number of linked trips for all trips ending in LA but
+## originating in outside LA, by mode Generate frequency for trip mode
+temp1<-as.data.frame(table(place_LAD2$ltmode))
+
+## Generate percentage of frequency
+temp1$Percent<-temp1$Freq*100/sum(temp1$Freq)
+
+## Names
+names(temp1)
+
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Number of Linked-Trips(UW)","Percent(UW)")
+
+## Show the results
+temp1
+
+## Generate weighted frequency
+temp2<-aggregate(EXPPERWGT~ltmode,FUN=sum,data=place_LAD2)
+
+## Generate weighted percentage
+temp2$Percent<-temp2$EXPPERWGT*100/sum(temp2$EXPPERWGT)
+
+## Names
+names(temp2)
+
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Number of Linked-Trips(W)","Percent(W)")
+
+## Show
+temp2
+
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+
+## Save as csv file
+write.csv(temp3,file=pto("WlinkMode_LAD2.csv"),row.names=FALSE)
+la.city.lt.dest.la.o <- temp3
+
+```
+
+This is again followed by computing a table with the total and
+fractional linked trip duration for all trips originating in LA, by
+mode.
+
+```{r la.city.lt.dur.dest.la.o}
+
+## Total linked trip duration for all trips ending in LA but
+## originating in outside LA, by mode Generate frequency for linked
+## trip duration by trip mode
+temp1<-aggregate(tripdur~ltmode,FUN=sum,data=place_LAD2)
+
+## Generate percentage
+temp1$Percent<-temp1$tripdur*100/sum(temp1$tripdur)
+
+## Names
+names(temp1)
+
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Linked-Trip Duration (Min)(UW)","Percent(UW)")
+
+## Show
+temp1
+
+## Generate weighted frequency
+temp<-place_LAD2$EXPPERWGT*place_LAD2$tripdur
+temp2<-aggregate(temp~ltmode,FUN=sum,data=place_LAD2)
+
+## Generate weighted percentage
+temp2$Percent<-temp2$temp*100/sum(temp2$temp)
+
+## Names
+names(temp2)
+
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Linked-Trip Duration (Min)(W)","Percent(W)")
+
+## Show
+temp2
+
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+
+## Save as csv file
+write.csv(temp3,file=pto("WlinkTRIPDUR_LAD2.csv"),row.names=FALSE)
+la.city.lt.dur.dest.la.o <- temp3
+```
+
+Finally, we compute a table with the total and fractional linked trip distance for
+all trips originating in LA, by mode.
+
+
+```{r la.city.lt.dist.dest.la.o}
+
+## Total linked trip distance for all trips ending in LA but
+## originating in outside LA, by mode Generate frequency for linked
+## trip distance by trip mode
+temp1<-aggregate(tripdist~ltmode,FUN=sum,data=place_LAD2)
+
+## Generate percentage
+temp1$Percent<-temp1$tripdist*100/sum(temp1$tripdist)
+
+## Names
+names(temp1)
+
+## Rename the variables
+colnames(temp1)[c(1:3)] <- c("Mode","Linked-Trip Distance (Miles)(UW)","Percent(UW)")
+
+## Show
+temp1
+
+## Generate weighted frequency
+temp<-place_LAD2$EXPPERWGT*place_LAD2$tripdist
+temp2<-aggregate(temp~ltmode,FUN=sum,data=place_LAD2)
+
+## Generate weighted percentage
+temp2$Percent<-temp2$temp*100/sum(temp2$temp)
+
+## Names
+names(temp2)
+
+## Rename the variables
+colnames(temp2)[c(1:3)] <- c("Mode","Linked-Trip Distance (Miles)(W)","Percent(W)")
+
+## Show
+temp2
+
+## Merge the two files and save
+temp3<-merge(temp1,temp2, by ="Mode", all = TRUE,sort=FALSE)
+temp3 <- temp3[,c(1,2,4,3,5)]
+temp3
+
+## Save as csv file
+write.csv(temp3,file=pto("WlinkTRIPDIST_LAD2.csv"),row.names=FALSE)
+la.city.lt.dist.dest.la.o <- temp3
+```
+
+
+\fi
+
+\newpage
+
+# Results
+
+
+```{r la-city-mode-code,echo=FALSE,results='asis'}
+mmap <- nplacedata %>%
+  transmute(MODE,Modestr=as.character(Mode)) %>%
+  group_by(MODE,Modestr) %>% summarise(n=n())
+pandoc.table.double(
+    mmap %>%
+    select(Code=MODE,Mode=Modestr),
+    caption="Mode Code",
+    justify=c('left','left'),
+    split.cells=Inf,
+    missing="&nbsp;")
+```
+
+\newpage
+
+```{r la.city.lt.orig.la-res,results='asis',echo=FALSE}
+pandoc.table( 
+  la.city.lt.orig.la %>% mutate(Mode=as.integer(Mode)) %>%
+    left_join(mmap, by=c('Mode'='MODE')) %>%
+    mutate(Mode=Modestr) %>%
+    select(-Modestr,-n) %>%
+    arrange(desc(`Percent(W)`)) %>%
+    mutate(`Number of Linked-Trips(UW)`=obsfmt(`Number of Linked-Trips(UW)`),
+           `Number of Linked-Trips(W)`=obsfmt(`Number of Linked-Trips(W)`),
+           `Percent(UW)`=pctfmt(`Percent(UW)`),
+           `Percent(W)`=pctfmt(`Percent(W)`)),
+  caption="Linked Trips Originating from the City of Los Angeles",
+  justify=c('left',rep('right',4)),
+  split.cells=c(50,rep(10,4)),
+  split.table=Inf,
+  missing="&nbsp;"
+  )
+```  
+
+
+\newpage
+
+```{r la.city.lt.dist.orig.la-res,results='asis',echo=FALSE}
+pandoc.table( 
+  la.city.lt.dist.orig.la %>% mutate(Mode=as.integer(Mode)) %>%
+    left_join(mmap, by=c('Mode'='MODE')) %>%
+    mutate(Mode=Modestr) %>%
+    select(-Modestr,-n) %>%
+    arrange(desc(`Percent(W)`)) %>%
+    mutate(`Linked-Trip Distance (Miles)(UW)`=obsfmt(`Linked-Trip Distance (Miles)(UW)`),
+           `Linked-Trip Distance (miles)(W)`=obsfmt(`Linked-Trip Distance (miles)(W)`),
+           `Percent(UW)`=pctfmt(`Percent(UW)`),
+           `Percent(W)`=pctfmt(`Percent(W)`)),
+  caption="Total Linked-Trip Distance for Trips Originating from the City of Los Angeles",
+  justify=c('left',rep('right',4)),
+  split.cells=c(60,rep(8,4)),
+  split.table=Inf,
+  missing="&nbsp;"
+  )
+```  
+
+
+\newpage
+
+```{r la.city.lt.dur.orig.la-res,results='asis',echo=FALSE}
+pandoc.table( 
+  la.city.lt.dur.orig.la %>% mutate(Mode=as.integer(Mode)) %>%
+    left_join(mmap, by=c('Mode'='MODE')) %>%
+    mutate(Mode=Modestr) %>%
+    select(-Modestr,-n) %>%
+    arrange(desc(`Percent(W)`)) %>%
+    mutate(`Linked-Trip Duration (Min)(UW)`=obsfmt(`Linked-Trip Duration (Min)(UW)`),
+           `Linked-Trip Duration(Min)(W)`=obsfmt(`Linked-Trip Duration(Min)(W)`),
+           `Percent(UW)`=pctfmt(`Percent(UW)`),
+           `Percent(W)`=pctfmt(`Percent(W)`)),
+  caption="Total Linked-Trip Distance for Trips Originating from the City of Los Angeles",
+  justify=c('left',rep('right',4)),
+  split.cells=c(50,rep(8,4)),
+  split.table=Inf,
+  missing="&nbsp;"
+  )
+```  
+
+
+
+\newpage
+
+```{r la.city.lt.dest.la-res,results='asis',echo=FALSE}
+pandoc.table( 
+  la.city.lt.dest.la %>% mutate(Mode=as.integer(Mode)) %>%
+    left_join(mmap, by=c('Mode'='MODE')) %>%
+    mutate(Mode=Modestr) %>%
+    select(-Modestr,-n) %>%
+    arrange(desc(`Percent(W)`)) %>%
+    mutate(`Number of Linked-Trips(UW)`=obsfmt(`Number of Linked-Trips(UW)`),
+           `Number of Linked-Trips(W)`=obsfmt(`Number of Linked-Trips(W)`),
+           `Percent(UW)`=pctfmt(`Percent(UW)`),
+           `Percent(W)`=pctfmt(`Percent(W)`)),
+  caption="Linked Trips Terminating in the City of Los Angeles",
+  justify=c('left',rep('right',4)),
+  split.cells=c(50,rep(10,4)),
+  split.table=Inf,
+  missing="&nbsp;"
+  )
+```  
+
+
+\newpage
+
+```{r la.city.lt.dist.dest.la-res,results='asis',echo=FALSE}
+pandoc.table( 
+  la.city.lt.dist.dest.la %>% mutate(Mode=as.integer(Mode)) %>%
+    left_join(mmap, by=c('Mode'='MODE')) %>%
+    mutate(Mode=Modestr) %>%
+    select(-Modestr,-n) %>%
+    arrange(desc(`Percent(W)`)) %>%
+    mutate(`Linked-Trip Distance (Miles)(UW)`=obsfmt(`Linked-Trip Distance (Miles)(UW)`),
+           `Linked-Trip Distance (miles)(W)`=obsfmt(`Linked-Trip Distance (miles)(W)`),
+           `Percent(UW)`=pctfmt(`Percent(UW)`),
+           `Percent(W)`=pctfmt(`Percent(W)`)),
+  caption="Total Linked-Trip Distance for Trips Terminating in the City of Los Angeles",
+  justify=c('left',rep('right',4)),
+  split.cells=c(60,rep(8,4)),
+  split.table=Inf,
+  missing="&nbsp;"
+  )
+```  
+
+
+\newpage
+
+```{r la.city.lt.dur.dest.la-res,results='asis',echo=FALSE}
+pandoc.table(
+  la.city.lt.dur.dest.la %>% mutate(Mode=as.integer(Mode)) %>%
+    left_join(mmap, by=c('Mode'='MODE')) %>%
+    mutate(Mode=Modestr) %>%
+    select(-Modestr,-n) %>%
+    arrange(desc(`Percent(W)`)) %>%
+    transmute(
+      Mode=Mode,
+      `Linked-Trip Duration (Min)(UW)`=obsfmt(`Linked-Trip Duration (Min)(UW)`),
+      `Linked-Trip Duration (Min)(W)`=obsfmt(`Linked-Trip Duration (Min)(W)`),
+      `Percent(UW)`=pctfmt(`Percent(UW)`),
+      `Percent(W)`=pctfmt(`Percent(W)`)),
+  caption="Linked-Trip Duration for Trips Terminating from the City of Los Angeles",
+  justify=c('left',rep('right',4)),
+  split.cells=c(50,rep(8,4)),
+  split.table=Inf,
+  missing="&nbsp;"
+  )
+```  
+
+
+
+
+
+\newpage
+
+```{r la.city.lt.od.la-res,results='asis',echo=FALSE}
+pandoc.table( 
+  la.city.lt.od.la %>% mutate(Mode=as.integer(Mode)) %>%
+    left_join(mmap, by=c('Mode'='MODE')) %>%
+    mutate(Mode=Modestr) %>%
+    select(-Modestr,-n) %>%
+    arrange(desc(`Percent(W)`)) %>%
+    mutate(`Number of Linked-Trips(UW)`=obsfmt(`Number of Linked-Trips(UW)`),
+           `Number of Linked-Trips(W)`=obsfmt(`Number of Linked-Trips(W)`),
+           `Percent(UW)`=pctfmt(`Percent(UW)`),
+           `Percent(W)`=pctfmt(`Percent(W)`)),
+  caption="Linked Trips Originating and Terminating in the City of Los Angeles",
+  justify=c('left',rep('right',4)),
+  split.cells=c(50,rep(10,4)),
+  split.table=Inf,
+  missing="&nbsp;"
+  )
+```  
+
+
+\newpage
+
+```{r la.city.lt.dist.od.la-res,results='asis',echo=FALSE}
+pandoc.table( 
+  la.city.lt.dist.od.la %>% mutate(Mode=as.integer(Mode)) %>%
+    left_join(mmap, by=c('Mode'='MODE')) %>%
+    mutate(Mode=Modestr) %>%
+    select(-Modestr,-n) %>%
+    arrange(desc(`Percent(W)`)) %>%
+    mutate(`Linked-Trip Distance (Miles)(UW)`=obsfmt(`Linked-Trip Distance (Miles)(UW)`),
+           `Linked-Trip Distance (Miles)(W)`=obsfmt(`Linked-Trip Distance (Miles)(W)`),
+           `Percent(UW)`=pctfmt(`Percent(UW)`),
+           `Percent(W)`=pctfmt(`Percent(W)`)),
+  caption=paste("Total Linked-Trip Distance for Trips Originating ",
+                "and Terminating in the City of Los Angeles"),
+  justify=c('left',rep('right',4)),
+  split.cells=c(60,rep(8,4)),
+  split.table=Inf,
+  missing="&nbsp;"
+  )
+```  
+
+
+\newpage
+
+```{r la.city.lt.dur.od.la-res,results='asis',echo=FALSE}
+pandoc.table( 
+  la.city.lt.dur.od.la %>% mutate(Mode=as.integer(Mode)) %>%
+    left_join(mmap, by=c('Mode'='MODE')) %>%
+    mutate(Mode=Modestr) %>%
+    select(-Modestr,-n) %>%
+    arrange(desc(`Percent(W)`)) %>%
+    transmute(
+      Mode=Mode,
+      `Linked-Trip Duration (Min)(UW)`=obsfmt(`Linked-Trip Duration (Min)(UW)`),
+      `Linked-Trip Duration (Min)(W)`=obsfmt(`Linked-Trip Duration (Min)(W)`),
+      `Percent(UW)`=pctfmt(`Percent(UW)`),
+      `Percent(W)`=pctfmt(`Percent(W)`)),
+  caption=paste("Linked-Trip Duration for Trips Originating ",
+                "and Terminating from the City of Los Angeles"),
+  justify=c('left',rep('right',4)),
+  split.cells=c(50,rep(8,4)),
+  split.table=Inf,
+  missing="&nbsp;"
+  )
+```  
+
+
+\newpage
+
+```{r la.city.lt.dest.la.o-res,results='asis',echo=FALSE}
+pandoc.table( 
+  la.city.lt.dest.la.o %>% mutate(Mode=as.integer(Mode)) %>%
+    left_join(mmap, by=c('Mode'='MODE')) %>%
+    mutate(Mode=Modestr) %>%
+    select(-Modestr,-n) %>%
+    arrange(desc(`Percent(W)`)) %>%
+    mutate(`Number of Linked-Trips(UW)`=obsfmt(`Number of Linked-Trips(UW)`),
+           `Number of Linked-Trips(W)`=obsfmt(`Number of Linked-Trips(W)`),
+           `Percent(UW)`=pctfmt(`Percent(UW)`),
+           `Percent(W)`=pctfmt(`Percent(W)`)),
+  caption="Linked Trips Originating Elsewhere and Terminating in the City of Los Angeles",
+  justify=c('left',rep('right',4)),
+  split.cells=c(50,rep(10,4)),
+  split.table=Inf,
+  missing="&nbsp;"
+  )
+```  
+
+
+\newpage
+
+```{r la.city.lt.dist.dest.la.o-res,results='asis',echo=FALSE}
+pandoc.table( 
+  la.city.lt.dist.dest.la.o %>% mutate(Mode=as.integer(Mode)) %>%
+    left_join(mmap, by=c('Mode'='MODE')) %>%
+    mutate(Mode=Modestr) %>%
+    select(-Modestr,-n) %>%
+    arrange(desc(`Percent(W)`)) %>%
+    mutate(`Linked-Trip Distance (Miles)(UW)`=obsfmt(`Linked-Trip Distance (Miles)(UW)`),
+           `Linked-Trip Distance (Miles)(W)`=obsfmt(`Linked-Trip Distance (Miles)(W)`),
+           `Percent(UW)`=pctfmt(`Percent(UW)`),
+           `Percent(W)`=pctfmt(`Percent(W)`)),
+  caption=paste("Total Linked-Trip Distance for Trips Originating ",
+                "Elsewhere and Terminating in the City of Los Angeles"),
+  justify=c('left',rep('right',4)),
+  split.cells=c(60,rep(8,4)),
+  split.table=Inf,
+  missing="&nbsp;"
+  )
+```  
+
+
+\newpage
+
+```{r la.city.lt.dur.dest.la.o-res,results='asis',echo=FALSE}
+pandoc.table( 
+  la.city.lt.dur.dest.la.o %>% mutate(Mode=as.integer(Mode)) %>%
+    left_join(mmap, by=c('Mode'='MODE')) %>%
+    mutate(Mode=Modestr) %>%
+    select(-Modestr,-n) %>%
+    arrange(desc(`Percent(W)`)) %>%
+    transmute(
+      Mode=Mode,
+      `Linked-Trip Duration (Min)(UW)`=obsfmt(`Linked-Trip Duration (Min)(UW)`),
+      `Linked-Trip Duration (Min)(W)`=obsfmt(`Linked-Trip Duration (Min)(W)`),
+      `Percent(UW)`=pctfmt(`Percent(UW)`),
+      `Percent(W)`=pctfmt(`Percent(W)`)),
+  caption=paste("Linked-Trip Duration for Trips Originating Elsewhere ",
+                "and Terminating from the City of Los Angeles"),
+  justify=c('left',rep('right',4)),
+  split.cells=c(50,rep(8,4)),
+  split.table=Inf,
+  missing="&nbsp;"
+  )
+```  

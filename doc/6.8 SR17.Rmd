@@ -24,25 +24,26 @@ are similar to those for the analysis of the SR-1. We found 74
 household respondents (177 person respondents) including 8 GPS
 respondents within a 1 km buffer on each side of the SR-17. To
 delineate the SR-17 corridor, we relied on Caltrans’ definition. We
-generated tables by mode for 1) total number of trips; 2) total trip
-duration; 3) average trip duration; 4) total trip distance; and 5)
-average trip distance. We also generated tables for the total number
-of trips by trip purpose (task 6) and for work trips by mode (task
-7). For these, we generated tables for total number of trips by
-activity purpose since trip purpose is given in the data as activity
-purpose and there is more than one activity for many single trips. We
-considered each activity as a trip. For work trips, we only considered
-purpose code (`APURP`) 9. We generated every table for both weighted and
-unweighted results. We used countywide weights to generate weighted
-results.
+generated tables by mode for: total number of trips, total trip
+duration, average trip duration, total trip distance, and average trip
+distance.  We also generated tables for the total number of trips by
+trip purpose and for work trips by mode. For these, we generated
+tables for total number of trips by activity purpose since trip
+purpose is given in the data as activity purpose and there is more
+than one activity for many single trips. We considered each activity
+as a trip. For work trips, we only considered work/job
+duties\ifmydocumentation (purpose code `APURP=9`)\fi. We generated
+every table for both weighted and unweighted results. We used
+countywide weights to generate weighted results.
 
 
 \ifmydocumentation
 
 # R Code and Implementation
 
-
-To perform the 7 tasks outlined above, we need the place file with the new countywide person weights that were computed in Section 4.1.
+To compute each of the seven tables outlined above, we need the place
+file with the new countywide person weights that were computed
+previously.
 
 ```{r sr17-1, }
 #Import the place level with new weight csv file and give a new name

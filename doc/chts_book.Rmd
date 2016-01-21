@@ -188,7 +188,12 @@ nestedInclude('6.7 SR1.Rmd',2)
 ## Travel Statistics along the SR-17 Corridor
 
 
-```{r sr17-cild,echo=FALSE,results='asis',cache=FALSE} 
+```{r sr17-child,echo=FALSE,results='asis',cache=FALSE} 
 nestedInclude('6.8 SR17.Rmd',2)
 ```
+
+## Data Request for the City of Los Angeles
+
+```{r la-city-child,echo=FALSE,results='asis',cache=FALSE} 
+nestedInclude('6.10-la-city.Rmd',2)
 
