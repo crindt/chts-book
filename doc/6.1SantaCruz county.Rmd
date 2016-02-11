@@ -33,25 +33,56 @@ This question asked for the following information for Santa Cruz county:
 
 # Summary and Methodology
 
-In this sub-section, we generate
-tables by mode for the following: total number of trips, total trip
-distance, average trip distance, total trip duration, average trip
-duration, and total number of trips for driving alone.  To calculate
-the "drive alone"" numbers we extract data for total travelers
-\ifmydocumentation(`TOTTR=1`)\fi and drivers of cars, trucks, or
-motorcycles\ifmydocumentation (`MODE={5, 6, 7, 8, 10}`)\fi. We also
-generate tables for the total number of trips by trip purpose and for
-work trips by mode. Here, we actually generate tables for the total
-number of trips by activity purpose since the trip purpose is given in
-the database as the activity purpose and although many trips are
-associated with more than one activity, We consider each activity as a
-trip. We only consider the work trips \ifmydocumentation
-(`APURP=9`)\fi.  We generate every table for both trips originating in
-and ending in Santa Cruz County. We use the new county wide weights of
-Santa Cruz County to generate weighted results for trips that
-originated in Santa Cruz County and statewide weights to generate
-weighted results for trips that originated outside of Santa Cruz
-County.
+We generated weighted results for the request above. Our calculations
+used the place-level and activity-level datasets. To generate weighted
+results we first generated specific person-level weights for Santa
+Cruz County. We then appended these weights to the place-level and
+activity-level datasets. Weights were calculated by raking at the
+person level. These weights adjust the relative importance of
+responses to reflect the different probabilities of selecting
+respondents, and align sample distributions to population
+distributions, based on the 2010 Census. Variables used for raking at
+the person level are:
+ 
+* Hispanic Status (Hispanic, Non-Hispanic)---Santa Cruz County distribution.
+
+* Ethnicity (White, African American, Asian, Other)---Santa Cruz
+  County distribution.
+
+* Age (less than 20 years, 20--24 years, 25--34 years, 35--54 years,
+  55--64 years, 65 years or older)---Santa Cruz County distribution.
+
+* Employment Status (Part-time or full-time Employed,
+  Not-employed)---Santa Cruz County distribution
+
+* Gender (Male, Female)---Santa Cruz County distribution
+ 
+Following the raking procedure, very large weights were capped to be
+no more than five times mean weights. To check whether the new weights
+represent the total population of Santa Cruz County, we performed some
+random checks for different variables; results showed that the new
+weights align well with the population of Santa Cruz County. We then
+calculated the final trip weights and used them to generate the
+weighted results We generated tables by mode for the following: total
+number of trips, total trip distance, average trip distance, total
+trip duration, average trip duration, and total number of trips for
+driving alone.  To calculate the drive alone numbers we extracted data
+for total travelers \ifmydocumentation(`TOTTR=1`)\fi and drivers of
+cars, trucks, or motorcycles \ifmydocumentation(`MODE=5, 6, 7, 8,
+10`)\fi. We also generated tables for the total number of trips by
+trip purpose and for work trips by mode. Here, we actually generated
+tables for total number of trips by activity purpose since the trip
+purpose is given in the database as activity purpose and there is more
+than one activity in many single trips. We considered each activity as
+a trip. We only considered work/job duties
+\ifmydocumentation(`APURP=9`) \fi for work trips.  We generated every
+table for both trips originating in and ending in Santa Cruz
+County. We used the new Santa Cruz County weights to generate weighted
+results for trips that originated in Santa Cruz County and statewide
+weights to generate weighted results for trips that originated outside
+of Santa Cruz County.  R code (RStudio) to generate weights and the
+requested tables is given \ifmydocumentation below\else in the
+appendix DVD\fi.
 
 \ifmydocumentation
 

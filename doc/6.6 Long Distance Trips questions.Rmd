@@ -38,7 +38,10 @@ survey data. Note that in the long distance recall survey, trips 50
 miles or longer are classified as long distance trips.  We exclude
 work trips to calculate non-commute trips and use the new countywide
 long distance weights described previously to generate weighted
+results.  We have generated tables for both origins and destinations
+of the above districts. Tables below show both weighted and unweighted
 results.
+
 
 \ifmydocumentation
 

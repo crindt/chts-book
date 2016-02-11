@@ -42,7 +42,6 @@ This question asked for the following information:
 
 # Summary and Methodology
 
-
 We have generated weighted results for the first two requests. First
 we generated specific person level weights for the City of Los
 Angeles. Weights were calculated by raking at the person level. These
@@ -93,8 +92,8 @@ weights to generate weighted results for trips originated outside of
 the City of Los Angeles. We generated tables by mode for the
 following: total number of linked trips, total linked trip distance
 and total linked trip duration assuming that all requests were by
-mode. We used R programming (RStudio). The codes used for generating
-weights and the requested tables are given below:
+mode. We used R programming (RStudio). The \ifmydocumentation code for
+generating the results and the\fi requested tables are given below.
 
 \ifmydocumentation
 
