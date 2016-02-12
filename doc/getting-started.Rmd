@@ -47,7 +47,7 @@ users who can and do extend R's capabilities through freely available
 add-on packages and numerous on-line help forums.
 
 
-## Installation of R and R Studio
+# Installation of R and R Studio
 
 To work with the examples provided in this book, you need to install
 some free, open source software.  All software mentioned here is
@@ -69,7 +69,7 @@ this project in parentheses):
 * R (3.2.2): https://cran.rstudio.com/
 * RStudio (0.99.489): https://www.rstudio.com/products/rstudio/download/
 
-## Other software
+# Other software
 
 We used a variety of other software in working with data from the
 CHTS.  None of these are *required* for any of the analysis this
@@ -104,7 +104,7 @@ documentation, but we summarize each below for completeness:
 >   documentation internally.
 
 
-## R packages
+# R packages
 
 In addition to the core `R` software, much of the analysis we
 performed on the `CHTS` made use of freely available `R` packages
@@ -184,7 +184,7 @@ custom packages involving the CHTS data set:
 
 
 
-## Generating this document
+# Generating this document
 
 ```{r setup,cache=FALSE,echo=FALSE}
 if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
@@ -207,7 +207,7 @@ it.
 nestedInclude('../README.Rmd',2) 
 ```
 
-## Where to find help in R?
+# Where to find help in R?
 
 There is a wealth of tutorials, articles, and examples to help you
 learn R and its extensions.
