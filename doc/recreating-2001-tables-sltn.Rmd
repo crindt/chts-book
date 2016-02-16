@@ -20,7 +20,7 @@ output:
 ---
 
 
-```{r rt-setup-0,echo=FALSE,cache=FALSE}
+```{r rt-setup-0,echo=FALSE,cache=FALSE,warn=FALSE}
 if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
 source(paste(rd,'R/setup-hooks.R',sep="/"))
 # remove chts data from namespace
@@ -2158,24 +2158,23 @@ datahh.cty <- datahh.all %>% ungroup() %>%
 datahh <- rbind(datahh.all,datahh.cty)
 ```
 
-Now, `data` has the linked trips for each weekday driver trip.  We can simply compute the mean for
-each combination.
+Now, `data` has the linked trips for each weekday driver trip.  We can
+simply compute the mean for each combination.
 
 ```{r rt-table-15a-3}
 # take the trip aggs (appg), join the household aggs by stratification, devide totals
 res.15a <- aggp %>% 
   left_join(datahh,by=c('County','INCOM')) %>% 
   mutate(nn=n/hhn,nnv=nv/hhn) %>% 
-  select(-n,-nv,-hhn) %>% ungroup()
+  select(-n,-nv,-hhn) %>% ungroup() %>%
+  select(`Household Income`=INCOM,`PMT/HH`=nn,`VMT/HH`=nnv)
 
 res.15a.str <-
   paste(
     lapply(
       c(sort(unique(res.15a$County))),
       function(cty) {
-        dat <- res.15a %>% filter(County==cty) %>%
-          select(`Household Income`=INCOM,`PMT/HH`=nn,`VMT/HH`=nnv)
-        
+        dat <- res.15a %>% filter(County==cty)        
         tab <- pandoc.table.return(
           dat,
           caption=paste("TABLE 15a: Person and Vehicle Miles Traveled per Household (",cty,")",sep=""),
