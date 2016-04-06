@@ -22,18 +22,6 @@ R/               # directory holding R source code used in the analysis
 output/          # directory holding output data (e.g., CSV tables)
 ```
 
-* District 4
-District 1
-data
-Weight
-Santa Cruz County
-LD data request
-R
-csvout
-linked-trips
-doc
-
-
 # Building the Documentation
 
 Once you clone or unzip the source, you can build the documentation in
