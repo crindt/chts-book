@@ -91,3 +91,35 @@ nestedInclude <- function(fname, lev=0, ..., options = NULL, envir = parent.fram
   text <- filterRmd(fname,lev)
   cat(knit_child(text=text,options=options,envir=envir,quiet=TRUE,...))
 }
+
+pandoc.table.double <- function(x,justify='center',split.cells=Inf,...) {
+  d <- dim(x)
+  if (length(justify) == d[[2]]) {
+    justify <- rep(justify,2)
+  }
+  if ( length(split.cells) == d[[2]] ) {
+    split.cells <- unlist(lapply(
+      rep(split.cells,2),
+      function(c) {
+        v <- as.integer(gsub("(\\d+)%?","\\1",as.character(c)))
+        p <- gsub("(\\d+)(%)?","\\2",as.character(c))
+        v <- v/2
+        return(paste(v,p,sep=""))
+      }))      
+  }
+  if ((d[[1]] %% 2) == 1 ) {
+    y <- cbind(x[1:(ceiling(d[[1]]/2)),],rbind(x[(ceiling(d[[1]]/2)+1):d[[1]],],c(NA,NA)))
+  } else {
+    y <- cbind(x[1:(ceiling(d[[1]]/2)),],x[(ceiling(d[[1]]/2)+1):d[[1]],])
+  }
+
+  pandoc.table(y,justify=justify,split.cells=split.cells,...)
+}
+
+obsfmt <- function(x,prec=0) {
+    return(format(round(as.numeric(x),prec),big.mark=','))
+}
+
+pctfmt <- function(x,prec=2) {
+    return(format(round(as.numeric(x),prec),big.mark=','))
+}

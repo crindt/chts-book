@@ -32,12 +32,18 @@ areas:
 
 # Summary and Methodology
 
-We generate weighted and unweighted tables for trips originating in and ending in 
-the above districts, using the long distance recall survey data. Note that in the long
-distance recall survey, trips 50 miles or longer are classified as long distance trips.
-We exclude work trips to calculate non-commute trips and use the new countywide 
-long distance weights (described in subsection 4.4) to generate weighted results.
+We generate weighted and unweighted tables for trips originating in
+and ending in the above districts, using the long distance recall
+survey data. Note that in the long distance recall survey, trips 50
+miles or longer are classified as long distance trips.  We exclude
+work trips to calculate non-commute trips and use the new countywide
+long distance weights described previously to generate weighted
+results.  We have generated tables for both origins and destinations
+of the above districts. Tables below show both weighted and unweighted
+results.
 
+
+\ifmydocumentation
 
 # R Code and Implementation
 
@@ -170,7 +176,7 @@ temp2$Percent<-temp2$EXPLDWGT*100/sum(temp2$EXPLDWGT)
 ## Names
 names(temp2)
 ## Rename the variables
-colnames(temp2)[c(1:3)] <- c("LD_Mode","Observations (W)","Percent(W)")
+colnames(temp2)[c(1:3)] <- c("LD_Mode","Observations(W)","Percent(W)")
 ## Show
 temp2
 ```
@@ -231,7 +237,7 @@ Now, compute weighted frequencies:
 temp2<-aggregate(EXPLDWGT~Mode,FUN=sum,data=Odistrict2)
 temp2$Percent<-temp2$EXPLDWGT*100/sum(temp2$EXPLDWGT)
 names(temp2)
-colnames(temp2)[c(1:3)] <- c("LD_Mode","Observations (W)","Percent(W)")
+colnames(temp2)[c(1:3)] <- c("LD_Mode","Observations(W)","Percent(W)")
 temp2
 ```
 
@@ -297,7 +303,7 @@ temp2$Percent<-temp2$EXPLDWGT*100/sum(temp2$EXPLDWGT)
 ## Names
 names(temp2)
 ## Rename the variables
-colnames(temp2)[c(1:3)] <- c("LD_Mode","Observations (W)","Percent(W)")
+colnames(temp2)[c(1:3)] <- c("LD_Mode","Observations(W)","Percent(W)")
 ## Show
 temp2
 ```
@@ -308,8 +314,11 @@ Save these results in a `csv` file for later use.
 ## Merge the two files and save
 temp3<-merge(temp1,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
+temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
+
 write.csv(temp3,file=pto("D_OMode.csv"),row.names=FALSE)
+mode.o.d1 <- temp3
 ```
 
 Now we have modal split data based on new weight for non-commute long
@@ -355,7 +364,7 @@ Now compute weighted frequencies:
 temp2<-aggregate(EXPLDWGT~Mode,FUN=sum,data=ddistrict2)
 temp2$Percent<-temp2$EXPLDWGT*100/sum(temp2$EXPLDWGT)
 names(temp2)
-colnames(temp2)[c(1:3)] <- c("LD_Mode","Observations (W)","Percent(W)")
+colnames(temp2)[c(1:3)] <- c("LD_Mode","Observations(W)","Percent(W)")
 temp2
 ```
 
@@ -364,8 +373,10 @@ As before, save the results for later use:
 ```{r ldtq-42, }
 temp3<-merge(O_mode2,temp2, by ="LD_Mode", all = TRUE,sort=FALSE)
 temp3 <- temp3[,c(1,2,4,3,5)]
+temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 write.csv(temp3,file=pto("D_OLDMode2.csv"),row.names=FALSE)
+mode.o.d2 <- temp3
 ```
 
 
@@ -422,3 +433,52 @@ respondents who reside within selected portion of San Bernardino
 county.  We followed the same procedure for subsetting the sample of
 respondents who reside within the rest of San Bernardino county (For
 District 9).
+
+\fi
+
+\newpage
+
+# Results
+
+```{r ldtq-res-1,echo=FALSE,results='asis'}
+mode.o.d1 <- mode.o.d1 %>%
+    arrange(ifelse(LD_Mode=="Total",1,0),desc(as.numeric(mode.o.d1$`Observations(W)`))) %>%
+    transmute(`Long Distance Mode` = LD_Mode,
+              `Observed Unweighted` = obsfmt(`Observations(UW)`),
+              `Observed Weighted` = obsfmt(`Observations(W)`),
+              `Percent Unweighted` = pctfmt(`Percent(UW)`),
+              `Percent Weighted` = pctfmt(`Percent(W)`)
+              )
+pandoc.table(
+    mode.o.d1,
+    caption="Modal split of trips originating in District 1",
+    justify=c('left','right','right','right','right'),
+    split.tables=100,
+    split.cells=c('40%','15%','15%','15%','15%'),
+    big.mark=",",
+    emphasize.strong.rows=which(mode.scc.orig$Mode=='Total',arr.ind=TRUE)
+)
+
+```
+
+```{r ldtq-res-2,echo=FALSE,results='asis'}
+mode.o.d2 <- mode.o.d2 %>%
+    arrange(ifelse(LD_Mode=="Total",1,0),desc(as.numeric(mode.o.d2$`Observations(W)`))) %>%
+    transmute(`Long Distance Mode` = LD_Mode,
+              `Observed Unweighted` = obsfmt(`Observations(UW)`),
+              `Observed Weighted` = obsfmt(`Observations(W)`),
+              `Percent Unweighted` = pctfmt(`Percent(UW)`),
+              `Percent Weighted` = pctfmt(`Percent(W)`)
+              )
+pandoc.table(
+    mode.o.d2,
+    caption="Modal split of trips originating in District 2",
+    justify=c('left','right','right','right','right'),
+    split.tables=100,
+    split.cells=c('40%','15%','15%','15%','15%'),
+    big.mark=",",
+    emphasize.strong.rows=which(mode.scc.orig$Mode=='Total',arr.ind=TRUE)
+)
+
+```
+

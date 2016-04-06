@@ -60,7 +60,7 @@ setwd(pd("District 1/Lake County"))
 
 
 #Import the place level with new weight csv file and give a new name
-nplace<- read.csv(pd("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
+nplace<- read.csv(pd("Weight/NewWeightData/nplacedata932015.csv"), header=TRUE)
 names(nplace)
 head(nplace)# Show first ten observations
 

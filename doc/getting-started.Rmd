@@ -1,0 +1,246 @@
+---
+title: "Getting Started with R and R Studio"
+author:
+- name: Jean-Daniel Saphores
+- name: Craig Rindt
+date: '`r file.mtime(knitr::current_input())`'
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    highlight: tango
+    number_sections: yes
+    pandoc_args: --chapters
+    theme: journal
+    toc: yes
+    toc_depth: 6
+fontfamily: inconsolata
+documentclass: '`r if (exists("documentation")) {"report"}else{"article"}`'
+documentation: '`r if(exists("documentation")){documentation}else{documentation<-NULL;documentation}`'
+---
+
+```{r getting-started-setup,cache=TRUE,echo=FALSE}
+# Set the working directory so we can access libraries
+if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
+source(paste(rd,"R/setup-hooks.R",sep="/"))
+write(paste("Using Root Directory",rd,"\n"),stderr())
+```
+
+
+Following review and discussions with Caltrans staff during the
+initial stages of the project a number of decisions were made
+regarding how the deliverables would be satisfied.  The most
+consequential of these early decisions was the recommendation by ITS
+that the `R` language and environment for statistical computing is the
+best choice for performing and teaching statistical analysis.  This
+recommendation was based upon a number of factors.  First of all, R is
+completely free, open-source, and it runs on UNIX, Windows and
+Macintosh. Second, it is extremely powerful, and it has an excellent
+built-in help system as well as excellent graphing capabilities.
+Comparable commerical packages, such as SAS, cost hundreds of
+dollars per user license.  Second, R's language has an easy to learn
+syntax with many built-in statistical functions, and it is easy to
+extend with user-written functions.  Third, R can be made user
+friendly thanks to R studio and R commander.  Finally, R has a vibrant
+user community that includes academic, governmental, and commercial
+users who can and do extend R's capabilities through freely available
+add-on packages and numerous on-line help forums.
+
+
+# Installation of R and R Studio
+
+To work with the examples provided in this book, you need to install
+some free, open source software.  All software mentioned here is
+available for computers running Microsoft Windows, Apple's MacOS, and
+virtually any distribution of Linux.
+
+The only software that is *required* to work these CHTS examples is `R`
+itself along with various `R` package libraries that are downloaded
+from within `R` itself (we discuss this below).  With that said, our
+recommended `R` platform is `RStudio`, for its graphical user
+interface and general ease-of-use.  `RStudio` is a "shell" that works
+with the `R` system, providing features for editing `R` programs,
+interacting with the `R` backend (e.g., running programs), and viewing
+the results.  Note that you must install `R` prior to installing
+`RStudio`.  You can download the most recent version of `R` and
+`RStudio` from the following locations (we note the versions used in
+this project in parentheses):
+
+* R (3.2.2): https://cran.rstudio.com/
+* RStudio (0.99.489): https://www.rstudio.com/products/rstudio/download/
+
+# Other software
+
+We used a variety of other software in working with data from the
+CHTS.  None of these are *required* for any of the analysis this
+documentation, but we summarize each below for completeness:
+
+> `pandoc` (http://pandoc.org)
+> : a tool for transforming documents between a variety of formats.  In
+>   our case, it is used to create documents from `R` source code to
+>   illustrate results.  Indeed, the book you are reading was generated
+>   using `pandoc`.  Pandoc is installed with `RStudio` and is integrated
+>   with `R` using the `knitr` `R` package (see below).  If you are not
+>   using RStudio, you will need to install `pandoc` separately in order
+>   to generate documentation from `R`.
+>
+> `mdbtools` (https://github.com/brianb/mdbtools)
+> : provides command-line capabilities for working with Microsoft Access
+>   databases.  We used mdbtools to export CHTS data from its access
+>   distribution database to comma separated values (CSV) files.  This
+>   allowed us to easily import data into R and other software such as
+>   PostgreSQL.
+> 
+> `PostgreSQL` (http://www.postgresql.org/)
+> : a well regarded open source, SQL database.  We used `PostgreSQL` to
+>   perform a variety of data processing tasks early in the project.
+>   `PostgreSQL`'s `PostGIS` extension provides powerful Geographic
+>   Information System (GIS) capabilities that extend beyond what is
+>   possible in `R` alone.
+> 
+> `git` (http://git-scm.com/)
+> : the dominant free and open source distributed version control
+>   system.  We used `git` to maintain and share our `R` source code and
+>   documentation internally.
+
+
+# R packages
+
+In addition to the core `R` software, much of the analysis we
+performed on the `CHTS` made use of freely available `R` packages
+developed and vetted by members of the `R` community.  `R` packages
+can be installed via the `packages` tab in `RStudio` or via the
+`install.packages` command in `R`.  For instance, to install the
+`survey` package used to compute statistical weights, you can simply
+type the following at the `R` command prompt (or in the `R` console
+window in `RStudio`):
+
+```{r using-r-install-packages,echo=TRUE,eval=FALSE}
+install.packages("survey")
+```
+
+This will download the `survey` package from the nearest Comprehensive
+R Achive Network (CRAN) mirror and install it into your personal `R`
+library for use in your analysis.
+
+
+Other `CRAN` packages we used include:
+
+> `knitr`
+> : a package for generating final documentation from intermingled
+>   source code and documentation.  This book was created using `knitr`
+>   to process documentation written in a combination of `R` source code
+>   and the `pandoc` variant of
+>   [`markdown`](http://pandoc.org/demo/example9/pandocs-markdown.html)
+> 
+> `pander`
+> : a package for generating `markdown` formatted tables and lists for
+>   processing with `knitr`
+> 
+> `dplyr`
+> : a package that provides a convenient filter-style idiom for
+>   performing statistical computing tasks on `R` data frames.
+> 
+> `tidyr`
+> : a package that allows for quick transformation of `R` data frames
+>   between row- and column-oriented representations.
+> 
+> `Hmisc`
+> : a package providing a wide range of common statistical functions and
+>   utilities not included in the core `R` distribution
+> 
+> `isotone`
+> : a package that, among other things, provides a function for
+>   computing the weighted median of a categorical variable.
+
+
+To simplify working with the CHTS in `R`, we also created a set of
+custom packages involving the CHTS data set:
+
+> `chts2011`
+> : is a package containing the public tables from the CHTS 2010-2012
+>   survey.  Once you have installed the `chts2011` package, These
+>   tables are accessible as:
+> 
+>   * `chts_hh`: the household data set
+>   * `chts_per`: the person data set
+>   * `chts_veh`: the vehicle data set
+>   * `chts_pla`: the place data set
+>   * `chts_act`: the activity data set
+>   * `chts_md`: a table containing CHTS "metadata" as provided by
+>     Caltrans staff.  This data includes the variable names,
+>     descriptions, and survey questions.
+> 
+> `chts2011pvt`
+> : is a package containing the private tables from the CHTS 2010-2012
+>   survey.  These include addresses and geo-coordinates.  This data is
+>   privileged so that this package can only be obtained from Caltrans
+>   directly and may not be redistributed in any form.
+> 
+> `chts2011wgt`
+> : is a package containing various pre-calculated statistical weights,
+>   including person and household weights by county, weekdays, and
+>   weekends.
+
+
+
+# Generating this document
+
+```{r setup,cache=FALSE,echo=FALSE}
+if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
+source(paste(rd,'R/setup-hooks.R',sep="/"))
+write(paste("Using Root Directory",rd,"\n"),stderr())
+```
+
+As noted above, this book was generated directly from the R-markdown
+(Rmd) source code using the `knitr` package to create `markdown`
+documentation that can then be processed using the `pandoc` program to
+generate web pages, presentations, or hardcopy documentation.  The
+source code for this document can be obtained from `github` by cloning
+the following repository https://github.com/crindt/chts-book or
+downloading the zip file
+https://github.com/crindt/chts-book/archive/master.zip and unzipping
+it.
+
+
+```{r readme-child,echo=FALSE,results='asis',cache=FALSE}
+nestedInclude('../README.Rmd',2) 
+```
+
+# Where to find help in R?
+
+There is a wealth of tutorials, articles, and examples to help you
+learn R and its extensions.
+
+A starting point for R resources is the Comprehensive R Archive
+Network (CRAN), which is located at http://cran.us.r-project.org.  It
+is best queried using http://www.rseek.org/ instead of Google.
+
+There are many free tutorials available online. Here are a few:
+
+* Quick R: http://www.statmethods.net/;
+* R-Twotorials: http://www.twotorials.com/;
+* Getting started with the R Data Analysis Package by Professor Norm
+  Matloff at UC Davis: http://heather.cs.ucdavis.edu/~matloff/r.html;
+* UCLA Academy Technology Services: http://www.ats.ucla.edu/stat/r/;
+  or simply
+* http://pairach.com/2012/02/26/r-tutorials-from-universities-around-the-world/,
+  which provides web addresses to R tutorials in locations around the
+  world.
+
+In addition, there is R-Bloggers (http://www.r-bloggers.com/), which
+is a central hub of content collected from bloggers who write about R
+(in English).
+
+Another useful resource that relies on R Studio can be found at
+https://www.rstudio.com/resources/training/online-learning/
+
+As Professor Matloff from UC Davis said
+
+> "There is a perception among some that R has a steep learning curve,
+> but I disagree. True, R usage has its advanced aspects, but my
+> recommendation is simply, just get started! Start simple, and then
+> refine gradually."
+
+Happy Learning R!
+

@@ -20,7 +20,7 @@ output:
 ---
 
 
-```{r rt-setup-0,echo=FALSE,cache=TRUE}
+```{r rt-setup-0,echo=FALSE,cache=FALSE,warn=FALSE}
 if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
 source(paste(rd,'R/setup-hooks.R',sep="/"))
 # remove chts data from namespace
@@ -50,7 +50,7 @@ table as well as some discussion of the general methods used.
 
 ## Setup
 
-```{r rt-recreating-2001-tables-setup,cache=TRUE,echo=TRUE}
+```{r rt-recreating-2001-tables-setup,cache=FALSE,echo=TRUE}
 # Set the working directory so we can access libraries
 write(paste("Setting working directory to",rd,"\n"),stderr())
 setwd(rd)
@@ -115,7 +115,7 @@ library(chts2011wgt)
 Table A contains a range of information about households.  In R, we'll construct
 this table as a list with named rows, so we begin by creating an empty list.
 
-```{r rt-table-a-0}
+```{r rt-table-a-0} 
 adat <- list()
 ```
 
@@ -123,7 +123,7 @@ Now, we'll describe how to create each element of the table.  First, the number
 of vehicles available is simply the weighted sum of the household vehicles
 available in the sample.
 
-```{r rt-table-a-1}
+```{r rt-table-a-1} 
 # weighted sum of vehicles available
 adat[['Vehicles Available']] <- round(sum(chts_hh$HHVEH*chts_hh$EXPHHWGT),0)
 ```
@@ -2158,24 +2158,23 @@ datahh.cty <- datahh.all %>% ungroup() %>%
 datahh <- rbind(datahh.all,datahh.cty)
 ```
 
-Now, `data` has the linked trips for each weekday driver trip.  We can simply compute the mean for
-each combination.
+Now, `data` has the linked trips for each weekday driver trip.  We can
+simply compute the mean for each combination.
 
 ```{r rt-table-15a-3}
 # take the trip aggs (appg), join the household aggs by stratification, devide totals
 res.15a <- aggp %>% 
   left_join(datahh,by=c('County','INCOM')) %>% 
   mutate(nn=n/hhn,nnv=nv/hhn) %>% 
-  select(-n,-nv,-hhn) %>% ungroup()
+  select(-n,-nv,-hhn) %>% ungroup() %>%
+  select(`Household Income`=INCOM,`PMT/HH`=nn,`VMT/HH`=nnv)
 
 res.15a.str <-
   paste(
     lapply(
       c(sort(unique(res.15a$County))),
       function(cty) {
-        dat <- res.15a %>% filter(County==cty) %>%
-          select(`Household Income`=INCOM,`PMT/HH`=nn,`VMT/HH`=nnv)
-        
+        dat <- res.15a %>% filter(County==cty)        
         tab <- pandoc.table.return(
           dat,
           caption=paste("TABLE 15a: Person and Vehicle Miles Traveled per Household (",cty,")",sep=""),
@@ -3454,13 +3453,601 @@ res[["res.54"]]$data <- res.54.all
 res[["res.54"]]$tabtxt <- res.54.str
 ```
 
+## TABLE 55: Selected travel data for older population groups
+
+For this table, we use a similar approach to table 54, but limit it to
+older drivers.  We're also only interested in statewide data for all
+days, so we can use the standard weights.
+
+```{r rt-t55-1}
+over.50 <- chts_per %>%
+    filter(AGE>49) %>%
+    mutate(
+        agecat=ifelse(
+            AGE<60,"50-59",
+               ifelse(
+                   AGE<70,"60-69",
+               ifelse(
+                   AGE<80,"70-79","80 and older"))),
+        gend=ifelse(
+            GEND==1,"Male",
+            ifelse(GEND==2,"Female","N/A")))
+
+# Percent Licensed Drivers
+over.50.lic.ft <- over.50 %>%
+    mutate(gend="All") %>%
+    group_by(gend,agecat,LIC) %>%
+    summarise(n=sum(EXPPERWGT)) %>%
+    mutate(freq.pct.drivers = round(n / sum(n)*100,1)) %>%
+    filter(LIC==1)
+
+over.50.lic.ft <-
+    rbind(over.50 %>%
+          mutate(gend="All",agecat="All 50 and Over") %>%
+          group_by(gend,agecat,LIC) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.pct.drivers = round(n / sum(n)*100,1)) %>%
+          filter(LIC==1),
+          over.50.lic.ft)
+
+over.50.lic.ft <-
+    rbind(over.50.lic.ft,
+          over.50 %>%
+          group_by(gend,agecat,LIC) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.pct.drivers = round(n / sum(n)*100,1)) %>%
+          filter(LIC==1 & (gend %in% c('Male','Female')))
+          )
+over.50.lic.ft <-
+    rbind(over.50 %>%
+          mutate(agecat="All 50 and Over") %>%
+          group_by(gend,agecat,LIC) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.pct.drivers = round(n / sum(n)*100,1)) %>%
+          filter(LIC==1 & (gend %in% c('Male','Female'))),
+          over.50.lic.ft) %>%
+    arrange(gend,agecat)
+
+
+over.50.trips <-  over.50 %>%
+    left_join(chts_pla %>% select(-EXPPERWGT),by=c('SAMPN','PERNO'))
+over.50.driver.trips <- over.50.trips %>%
+    filter(MODE %in% driver.trip.modes)
+over.50.driver.trips.stats <- over.50.driver.trips %>%
+    group_by(SAMPN,PERNO) %>%
+    summarise(n=sum(ifelse(LIC==1,EXPPERWGT,0),na.rm=TRUE),
+              vmt=sum(EXPTCFPERWGT*TripDistance,na.rm=TRUE)) %>%
+    left_join(over.50 %>% select(SAMPN,PERNO,gend,agecat), by=c('SAMPN','PERNO'))
+
+over.50.driver.vmt <- over.50.driver.trips.stats %>%
+    mutate(gend='All') %>%
+    group_by(gend,agecat) %>%
+    summarise(vmt.per.d=round(sum(vmt)/sum(n),1))
+    
+over.50.driver.vmt <-
+    rbind(over.50.driver.trips.stats %>%
+          mutate(gend='All',agecat="All 50 and Over") %>%
+          group_by(gend,agecat) %>%
+          summarise(vmt.per.d=round(sum(vmt)/sum(n),1)),
+          over.50.driver.vmt)
+
+over.50.driver.vmt <-
+    rbind(over.50.driver.vmt,
+          over.50.driver.trips.stats %>%
+          group_by(gend,agecat) %>%
+          summarise(vmt.per.d=round(sum(vmt)/sum(n),1)) %>%
+          filter(gend %in% c('Male','Female')))
+
+over.50.driver.vmt <-
+    rbind(over.50.driver.trips.stats %>%
+          mutate(agecat="All 50 and Over") %>%
+          group_by(gend,agecat) %>%
+          summarise(vmt.per.d=round(sum(vmt)/sum(n),1)) %>%
+          filter(gend %in% c('Male','Female')),
+          over.50.driver.vmt) %>%
+    arrange(gend,agecat)
+    
+over.50.hh <- over.50 %>%
+    left_join(chts_hh %>% select(SAMPN,HHVEH),by=c('SAMPN'))
+
+over.50.noveh <- over.50.hh %>%
+          mutate(gend="All") %>%
+          group_by(gend,agecat,HHVEH) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.noveh = round(n / sum(n)*100,1)) %>%
+          filter(HHVEH==0)
+
+over.50.noveh <-
+    rbind(over.50.hh %>%
+          mutate(gend="All",agecat="All 50 and Over") %>%
+          group_by(gend,agecat,HHVEH) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.noveh = round(n / sum(n)*100,1)) %>%
+          filter(HHVEH==0),
+          over.50.noveh)
+
+over.50.noveh <-
+    rbind(over.50.noveh,
+          over.50.hh %>%
+          group_by(gend,agecat,HHVEH) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.noveh = round(n / sum(n)*100,1)) %>%
+          filter(HHVEH==0 & (gend %in% c('Male','Female')))
+          )
+
+over.50.noveh <-
+    rbind(over.50.hh %>%
+          mutate(agecat="All 50 and Over") %>%
+          group_by(gend,agecat,HHVEH) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.noveh = round(n / sum(n)*100,1)) %>%
+          filter(HHVEH==0 & (gend %in% c('Male','Female'))),
+          over.50.noveh) %>%
+    arrange(gend,agecat)
+
+
+
+over.50.ntrips.data <- over.50 %>%
+    left_join(chts_pla,by=c('SAMPN','PERNO')) %>%
+    group_by(SAMPN,PERNO) %>%
+    summarise(ntrip=sum(ifelse(is.na(PLANO),0,1))) %>%
+    left_join(over.50 %>% select(SAMPN,PERNO,agecat,gend,EXPPERWGT),
+              by=c('SAMPN','PERNO'))
+
+over.50.ntrips <- over.50.ntrips.data %>%
+          mutate(gend="All") %>%
+          group_by(gend,agecat,ntrip) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.no.trips = round(n / sum(n)*100,1)) %>%
+          filter(ntrip==0)
+
+over.50.ntrips <-
+    rbind(over.50.ntrips.data %>%
+          mutate(gend="All",agecat="All 50 and Over") %>%
+          group_by(gend,agecat,ntrip) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.no.trips = round(n / sum(n)*100,1)) %>%
+          filter(ntrip==0),
+          over.50.ntrips)
+
+over.50.ntrips <-
+    rbind(over.50.ntrips,
+          over.50.ntrips.data %>%
+          group_by(gend,agecat,ntrip) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.no.trips = round(n / sum(n)*100,1)) %>%
+          filter(ntrip==0 & (gend %in% c('Male','Female')))
+          )
+
+over.50.ntrips <-
+    rbind(over.50.ntrips.data %>%
+          mutate(agecat="All 50 and Over") %>%
+          group_by(gend,agecat,ntrip) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.no.trips = round(n / sum(n)*100,1)) %>%
+          filter(ntrip==0 & (gend %in% c('Male','Female'))),
+          over.50.ntrips) %>%
+    arrange(gend,agecat)
+
+
+
+
+over.50.disab <- over.50 %>%
+          mutate(gend="All") %>%
+          group_by(gend,agecat,DISAB) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.disab = round(n / sum(n)*100,1)) %>%
+          filter(DISAB==1)
+
+over.50.disab <-
+    rbind(over.50 %>%
+          mutate(gend="All",agecat="All 50 and Over") %>%
+          group_by(gend,agecat,DISAB) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.disab = round(n / sum(n)*100,1)) %>%
+          filter(DISAB==1),
+          over.50.disab)
+
+over.50.disab <-
+    rbind(over.50.disab,
+          over.50 %>%
+          group_by(gend,agecat,DISAB) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.disab = round(n / sum(n)*100,1)) %>%
+          filter(DISAB==1 & (gend %in% c('Male','Female')))
+          )
+
+over.50.disab <-
+    rbind(over.50 %>%
+          mutate(agecat="All 50 and Over") %>%
+          group_by(gend,agecat,DISAB) %>%
+          summarise(n=sum(EXPPERWGT)) %>%
+          mutate(freq.disab = round(n / sum(n)*100,1)) %>%
+          filter(DISAB==1 & (gend %in% c('Male','Female'))),
+          over.50.disab) %>%
+    arrange(gend,agecat)
+```
+
+```{r rt-t55-join}
+res.55.all <-
+    over.50.lic.ft %>% select(gend,agecat,freq.pct.drivers) %>%
+    left_join(over.50.driver.vmt %>%
+              select(gend,agecat,vmt.per.d), by=c('gend','agecat')) %>%
+    left_join(over.50.noveh %>%
+              select(gend,agecat,freq.noveh), by=c('gend','agecat')) %>%
+    left_join(over.50.ntrips %>%
+              select(gend,agecat,freq.no.trips), by=c('gend','agecat')) %>%
+    left_join(over.50.disab %>%
+              select(gend,agecat,freq.disab), by=c('gend','agecat')) %>%
+    select(Gender=gend,
+           'Age Group'=agecat,
+           'Percent Drivers'=freq.pct.drivers,
+           'Vehicle Miles per Driver'=vmt.per.d,
+           'Percent with No Vehicles Available'=freq.noveh,
+           'Percent Who Did Not Travel on Travel Day'=freq.no.trips,
+           'Percent Disabled'=freq.disab)
+```
+
+```{r rt-t55-format}
+res.55.str <-
+    pandoc.table.return(
+        res.55.all,
+        caption="TABLE 55: Selected travel data for older population groups",
+        split.table=Inf,
+        split.cells=c(5,20,rep(10,5)),
+        justify=c('left','left','right','right','right','right','right'),
+        style='multiline',
+        round=1,
+        big.mark = ",",
+        missing='&nsbp;',
+        emphasize.strong.rows=which(res.55.all$`Age Group`=='All 50 and Over',arr.ind=TRUE)
+        
+    )
+```
+
+```{r rt-t-55-results,results='asis',echo=FALSE,cache=FALSE}
+cat(res.55.str)
+res[["res.55"]] <- list()
+res[["res.55"]]$title  <- "TABLE 55: Selected travel data for older population groups"
+res[["res.55"]]$data <- res.55.all
+res[["res.55"]]$tabtxt <- res.55.str
+```
+
+
+## TABLE 56: Daily travel stats by age
+
+For this table, we use the same logic as in TABLE 54, but instead of
+weighting by county, we weight statewide and compute the statistics
+for the various age categories requested.
+
+```{r rt-t56-1}
+#Daily Travel Statistics
+##Vehicle Trips per Driver
+
+# use lt.wd.trips.veh, but expand to county
+trips.veh <- 
+  lt.clean %>% 
+  filter(ltmode==5) # driver trips only
+
+# trips with people 
+trips.peeps.veh <-
+  trips.veh %>%
+  left_join(chts_per,
+            by=c('SAMPN','PERNO')
+            ) %>%
+  mutate(age.group=
+           ifelse(
+             AGE<18,"NA",
+             ifelse(
+               AGE<35,"Younger (Millenials) 18-34",
+               ifelse(
+                 AGE<50,"Young (Generation X) 35-49",
+                 ifelse(
+                   AGE<65,"Baby Boomers 50-64",
+                   "Older 65+")))))
+                      
+                    
+```
+
+Next, we compute weighted vehicle trips by the age groups.
+
+```{r rt-t56-2}
+veh.trips.age.group <- trips.peeps.veh %>%
+  group_by(age.group) %>%
+  summarise(vtrips=sum(EXPPERWGT*ltTCF,na.rm=TRUE))
+```
+
+Now, we turn to computing vehicle trips per driver.  Given the other
+content of the requested table (e.g., average trip length), we assume
+this should be vehicle trips per "active" driver.  Thus, we compute
+the number of drivers by totaling the unique drivers making trips in
+the age group.
+
+```{r rt-t56-3}
+# same number of drivers in county on wd/we
+# we compute drivers as total number of licensed drivers
+drivers.age.group <- trips.peeps.veh %>%
+  # group by SAMPN, PERNO to get unique drivers
+  group_by(age.group,SAMPN,PERNO) %>%  
+
+  # summarise to get one row (with a weight) for each driver
+  summarise(trips=n(),wgt=max(EXPPERWGT)) %>%
+
+  # now group by age group
+  group_by(age.group) %>%
+
+  # and sum the weights to get a weighted count of drivers by
+  # age group
+  summarise(drivers=sum(wgt))
+```            
+
+Next, we compute the vehicle trips per driver by combining trip and
+driver frames.  We'll attach all computations to the `res.56.all` data
+frame.
+
+```{r rt-t56-4}
+vtpd.age.group <-
+  veh.trips.age.group %>%
+  left_join(drivers.age.group,by=c('age.group'))  %>%
+  mutate('Vehicle Trips per Driver'=vtrips/drivers) %>% 
+  select(-vtrips,-drivers)
+#  mutate('Day'=ifelse(WD==1,'Weekday','Weekend')) %>% select(-WD)
+
+res.56.all <- vtpd.age.group
+```
+
+Now we turn to computing the fraction of work and non-work trips in
+this sample.  We use the linked-trip `TripType` variable to identify
+any work-related trips then compute the fractions accordining.
+
+```{r rt-t56-5}
+
+#% work trips
+#% non-work trips
+    
+wtrips <- trips.peeps.veh %>%
+  filter(TripType=='HW' | TripType=='WO' | TripType=='WW') %>%
+  group_by(age.group) %>%
+  summarise(vtrips.wrk=sum(EXPPERWGT*ltTCF,na.rm=TRUE))
+
+trippct <- veh.trips.age.group %>%
+  left_join(wtrips,by=c('age.group')) %>% 
+  mutate('Pct Work Trips'=vtrips.wrk/vtrips*100,
+         'Pct Non-Work Trips'=(1-vtrips.wrk/vtrips)*100) %>%
+  select(-vtrips,-vtrips.wrk)
+
+res.56.all <-
+  res.56.all %>%
+  left_join(trippct,by=c('age.group'))
+```
+
+To compute VMT per driver, we'll reuse the `drivers` data frame from
+above, but need to count the VMT for age group by computing a
+weighted sum of the trip distances.
+
+```{r rt-t56-6}
+
+#VMT per Driver
+
+vmt.age.group <- trips.peeps.veh %>%
+  group_by(age.group) %>%
+  summarise(vmt=sum(tripdist*EXPPERWGT*ltTCF,na.rm=TRUE))
+
+vmt.per.driver <- vmt.age.group %>%
+  left_join(drivers.age.group,by=c('age.group')) %>%
+  mutate(vmt.per.driver=vmt/drivers) %>%
+  select(-vmt,-drivers)
+
+res.56.all <- res.56.all %>% left_join(vmt.per.driver,by=c('age.group'))
+```
+
+The average vehicle trip length can by computed as a simple weighted
+mean of `tripdist` for each age group.
+
+```{r rt-t56-7}
+
+#Average Vehicle Trip Length
+
+mean.vehicle.trip.length <- 
+  trips.peeps.veh %>%
+  group_by(age.group) %>%
+  summarise(avg.len=wtd.mean(tripdist,weights=EXPPERWGT*ltTCF,na.rm=TRUE))
+
+res.56.all <- res.56.all %>%
+  left_join(mean.vehicle.trip.length,by=c('age.group'))
+```
+
+The average time spent driving is also a simple weighted mean, this
+time of `tripdur`.
+
+```{r rt-t56-8}
+#Average Time Spent Driving (in minutes)
+mean.vehicle.trip.dur <-
+  trips.peeps.veh %>%
+    group_by(age.group) %>%
+    summarise(avg.dur=wtd.mean(tripdur,weights=EXPPERWGT*ltTCF,na.rm=TRUE))
+res.56.all <- res.56.all %>%
+  left_join(mean.vehicle.trip.dur,by=c('age.group'))
+
+```
+
+The next elements in the table are for person trips, using the
+definitions described earlier.  As for the vehicle trip computations
+above, we start by filtering the linked-trip table for person trips
+and join on the age groups.
+
+```{r rt-t56-9}
+
+#Person Trips per Person
+lt.person.trips <-
+  lt.clean %>%
+  left_join(chts_per %>% select(SAMPN,PERNO,AGE,EXPPERWGT), by=c('SAMPN','PERNO')) %>%
+  filter(ltmode %in% person.trip.modes) %>%
+  mutate(age.group=
+           ifelse(
+             AGE<18,"NA",
+             ifelse(
+               AGE<35,"Younger (Millenials) 18-34",
+               ifelse(
+                 AGE<50,"Young (Generation X) 35-49",
+                 ifelse(
+                   AGE<65,"Baby Boomers 50-64",
+                   "Older 65+")))))
+
+lt.age.group.trips <- 
+  lt.person.trips %>%
+  mutate(EXPTCFPERWGT=EXPPERWGT*ltTCF)
+```
+
+Since we need some statistics per person, we again assume these
+statistics should by for *traveling* persons (not total persons), and
+compute total persons traveling in each county and in the state
+combining them into a single data frame.
+
+```{r rt-t56-10}
+
+traveling.persons <-
+  lt.person.trips %>%
+  group_by(SAMPN,PERNO) %>%
+  summarise(n=n()) %>%
+  left_join(lt.person.trips %>% select(SAMPN,PERNO,age.group,EXPPERWGT),
+            by=c('SAMPN','PERNO'))
+
+persons.age.group <- traveling.persons %>% 
+  group_by(age.group) %>%
+  summarise(persons=sum(EXPPERWGT,na.rm=TRUE))
+```
+
+Next, we compute the weighted person-trip sums for each county/day.
+
+```{r rt-t56-11}
+person.trips.age.group <- 
+  lt.age.group.trips %>% group_by(age.group) %>%
+  summarise(trips=sum(EXPTCFPERWGT,na.rm=TRUE))
+
+```
+
+Then, we divide the total trips by total traveling persons for each
+county/day and store the result.
+
+```{r rt-t56-12}
+            
+person.trips.per.person.age.group <-
+  person.trips.age.group %>% 
+  left_join(persons.age.group,by=c('age.group')) %>% 
+  mutate(ptpp=trips/persons) %>%
+  select(-trips,-persons)
+
+res.56.all <- res.56.all %>%
+  left_join(person.trips.per.person.age.group,by=c('age.group'))
+```
+
+Turning to the person-miles traveled per person, we compute a weighted
+sum of the tripdist for each age group and divide by traveling persons.
+
+```{r rt-t56-13}
+#PMT per Person
+pmt.age.group <-
+  lt.age.group.trips %>% group_by(age.group) %>%
+  summarise(pmt=sum(EXPTCFPERWGT*tripdist,na.rm=TRUE))
+
+pmt.per.person.age.group <-
+  pmt.age.group %>%
+  left_join(persons.age.group,by=c('age.group')) %>%
+  mutate(pmtpp=pmt/persons) %>%
+  select(-pmt,-persons)
+
+res.56.all <- res.56.all %>%
+  left_join(pmt.per.person.age.group,by=c('age.group'))
+```
+
+To get average person trip length, we compute the straight weighted
+mean of `tripdist`.
+
+```{r rt-t56-14}
+#Average Person Trip Length
+avg.person.trip.length.age.group <-
+  lt.age.group.trips %>% 
+  group_by(age.group) %>%
+  summarise(
+    avg.person.trip.length=wtd.mean(tripdist,
+                                    weights=EXPTCFPERWGT,
+                                    na.rm=TRUE))
+
+res.56 <- res.56.all %>%
+  left_join(avg.person.trip.length.age.group,by=c('age.group'))
+```
+
+Now we're ready to put it all together.
+
+```{r rt-t56-16}
+
+res.56.all <- res.56 %>%
+  filter(age.group!="NA") %>%  # remove youngest
+  transmute('Age Group'=age.group,
+            'Vehicle Trips per Driver'=`Vehicle Trips per Driver`,
+            'Pct Works Trip'=`Pct Work Trips`,
+            'Pct Non-Work Trips'=`Pct Non-Work Trips`,
+            'VMT per Driver'=vmt.per.driver,
+            'Average Trip Length'=avg.len,
+            'Average Trip Duration'=avg.dur,
+            'Person Trips per Person'=ptpp,
+            'Person Miles per Person'=pmtpp,
+            'Average Person Trip Length'=avg.person.trip.length)
+```
+
+In the next step, we generate pandoc-compatible formatted tables for
+each county.  We do this by looping over the counties (and state),
+filtering the main data frame for the relevant subset of data,
+manipulating it to match the requested format, then outputing the
+result.  The results are all concatenated into a single string, which
+we store.
+
+```{r rt-t56-format}
+res.56.trans <-
+  t(res.56.all) %>%
+  as.data.frame()
+
+# transpose the data to match the requested format
+names(res.56.trans) <- as.vector(t(res.56.all['Age Group']))
+
+# reorder cols
+res.56.trans <- res.56.trans[,c(4,3,1,2)]
+
+# remote the "age group" row (it's redundant)
+res.56.trans <- res.56.trans[-1,]
+
+res.56.str <-
+  pandoc.table.return(
+    res.56.trans,
+    caption="TABLE 56: Daily travel stats by age",
+    split.table=Inf,
+    split.cells=c(30,rep(10,4)),
+    justify=c('left',rep('right',4)),
+    style='multiline',
+    round=1,
+    big.mark = ",",
+    missing='&nsbp;'
+    )
+
+```
+
+```{r rt-t-56-results,results='asis',echo=FALSE,cache=FALSE}
+cat(res.56.str)
+res[["res.56"]] <- list()
+res[["res.56"]]$title  <- "TABLE 56: Daily travel stats by age"
+res[["res.56"]]$data <- res.56.all
+res[["res.56"]]$tabtxt <- res.56.str
+```
+
+
 # Writing Tables for Use with Other Programs
 
 We have saved the data for all tables in the `res` list.  Now we will
 write them all out to CSV files so they may be imported into other
 programs as needed.
 
-```{r rt-write-csv,cache=TRUE,warn=FALSE}
+```{r rt-write-csv,cache=FALSE,warn=FALSE}
 # Set CSV output dir
 csvout <- po("csv")
 for (tname in names(res)) {
@@ -3486,7 +4073,7 @@ for (tname in names(res)) {
 
 \fi
 
-```{r rt-dump-all,echo=FALSE,results='asis',cache=TRUE}
+```{r rt-dump-all,echo=FALSE,results='asis',cache=FALSE}
 cat(
   paste(
     lapply(

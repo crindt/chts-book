@@ -1,15 +1,27 @@
 ---
 title: "Data Request for Del Norte County"
 author: "Suman Mitra"
-date: "08/28/2015"
-output: html_document
+date: 'This version: `r (function() {f<-dir(); format(max(file.mtime(f[grepl("^.*\\.Rmd$",f)])), format="%B %d, %Y")})()`'
+output:
+  pdf_document:
+    keep_tex: yes
+    template: custom.latex
+fontfamily: inconsolata
+fontsize: 11pt
+geometry: margin=1in
+params:
+  documentclass: article
+  documentation: '`r if(exists("documentation")){documentation}else{documentation<-"false";documentation}`'
 ---
 
 ```{r dnc-setup-0,echo=FALSE,cache=FALSE}
-if ( !exists("rd") ) { rd <- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
+if ( !exists("rd") ) { rd <<- gsub("(.*?chts-book[^/]*).*$","\\1",getwd()) } 
 source(paste(rd,"R/setup-hooks.R",sep="/"))
 write(paste("Using Root Directory",rd,"\n"),stderr())
 ```
+# Question
+
+This question asked for the following information for Del Norte county:
 
 
 1. Trips by Mode
@@ -22,24 +34,60 @@ write(paste("Using Root Directory",rd,"\n"),stderr())
 # Summary and Methodology
 
 
-In this subsection We generate tables by mode for total number of trips,
+We generated weighted results for the request above. Our calculations
+used the place-level and activity-level datasets. To generate weighted
+results we first generated specific person-level weights for Del Norte
+County. We then appended these weights to the place-level and
+activity-level datasets. Weights were calculated by raking at the
+person level. These weights adjust the relative importance of
+responses to reflect the different probabilities of selecting
+respondents, and align sample distributions to population
+distributions, based on the 2010 Census. Variables used for raking at
+the person level are:
+
+* Hispanic Status (Hispanic, Non-Hispanic)---Del Norte County
+  distribution.
+
+* Ethnicity (White, African American, Asian, Other)---Del Norte County
+  distribution.
+
+* Age (less than 20 years, 20--24 years, 25--34 years, 35--54
+  years, 55--64 years, 65 years or older)---Del Norte County
+  distribution.
+
+* Employment Status (Part-time or full-time Employed, Not-employed) -
+  Del Norte County distribution Gender (Male, Female)---Del Norte
+  County distribution
+
+Following the raking procedure, very large weights were capped to be
+no more than five times mean weights. To check whether the new weights
+represent the total population of Del Norte County, we performed some
+random checks for different variables; results showed that the new
+weights align well with the population of Del Norte County. We then
+calculated the final new trip weights and used them to generate the
+weighted results that follow.
+
+We generated tables by mode for the following: total number of trips,
 total trip distance, average trip distance, total trip duration,
 average trip duration, and total number of trips for driving alone.
-To calculate the drive alone numbers we extract data for total
-travelers (`TOTTR=1`) and `MODE={5, 6, 7, 8, 10}` (i.e., drivers
-of cars, trucks, or motorcycles). We also generate tables for the
-total number of trips by trip purpose and for work trips by
-mode. More specifically, we generate tables for total number of trips by
-activity purpose since the trip purpose is given in the database as
-activity purpose and there is more than one activity in many single
-trips. We consider each activity as a trip and only consider the
-purpose code (`APURP=9`) for work trips.  We generate every table for
-both trips originating in and ending in Del Norte County. We use the
-new county wide weights for Del Norte County to generate weighted
-results for trips that originated in Del Norte County and statewide
-weights to generate weighted results for trips that originated outside
-of Del Norte County.
+To calculate the drive alone numbers we extracted data for total
+travelers \ifmydocumentation(`TOTTR=1`)\fi and drivers of cars,
+trucks, or motorcycles \ifmydocumentation(`MODE=5, 6, 7, 8,
+10`)\fi. We also generated tables for the total number of trips by
+trip purpose and for work trips by mode. Here, we actually generated
+tables for total number of trips by activity purpose since the trip
+purpose is given in the database as activity purpose and there is more
+than one activity in many single trips. We considered each activity as
+a trip. We only considered work/job duties
+\ifmydocumentation(`APURP=9`) \fi for work trips.  We generated every
+table for both trips originating in and ending in Del Norte County. We
+used the new weights for Del Norte County to generate weighted results
+for trips that originated in Del Norte County and statewide weights to
+generate weighted results for trips that originated outside of Del
+Norte County. R code (RStudio) to generate weights and the requested
+tables is given \ifmydocumentation below\else in the appendix DVD\fi.
 
+\ifmydocumentation
 
 # R Code and Implementation
 
@@ -62,7 +110,8 @@ setwd(pd("District 1/DelNorte County"))
 
 
 #Import the place level with new weight csv file and give a new name
-nplace<- read.csv(pd("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
+#nplace<- read.csv(pd("Weight/NewWeightData/nplacedata3032015.csv"), header=TRUE)
+nplace<- read.csv(pd("Weight/NewWeightData/nplacedata932015.csv"), header=TRUE) 
 names(nplace)
 head(nplace)# Show first ten observations
 
@@ -189,6 +238,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("Mode_15d.csv"),row.names=FALSE)
+mode.dnc.dest <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -246,6 +296,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("TripDUrm_D15.csv"),row.names=FALSE)
+dur.dnc.dest <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -302,6 +353,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("TripDistanceM_D15.csv"),row.names=FALSE)
+dist.dnc.dest <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -363,6 +415,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("Mode_15Ddrialn.csv"),row.names=FALSE)
+mode.da.dnc.dest <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -432,6 +485,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("Mode_15O.csv"),row.names=FALSE)
+mode.dnc.orig <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -488,6 +542,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("TripDUrm_O.csv"),row.names=FALSE)
+dur.dnc.orig <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -545,6 +600,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:7],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("TripDistanceM_O.csv"),row.names=FALSE)
+dist.dnc.orig <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -605,6 +661,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("Mode_15Odrialn.csv"),row.names=FALSE)
+mode.da.dnc.orig <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -732,6 +789,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("Actpur_15O.csv"),row.names=FALSE)
+apurp.dnc.orig <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -797,6 +855,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("Mode_wact15O.csv"),row.names=FALSE)
+dnc.mode.wact.orig <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -864,6 +923,7 @@ temp3<- rbind(temp3, c("Total", colSums(temp3[,2:5],na.rm = TRUE)))
 temp3
 ## Save as csv file
 write.csv(temp3,file=pto("Actpur_15D.csv"),row.names=FALSE)
+apurp.dnc.dest <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -915,6 +975,7 @@ temp3
 ```{r dnc-47,cache=TRUE}
 ## Save as csv file
 write.csv(temp3,file=pto("Mode_wact15D.csv"),row.names=FALSE)
+dnc.mode.wact.dest <- temp3
 rm(temp1)
 rm(temp2)
 rm(temp3)
@@ -947,3 +1008,301 @@ change the county fip nubmer everywhere in the R program.  Likewise,
 to generate tables for Lake and Mendocino county, We would change the
 county fip nubmer to 33 and 45 resepectively everywhere in the R
 program where the county fip number appears.
+
+\fi
+
+\newpage
+
+# Results
+
+```{r dnc-mode-code,echo=FALSE,results='asis'}
+mmap <- nplacedata %>%
+    group_by(MODE,Mode) %>% summarise(n=n())
+pandoc.table.double(
+    mmap %>%
+    select(Code=MODE,Mode),
+    caption="Mode Code",
+    justify=c('left','left'),
+    split.cells=Inf,
+    missing="&nbsp;")
+```
+
+\newpage
+
+```{r dnc-act-purp-code,echo=FALSE,results='asis'}
+amap <- act_place %>%
+    group_by(APURP,Actpur) %>% summarise(n=n())
+pandoc.table.double(
+    amap %>% select(Code=APURP,Purpose=Actpur),
+    caption="Activity Purpose Code",
+    justify=c('left','left'),
+    split.cells=c('10%','90%'),
+    split.table=100,
+  missing='&nbsp;')
+```
+
+\newpage
+
+```{r mode.dnc.orig,echo=FALSE,results='asis'}
+mode.dnc.orig <- mode.dnc.orig %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+  transmute(Mode=Mode,
+            'Observed Unweighted'=format(round(as.numeric(Ob_UW),0),big.mark=','),
+            'Observed Weighted'=format(round(as.numeric(Ob_W),0),big.mark=','),
+            'Percent Unweighted'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Percent Weighted'=format(round(as.numeric(Per_W),2),big.mark=','))
+#dnc.mode.orig2[,4:5] <- format(round(as.numeric(dnc.mode.orig2[,4:5]),2))
+pandoc.table(
+    mode.dnc.orig,
+    caption="Total number of trips originating in Del Norte County",
+    justify=c('left','right','right','right','right'),
+    split.tables=100,
+    split.cells=c('40%','15%','15%','15%','15%'),
+    big.mark=",",
+    emphasize.strong.rows=which(mode.dnc.orig$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+```{r mode.da.dnc.orig,echo=FALSE,results='asis'}
+mode.da.dnc.orig <- mode.da.dnc.orig %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(Observations_W))) %>%
+  transmute(Mode=Mode,
+            'Observed Unweighted'=format(round(as.numeric(Observations_UW),0),big.mark=','),
+            'Observed Weighted'=format(round(as.numeric(Observations_W),0),big.mark=','),
+            'Percent Unweighted'=format(round(as.numeric(Percent_UW),2),big.mark=','),
+            'Percent Weighted'=format(round(as.numeric(Percent_W),2),big.mark=','))
+pandoc.table(
+    mode.da.dnc.orig,
+    caption="Modal split (drive alone) of trips originating in Del Norte County",
+    justify=c('left','right','right','right','right'),
+    split.tables=100,
+    split.cells=c('40%','15%','15%','15%','15%'),
+    big.mark=",",
+    emphasize.strong.rows=which(mode.da.dnc.orig$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+\newpage
+
+```{r dist.dnc.orig,echo=FALSE,results='asis'}
+dist.dnc.orig <- dist.dnc.orig %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(TDis_W))) %>%
+  transmute('Mode'=Mode,
+            'Trip&nbsp;Dist UW'=format(round(as.numeric(TDis_UW),0),big.mark=','),
+            'Trip&nbsp;Dist W'=format(round(as.numeric(TDis_W),0),big.mark=','),
+            'Percent UW'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Percent W'=format(round(as.numeric(Per_W),2),big.mark=','),
+            'Avg Dist UW'=format(round(as.numeric(avg_uw),2),big.mark=','),
+            'Avg Dist W'=format(round(as.numeric(avg_w),2),big.mark=',')
+            )
+pandoc.table(
+    dist.dnc.orig,
+    caption="Trip distance (mi) by mode for trips originating in Del Norte County",
+    justify=c('left','right','right','right','right','right','right'),
+    split.tables=120,
+    split.cells=c('20%','15%','25%','10%','10%','10%','10%'),
+    big.mark=",",
+    emphasize.strong.rows=which(dist.dnc.orig$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+\newpage
+
+```{r dur.dnc.orig,echo=FALSE,results='asis'}
+dur.dnc.orig <- dur.dnc.orig %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(TDu_W))) %>%
+  transmute(Mode=Mode,
+            'Trip&nbsp;Dur UW'=format(round(as.numeric(TDu_UW),0),big.mark=','),
+            'Trip&nbsp;Dur W'=format(round(as.numeric(TDu_W),0),big.mark=','),
+            'Percent UW'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Percent W'=format(round(as.numeric(Per_W),2),big.mark=','),
+            'Avg Dur UW'=format(round(as.numeric(avg_uw),2),big.mark=','),
+            'Avg Dur W'=format(round(as.numeric(avg_w),2),big.mark=',')
+            )
+pandoc.table(
+    dur.dnc.orig,
+    caption="Trip duration (min) by mode for trips originating in Del Norte County",
+    justify=c('left','right','right','right','right','right','right'),
+    split.tables=120,
+    split.cells=c('20%','15%','25%','10%','10%','10%','10%'),
+    big.mark=",",
+    emphasize.strong.rows=which(dur.dnc.orig$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+\newpage
+
+```{r apurp.dnc.orig,echo=FALSE,results='asis'}
+apurp.dnc.orig <- apurp.dnc.orig %>%
+  arrange(ifelse(Actpur=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+  transmute('Activity Purpose'=Actpur,
+            'Obs UW'=format(round(as.numeric(Ob_UW),0),big.mark=','),
+            'Obs W'=format(round(as.numeric(Ob_W),0),big.mark=','),
+            'Pct UW'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Pct W'=format(round(as.numeric(Per_W),2),big.mark=',')
+            )
+pandoc.table(
+  apurp.dnc.orig,
+  caption="Total number of work trips (APURP=9) for trips originating in Del Norte County",
+  justify=c('left','right','right','right','right'),
+  split.tables=120,
+  split.cells=c('60%','10%','10%','10%','10%'),
+  big.mark=",",
+  emphasize.strong.rows=which(apurp.dnc.orig$'Activity Purpose'=='Total',arr.ind=TRUE)
+)
+```
+
+```{r dnc.mode.wact.orig,echo=FALSE,results='asis'}
+dnc.mode.wact.orig <- dnc.mode.wact.orig %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+  transmute(Mode=Mode,
+            'Obs UW'=format(round(as.numeric(Ob_UW),0),big.mark=','),
+            'Obs W'=format(round(as.numeric(Ob_W),0),big.mark=','),
+            'Pct UW'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Pct W'=format(round(as.numeric(Per_W),2),big.mark=',')
+            )
+pandoc.table(
+  dnc.mode.wact.orig,
+  caption="Total number of trips by activity purpose for trips originating in Del Norte County",
+  justify=c('left','right','right','right','right'),
+  split.tables=120,
+  split.cells=c('60%','10%','10%','10%','10%'),
+  big.mark=",",
+  emphasize.strong.rows=which(dnc.mode.wact.orig$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+
+<!-- Destinations --->
+
+\newpage
+
+```{r mode.dnc.dest,echo=FALSE,results='asis'}
+mode.dnc.dest <- mode.dnc.dest %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+  transmute(Mode=Mode,
+            'Observed Unweighted'=format(round(as.numeric(Ob_UW),0),big.mark=','),
+            'Observed Weighted'=format(round(as.numeric(Ob_W),0),big.mark=','),
+            'Percent Unweighted'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Percent Weighted'=format(round(as.numeric(Per_W),2),big.mark=','))
+#dnc.mode.dest2[,4:5] <- format(round(as.numeric(dnc.mode.dest2[,4:5]),2))
+pandoc.table(
+    mode.dnc.dest,
+    caption="Total number of trips ending in Del Norte County",
+    justify=c('left','right','right','right','right'),
+    split.tables=100,
+    split.cells=c('40%','15%','15%','15%','15%'),
+    big.mark=",",
+    emphasize.strong.rows=which(mode.dnc.dest$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+```{r mode.da.dnc.dest,echo=FALSE,results='asis'}
+mode.da.dnc.dest <- mode.da.dnc.dest %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+  transmute(Mode=Mode,
+            'Observed Unweighted'=format(round(as.numeric(Ob_UW),0),big.mark=','),
+            'Observed Weighted'=format(round(as.numeric(Ob_W),0),big.mark=','),
+            'Percent Unweighted'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Percent Weighted'=format(round(as.numeric(Per_W),2),big.mark=','))
+pandoc.table(
+    mode.da.dnc.dest,
+    caption="Modal split (drive alone) of trips ending in Del Norte County",
+    justify=c('left','right','right','right','right'),
+    split.tables=100,
+    split.cells=c('40%','15%','15%','15%','15%'),
+    big.mark=",",
+    emphasize.strong.rows=which(mode.da.dnc.dest$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+\newpage
+
+```{r dist.dnc.dest,echo=FALSE,results='asis'}
+dist.dnc.dest <- dist.dnc.dest %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(TDis_W))) %>%
+  transmute('Mode'=Mode,
+            'Trip&nbsp;Dist UW'=format(round(as.numeric(TDis_UW),0),big.mark=','),
+            'Trip&nbsp;Dist W'=format(round(as.numeric(TDis_W),0),big.mark=','),
+            'Percent UW'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Percent W'=format(round(as.numeric(Per_W),2),big.mark=','),
+            'Avg Dist UW'=format(round(as.numeric(avg_uw),2),big.mark=','),
+            'Avg Dist W'=format(round(as.numeric(avg_w),2),big.mark=',')
+            )
+pandoc.table(
+    dist.dnc.dest,
+    caption="Trip distance (mi) by mode for trips ending in Del Norte County",
+    justify=c('left','right','right','right','right','right','right'),
+    split.tables=120,
+    split.cells=c('20%','15%','25%','10%','10%','10%','10%'),
+    big.mark=",",
+    emphasize.strong.rows=which(dist.dnc.dest$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+\newpage
+
+```{r dur.dnc.dest,echo=FALSE,results='asis'}
+dur.dnc.dest <- dur.dnc.dest %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(TDu_W))) %>%
+  transmute(Mode=Mode,
+            'Trip&nbsp;Dur UW'=format(round(as.numeric(TDu_UW),0),big.mark=','),
+            'Trip&nbsp;Dur W'=format(round(as.numeric(TDu_W),0),big.mark=','),
+            'Percent UW'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Percent W'=format(round(as.numeric(Per_W),2),big.mark=','),
+            'Avg Dur UW'=format(round(as.numeric(avg_uw),2),big.mark=','),
+            'Avg Dur W'=format(round(as.numeric(avg_w),2),big.mark=',')
+            )
+pandoc.table(
+    dur.dnc.dest,
+    caption="Trip duration (min) by mode for trips ending in Del Norte County",
+    justify=c('left','right','right','right','right','right','right'),
+    split.tables=120,
+    split.cells=c('20%','15%','25%','10%','10%','10%','10%'),
+    big.mark=",",
+    emphasize.strong.rows=which(dur.dnc.dest$Mode=='Total',arr.ind=TRUE)
+)
+```
+
+\newpage
+
+```{r apurp.dnc.dest,echo=FALSE,results='asis'}
+apurp.dnc.dest <- apurp.dnc.dest %>%
+  arrange(ifelse(Actpur=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+  transmute('Activity Purpose'=Actpur,
+            'Obs UW'=format(round(as.numeric(Ob_UW),0),big.mark=','),
+            'Obs W'=format(round(as.numeric(Ob_W),0),big.mark=','),
+            'Pct UW'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Pct W'=format(round(as.numeric(Per_W),2),big.mark=',')
+            )
+pandoc.table(
+  apurp.dnc.dest,
+  caption="Total number of work trips (APURP=9) for trips ending in Del Norte County",
+  justify=c('left','right','right','right','right'),
+  split.tables=120,
+  split.cells=c('60%','10%','10%','10%','10%'),
+  big.mark=",",
+  emphasize.strong.rows=which(apurp.dnc.dest$'Activity Purpose'=='Total',arr.ind=TRUE)
+)
+```
+
+```{r dnc.mode.wact.dest,echo=FALSE,results='asis'}
+dnc.mode.wact.dest <- dnc.mode.wact.dest %>%
+  arrange(ifelse(Mode=="Total",1,0),desc(as.numeric(Ob_W))) %>%
+  transmute(Mode=Mode,
+            'Obs UW'=format(round(as.numeric(Ob_UW),0),big.mark=','),
+            'Obs W'=format(round(as.numeric(Ob_W),0),big.mark=','),
+            'Pct UW'=format(round(as.numeric(Per_UW),2),big.mark=','),
+            'Pct W'=format(round(as.numeric(Per_W),2),big.mark=',')
+            )
+pandoc.table(
+  dnc.mode.wact.dest,
+  caption="Total number of trips by activity purpose for trips ending in Del Norte County",
+  justify=c('left','right','right','right','right'),
+  split.tables=120,
+  split.cells=c('60%','10%','10%','10%','10%'),
+  big.mark=",",
+  emphasize.strong.rows=which(dnc.mode.wact.dest$Mode=='Total',arr.ind=TRUE)
+)
+```
+
